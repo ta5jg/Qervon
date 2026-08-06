@@ -1,0 +1,140 @@
+managed_by: URSL CLI
+manifest_version: 3
+profile: eclipse-dominion
+profile_name: Eclipse Dominion
+agents: [claude, codex, cursor]
+ides: [vscode, rustrover, abacusai]
+sources:
+  - ../policies/always.md
+  - ../policies/never.md
+  - ../policies/preferred.md
+  - ../policies/forbidden.md
+  - ../project-profiles/eclipse-dominion/RULES.md
+  - ../rules/rust/core-rules.md
+  - ../rules/wgsl/core-rules.md
+  - ../rules/rendering/core-rules.md
+  - ../rules/game-development/game-design-pillars.md
+  - ../rules/game-development/economy-balance.md
+  - ../rules/game-development/multiplayer-authority.md
+  - ../rules/game-development/network-reconciliation.md
+  - ../rules/game-development/save-game-integrity.md
+  - ../rules/game-development/anti-cheat.md
+  - ../rules/game-development/performance-budgets.md
+  - ../rules/game-development/accessibility.md
+  - ../rules/game-development/telemetry-privacy.md
+  - ../skills/review-rust/SKILL.md
+  - ../skills/review-wgsl/SKILL.md
+  - ../skills/review-rendering/SKILL.md
+  - ../skills/perform-game-security-assessment/SKILL.md
+  - ../skills/audit-anti-cheat/SKILL.md
+  - ../skills/perform-supply-chain-assessment/SKILL.md
+  - ../playbooks/game-zero-to-production/PLAYBOOK.md
+  - ../prompts/master/game-zero-to-production.md
+source_fingerprints:
+  - path: ../policies/always.md
+    hash: fnv1a64:c3eb3fa80c22932c
+  - path: ../policies/never.md
+    hash: fnv1a64:f06828a247115259
+  - path: ../policies/preferred.md
+    hash: fnv1a64:fae824c63864a5ca
+  - path: ../policies/forbidden.md
+    hash: fnv1a64:df9c3bb13ab249c9
+  - path: ../project-profiles/eclipse-dominion/RULES.md
+    hash: fnv1a64:2c4b11786238b4b1
+  - path: ../rules/rust/core-rules.md
+    hash: fnv1a64:2f052850ed5c0382
+  - path: ../rules/wgsl/core-rules.md
+    hash: fnv1a64:944deebca563b4a2
+  - path: ../rules/rendering/core-rules.md
+    hash: fnv1a64:d16dba8044488c6c
+  - path: ../rules/game-development/game-design-pillars.md
+    hash: fnv1a64:50351805ca645f6e
+  - path: ../rules/game-development/economy-balance.md
+    hash: fnv1a64:e88b299a629d18e0
+  - path: ../rules/game-development/multiplayer-authority.md
+    hash: fnv1a64:75c18de0c51597e1
+  - path: ../rules/game-development/network-reconciliation.md
+    hash: fnv1a64:dae7e8430e5380a5
+  - path: ../rules/game-development/save-game-integrity.md
+    hash: fnv1a64:240e3a98e486a754
+  - path: ../rules/game-development/anti-cheat.md
+    hash: fnv1a64:976a83fb3f780420
+  - path: ../rules/game-development/performance-budgets.md
+    hash: fnv1a64:e8981f820984cf67
+  - path: ../rules/game-development/accessibility.md
+    hash: fnv1a64:3be6bdfa3e697886
+  - path: ../rules/game-development/telemetry-privacy.md
+    hash: fnv1a64:a87f74429ccc7cf5
+  - path: ../skills/review-rust/SKILL.md
+    hash: fnv1a64:586a40824ea1bb3d
+  - path: ../skills/review-wgsl/SKILL.md
+    hash: fnv1a64:7b7222cd2c4cc129
+  - path: ../skills/review-rendering/SKILL.md
+    hash: fnv1a64:7125a2edc996fcdc
+  - path: ../skills/perform-game-security-assessment/SKILL.md
+    hash: fnv1a64:b77aa9a30fb34724
+  - path: ../skills/audit-anti-cheat/SKILL.md
+    hash: fnv1a64:6f4f71f44f44eb34
+  - path: ../skills/perform-supply-chain-assessment/SKILL.md
+    hash: fnv1a64:1f6cab0e8a6f37ed
+  - path: ../playbooks/game-zero-to-production/PLAYBOOK.md
+    hash: fnv1a64:acd629f387fbbe42
+  - path: ../prompts/master/game-zero-to-production.md
+    hash: fnv1a64:8ffc0f6248aec0ca
+managed_files:
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/review-rust/SKILL.md
+    hash: fnv1a64:9e205275f503140e
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/review-wgsl/SKILL.md
+    hash: fnv1a64:9018a18e005937bb
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/review-rendering/SKILL.md
+    hash: fnv1a64:bc653fefad38b3b9
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/perform-game-security-assessment/SKILL.md
+    hash: fnv1a64:c465d477990e7871
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/audit-anti-cheat/SKILL.md
+    hash: fnv1a64:9e2d4a61943b3920
+  - path: /Users/irfangedik/eclipse-dominion/.claude/skills/perform-supply-chain-assessment/SKILL.md
+    hash: fnv1a64:e3307ec06b3209fb
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/review-rust/SKILL.md
+    hash: fnv1a64:9e205275f503140e
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/review-wgsl/SKILL.md
+    hash: fnv1a64:9018a18e005937bb
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/review-rendering/SKILL.md
+    hash: fnv1a64:bc653fefad38b3b9
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/perform-game-security-assessment/SKILL.md
+    hash: fnv1a64:c465d477990e7871
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/audit-anti-cheat/SKILL.md
+    hash: fnv1a64:9e2d4a61943b3920
+  - path: /Users/irfangedik/eclipse-dominion/.codex/skills/perform-supply-chain-assessment/SKILL.md
+    hash: fnv1a64:e3307ec06b3209fb
+  - path: /Users/irfangedik/eclipse-dominion/.cursor/rules/ursl-eclipse-dominion.mdc
+    hash: fnv1a64:e38b87ba1068cfa3
+  - path: /Users/irfangedik/eclipse-dominion/.cursor/prompts/ursl-master.md
+    hash: fnv1a64:8ffc0f6248aec0ca
+  - path: /Users/irfangedik/eclipse-dominion/.github/instructions/ursl-eclipse-dominion.instructions.md
+    hash: fnv1a64:e14d3f0bb57e0a82
+  - path: /Users/irfangedik/eclipse-dominion/.aiassistant/rules/ursl-eclipse-dominion.md
+    hash: fnv1a64:56a26d4f597cff45
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/review-rust/SKILL.md
+    hash: fnv1a64:9e205275f503140e
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/review-rust/SKILL.md
+    hash: fnv1a64:9e205275f503140e
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/review-wgsl/SKILL.md
+    hash: fnv1a64:9018a18e005937bb
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/review-wgsl/SKILL.md
+    hash: fnv1a64:9018a18e005937bb
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/review-rendering/SKILL.md
+    hash: fnv1a64:bc653fefad38b3b9
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/review-rendering/SKILL.md
+    hash: fnv1a64:bc653fefad38b3b9
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/perform-game-security-assessment/SKILL.md
+    hash: fnv1a64:c465d477990e7871
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/perform-game-security-assessment/SKILL.md
+    hash: fnv1a64:c465d477990e7871
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/audit-anti-cheat/SKILL.md
+    hash: fnv1a64:9e2d4a61943b3920
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/audit-anti-cheat/SKILL.md
+    hash: fnv1a64:9e2d4a61943b3920
+  - path: /Users/irfangedik/eclipse-dominion/.abacusai/skills/perform-supply-chain-assessment/SKILL.md
+    hash: fnv1a64:e3307ec06b3209fb
+  - path: /Users/irfangedik/eclipse-dominion/.agents/skills/perform-supply-chain-assessment/SKILL.md
+    hash: fnv1a64:e3307ec06b3209fb

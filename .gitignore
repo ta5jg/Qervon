@@ -1,0 +1,49 @@
+# ==============================================================================
+# File:           .gitignore
+# Project:        Qervon
+# Author:         USDTG GROUP TECHNOLOGY LLC
+# Developer:      Irfan Gedik
+# Created Date:   2026-08-05
+# Version:        0.1.0
+#
+# Description:
+#   Governs which files are excluded from version control.
+#
+# License:
+#   Qervon License v1.0 — see LICENSE in the repository root.
+# ==============================================================================
+
+# macOS
+.DS_Store
+
+# Environment files (keep examples only)
+.env
+.env.*
+!.env.example
+
+# Rust / Cargo build artifacts
+target/
+**/target/
+
+# Node / Web build artifacts
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Android / Gradle build artifacts
+.gradle/
+build/
+*.apk
+*.aab
+local.properties
+
+# iOS / Xcode user state
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Local machine-specific agent settings
+.claude/settings.local.json
+
+# Accidental Finder duplicates
+.github copy/

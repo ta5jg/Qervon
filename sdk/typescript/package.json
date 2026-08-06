@@ -1,0 +1,13 @@
+{
+  "_qervon_file_header": {
+    "file": "sdk/typescript/package.json",
+    "project": "Qervon",
+    "author": "USDTG GROUP TECHNOLOGY LLC",
+    "developer": "Irfan Gedik",
+    "created_date": "2026-08-05",
+    "version": "0.1.0",
+    "description": "Defines part of a platform SDK for integrating with Qervon services.",
+    "specification": "QMI-000000 and applicable Qervon specifications.",
+    "license": "Qervon License v1.0 — see LICENSE in the repository root."
+  }
+}

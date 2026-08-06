@@ -1,0 +1,405 @@
+---
+Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
+
+**PDF 1 özeti:**
+— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
+
+**PDF 2 özeti:**
+Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
+
+*Bu kısım otomatik olarak oluşturulmuştur.*
+---
+
+## PDF Belgelerinden Gelen Özet
+
+— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
+uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
+Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
+Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
+(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
+Ben olsam sistemi 5 ana parçaya ayırırım.
+1. Yönetim Paneli (Admin)
+Burası şirketin beyni olacak.
+Dashboard
+•
+Anlık sipariş sayısı
+•
+Online kurye sayısı
+•
+Bekleyen teslimatlar
+•
+Günlük gelir
+•
+Haftalık gelir
+•
+Aylık gelir
+•
+Aktif müşteriler
+•
+Isı haritası
+•
+Canlı harita
+Sipariş Yönetimi
+•
+Yeni Sipariş
+•
+Bekleyen
+•
+Kurye Atanacak
+•
+Kurye Yolda
+•
+Teslim Edildi
+•
+İptal
+•
+İade
+Filtreleme
+•
+Tarih
+•
+Kurye
+•
+Bölge
+•
+Firma
+•
+Durum
+Kurye Yönetimi
+Her kurye için
+•
+Profil
+Sayfa  / 
+1
+67
+•
+Fotoğraf
+•
+Kimlik
+•
+Ehliyet
+•
+Araç Bilgisi
+•
+Motor/Bisiklet/Otomobil
+•
+Plaka
+•
+Sigorta
+Canlı
+•
+Konumu
+•
+Hızı
+•
+Batarya
+•
+Son Görülme
+•
+Günlük teslimat
+•
+Performans
+Firma Yönetimi
+Şirketler
+Market
+Restoran
+Eczane
+Kargo
+Mağaza
+Kurye firmaları
+Müşteri Yönetimi
+•
+Profil
+•
+Adresler
+•
+Favoriler
+•
+Geçmiş Siparişler
+•
+Puan
+•
+Şikayetler
+Finans
+•
+Tahsilatlar
+•
+Kurye Hakedişleri
+•
+Komisyonlar
+•
+Primler
+•
+Cezalar
+•
+İadeler
+Sayfa  / 
+2
+67
+Kampanyalar
+Kupon
+İndirim
+Promosyon
+Referans
+Sadakat
+Bildirim Merkezi
+SMS
+Push
+WhatsApp
+Mail
+Toplu Bildirim
+Raporlar
+Kurye Performansı
+Gelir
+Harita
+Yoğunluk
+Teslim Süresi
+Yetkilendirme
+Rol sistemi
+Admin
+Operator
+Muhasebe
+Çağrı Merkezi
+Bölge Müdürü
+Sayfa  / 
+3
+67
+Super Admin
+2. Web Müşteri Paneli
+Kurumsal müşteriler için.
+Sipariş oluşturma
+Adres defteri
+Toplu sipariş
+Excel yükleme
+Takip ekranı
+Canlı harita
+Teslim geçmişi
+Fatura
+Raporlar
+API anahtarları
+Webhook yönetimi
+3. Mobil Müşteri Uygulaması
+Android
+iPhone
+Ana ekran
+Yeni Kurye Çağır
+Haritada Konum
+Yakındaki Kurye
+Tahmini Süre
+Sipariş
+Alım Adresi
+Sayfa  / 
+4
+67
+Teslim Adresi
+Fotoğraf
+Not
+Telefon
+Teslimat tipi
+Ödeme
+Kart
+Nakit
+QR
+Cüzdan
+Canlı Takip
+Harita
+Kurye Nerede
+ETA
+Bildirimler
+Geçmiş
+Tekrar Sipariş
+Favoriler
+4. Kurye Mobil
+Bu uygulama çok kritik.
+Giriş
+Telefon
+OTP
+Biometrik
+Sayfa  / 
+5
+67
+Online / Offline
+Tek tuş
+Yeni İş
+Bildirim
+Reddet
+Kabul Et
+Navigasyon
+Google Maps
+Apple Maps
+Yandex
+Teslim Alma
+QR
+Barkod
+Fotoğraf
+İmza
+Teslim
+Fotoğraf
+İmza
+PIN
+QR
+Kazanç
+Bugün
+Hafta
+Ay
+İstatistik
+Sayfa  / 
+6
+67
+Puan
+Performans
+Teslim
+Mesafe
+5. API
+REST
+GraphQL
+WebSocket
+Webhook
+SDK
+Canlı Harita
+En önemli bölüm.
+Gösterilecekler
+Tüm kuryeler
+Online
+Offline
+Siparişler
+Yoğunluk
+Isı Haritası
+Gerçek Zamanlı
+WebSocket
+Socket.io
+Redis Pub/Sub
+Kafka (çok büyük sistemlerde)
+Sayfa  / 
+7
+67
+Bildirimler
+Firebase Push
+APNs
+SMS
+WhatsApp
+Mail
+Yapay Zeka
+Bence en büyük fark burada olmalı.
+AI Dispatcher
+En uygun kuryeyi otomatik seçer.
+AI ETA
+Trafik
+Yağmur
+Yoğunluk
+Motor tipi
+Teslim süresini hesaplar.
+AI Route
+Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
+AI Fraud Detection
+Sahte teslimat
+Konum sahtecili
+
+---
+
+---
+name: review-slg-liveops-economy
+description: Apply the SLG Economy and LiveOps Review workflow to any change touching queues, timers, progression, hero acquisition, alliances, or monetization; use it before proposing or validating a change.
+---
+
+# SLG Economy and LiveOps Review
+
+Eclipse Dominion's target format (`GAME_CONCEPT.md`, `ROADMAP.md`, as of
+2026-07-31) is a persistent, live-operated SLG in the Dark War class. In this
+genre the retention mechanism and the monetization mechanism are the same
+mechanism (`MONETIZATION.md`). This skill is the gate for whether an economy or
+LiveOps change actually serves that model, and whether it earns its place
+against genre incumbents rather than merely copying them — `GAME_CONCEPT.md`
+explicitly lists "clone perception" as a thing to avoid.
+
+## Procedure
+
+1. **Fairness rules as code, not copy.** For any change touching combat odds,
+   randomised acquisition (hero summons), pricing, ranked standings, or defeat
+   consequences, verify the relevant fairness rule from `MONETIZATION.md` is
+   enforced in the rules engine and asserted as a `scripts/simulate.js`
+   invariant — not merely stated in a document or UI label:
+   - Combat maths and odds are computed and shown before commitment, not
+     revealed only after.
+   - Randomised-purchase odds are disclosed in-client at the point of
+     purchase, not in a separate document.
+   - Pricing is legible: no layered/chained currencies whose function is to
+     obscure real-money cost.
+   - Ranked competition is bracketed so a non-paying account is not
+     permanently ranked against maximum-spend accounts.
+   - Defeat is costly but leaves a recoverable floor for a non-payer — verify
+     the floor exists as a rule, not as an intention.
+   - Spend limits / self-exclusion are reachable in-client where purchases
+     exist.
+2. **Return triggers are engineered, not assumed.** Every mechanism in
+   `MONETIZATION.md`'s return-trigger table (queue completion, energy
+   regeneration, alliance obligation, attack-risk/shield expiry, timed events)
+   that a change touches must produce a genuine reason to return within the
+   same day — check the actual timer/threshold values against the stated
+   target (6-12 sessions/day, 40-90 minutes/day from short visits), not a
+   single long-sitting design.
+3. **Permanent progression discipline.** Confirm a change respects "remove the
+   full-account reset; the world and the account persist" (`ROADMAP.md` Phase
+   3) — no code path should silently wipe or reset base level, hero roster,
+   research, or territory outside an explicitly designed and disclosed
+   mechanic (e.g., a declared ranked-season reset over a persistent account).
+4. **Real loss without ruin.** For any change to combat resolution or raid
+   outcomes, confirm losses are real (troops, resources, holdings at genuine
+   risk) and simultaneously confirm the recoverable-floor rule from point 1
+   still holds after the change — these two properties must both be true at
+   once, not traded off against each other.
+5. **Alliance obligation, not alliance decoration.** For any alliance-facing
+   feature, confirm it creates genuine reciprocal obligation (shared
+   objectives, help requests, reinforcement, alliance war) rather than a
+   cosmetic social layer — `ROADMAP.md` Phase 4 is explicit that this is the
+   retention mechanism, not a social feature.
+6. **Differentiation check.** For a new genre-standard mechanic (timer, gacha,
+   battle pass, alliance war), require a one-line answer to "what does this do
+   that a Dark War/Last War clone would not, or what fairness guarantee does
+   this enforce in code that they only claim in marketing?" A mechanic that
+   cannot answer this is not blocked, but must be flagged as clone-risk per
+   `GAME_CONCEPT.md`'s explicit avoid-list.
+7. **Metrics are instrumented, not aspirational.** If a change is justified by
+   a retention or monetization target from `MONETIZATION.md`'s metrics table
+   (D1/D7/D30, payer conversion, LTV/CPI), confirm there is an actual
+   measurement path (event, log, harness assertion) rather than a claim that
+   the design "should" hit the number.
+
+## Required Verification
+
+```bash
+node scripts/simulate.js
+```
+
+Extend or point to the specific invariants in `scripts/simulate.js` that assert
+the fairness rules above; a fairness rule with no harness assertion is a
+promise not yet kept, per `MONETIZATION.md`'s own standard.
+
+## Completion Gate
+
+Do not report a review as clean while a fairness rule lacks a harness
+assertion, a return-trigger change lacks a stated session-count/time rationale,
+a progression change risks a silent full reset, a loss/recovery change breaks
+either "real loss" or "recoverable floor," or a new genre-standard mechanic has
+no stated differentiation and no clone-risk flag.
+
+## Trigger
+
+Use **SLG Economy and LiveOps Review** for any change to queues/timers, hero
+acquisition, pricing, ranked standings, alliance mechanics, or any design
+change justified by a retention/monetization metric.
+
+## Scope Boundary
+
+This skill evaluates economic and retention design against `MONETIZATION.md`
+and `ROADMAP.md`. It does not evaluate content schema or client security —
+route those to **Content Pipeline Review** and **Web Client Review**. It does
+not replace **Perform Game Security Assessment** for server-authority questions
+once Phase 4 exists.
+
+## Deliverable
+
+An SLG Economy and LiveOps Review finding set with scope, severity or
+priority, affected fairness rule or retention mechanism, evidence, minimal
+remediation, and verification status (including which harness invariant
+confirms it).

@@ -1,0 +1,13 @@
+{
+  "_qervon_file_header": {
+    "file": "infrastructure/observability/grafana/dashboards/platform.json",
+    "project": "Qervon",
+    "author": "USDTG GROUP TECHNOLOGY LLC",
+    "developer": "Irfan Gedik",
+    "created_date": "2026-08-05",
+    "version": "0.1.0",
+    "description": "Defines observability configuration for the Qervon platform.",
+    "specification": "QAS-000012, QAS-000013, QAS-000014, QAS-000015, QES-000010.",
+    "license": "Qervon License v1.0 — see LICENSE in the repository root."
+  }
+}

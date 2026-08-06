@@ -1,0 +1,80 @@
+# ==============================================================================
+# File:           docs/api/permissions.yaml
+# Project:        Qervon
+# Author:         USDTG GROUP TECHNOLOGY LLC
+# Developer:      Irfan Gedik
+# Created Date:   2026-08-05
+# Version:        0.1.0
+#
+# Description:
+#   Defines API governance, contracts, or integration guidance for Qervon.
+#
+# Specification:
+#   QMI-000000 and applicable Qervon specifications.
+#
+# License:
+#   Qervon License v1.0 — see LICENSE in the repository root.
+# ==============================================================================
+# API Permissions Definition
+# This file enumerates the permission actions used across the Qervon API.
+# Each permission includes a description and the roles authorized to perform it.
+# Roles are defined in the system's RBAC configuration.
+
+permissions:
+  delivery:
+    - name: create_order
+      description: Allows creating a new delivery order.
+      roles: [admin, operator, customer]
+    - name: view_order
+      description: View details of an existing order.
+      roles: [admin, operator, customer, support]
+    - name: update_order_status
+      description: Update the status of an order (e.g., assigned, en route, delivered).
+      roles: [admin, operator, courier]
+  fleet:
+    - name: add_vehicle
+      description: Register a new vehicle in the fleet.
+      roles: [admin, fleet_manager]
+    - name: update_vehicle
+      description: Update vehicle details such as status or location.
+      roles: [admin, fleet_manager]
+    - name: view_vehicle
+      description: View vehicle information.
+      roles: [admin, fleet_manager, operator]
+  warehouse:
+    - name: manage_inventory
+      description: Add, remove, or adjust inventory items.
+      roles: [admin, warehouse_manager]
+    - name: view_inventory
+      description: View current inventory levels.
+      roles: [admin, warehouse_manager, operator]
+  dispatch:
+    - name: assign_courier
+      description: Assign a courier to a delivery task.
+      roles: [admin, dispatcher]
+    - name: view_dispatch_board
+      description: View the real‑time dispatch board.
+      roles: [admin, dispatcher, operator]
+  field_service:
+    - name: schedule_service
+      description: Schedule a field service visit.
+      roles: [admin, service_manager]
+    - name: view_service_requests
+      description: View pending service requests.
+      roles: [admin, service_manager, technician]
+  retail:
+    - name: create_product
+      description: Add a new product to the retail catalog.
+      roles: [admin, retailer]
+    - name: view_product
+      description: View product details.
+      roles: [admin, retailer, customer]
+  medical_logistics:
+    - name: record_medication_delivery
+      description: Record delivery of medical supplies.
+      roles: [admin, medical_staff]
+    - name: view_medical_reports
+      description: View reports on medical logistics.
+      roles: [admin, medical_staff, compliance]
+
+# End of permissions file

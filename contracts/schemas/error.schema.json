@@ -1,0 +1,13 @@
+{
+  "_qervon_file_header": {
+    "file": "contracts/schemas/error.schema.json",
+    "project": "Qervon",
+    "author": "USDTG GROUP TECHNOLOGY LLC",
+    "developer": "Irfan Gedik",
+    "created_date": "2026-08-05",
+    "version": "0.1.0",
+    "description": "Defines a reusable JSON schema for Qervon platform contracts.",
+    "specification": "QAS-000003, QAS-000005, QES-000009.",
+    "license": "Qervon License v1.0 — see LICENSE in the repository root."
+  }
+}
