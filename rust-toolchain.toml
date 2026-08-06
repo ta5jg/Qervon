@@ -7,11 +7,13 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines a governed component of the Qervon platform repository.
-#
-# Specification:
-#   QMI-000000 and applicable Qervon specifications.
+#   Pins the Rust toolchain for reproducible Qervon builds.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[toolchain]
+channel = "stable"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

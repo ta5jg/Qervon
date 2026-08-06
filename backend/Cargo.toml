@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Rust workspace for the Qervon backend (modular monolith).
 #
 # Specification:
 #   QAS-000001 through QAS-000006, QES-000002, QES-000006.
@@ -15,3 +15,41 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[workspace]
+resolver = "2"
+members = [
+    "apps/api-gateway",
+    "apps/migration-runner",
+    "crates/api-contracts",
+    "crates/application",
+    "crates/domain",
+    "crates/infrastructure",
+    "crates/test-support",
+    "modules/couriers",
+    "modules/dispatch",
+    "modules/orders",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+authors = ["USDTG GROUP TECHNOLOGY LLC", "Irfan Gedik"]
+license = "LicenseRef-Qervon-v1.0"
+
+[workspace.dependencies]
+async-trait = "0.1"
+axum = "0.8"
+chrono = { version = "0.4", features = ["serde"] }
+http-body-util = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono", "migrate", "json"] }
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tower = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["v7", "serde"] }

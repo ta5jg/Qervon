@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon application kernel crate (use cases / services).
 #
 # Specification:
 #   QAS-000001 through QAS-000006, QES-000002, QES-000006.
@@ -15,3 +15,21 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-application"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+qervon-domain = { path = "../domain" }
+thiserror = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+qervon-infrastructure = { path = "../infrastructure" }
+qervon-test-support = { path = "../test-support" }
+tokio = { workspace = true }

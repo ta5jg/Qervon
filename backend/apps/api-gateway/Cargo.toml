@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon API Gateway executable.
 #
 # Specification:
 #   QAS-000001 through QAS-000006, QES-000002, QES-000006.
@@ -15,3 +15,33 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-api-gateway"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "qervon-api-gateway"
+path = "src/main.rs"
+
+[dependencies]
+axum = { workspace = true }
+qervon-api-contracts = { path = "../../crates/api-contracts" }
+qervon-application = { path = "../../crates/application" }
+qervon-couriers-module = { path = "../../modules/couriers" }
+qervon-dispatch-module = { path = "../../modules/dispatch" }
+qervon-domain = { path = "../../crates/domain" }
+qervon-infrastructure = { path = "../../crates/infrastructure" }
+qervon-orders-module = { path = "../../modules/orders" }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+http-body-util = { workspace = true }
+tower = { workspace = true }

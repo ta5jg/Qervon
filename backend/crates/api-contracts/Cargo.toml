@@ -7,11 +7,24 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon API contracts kernel crate (wire DTOs).
 #
 # Specification:
-#   QAS-000001 through QAS-000006, QES-000002, QES-000006.
+#   QAS-000005, QES-000002, QES-000006.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-api-contracts"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+qervon-domain = { path = "../domain" }
+serde = { workspace = true }
+uuid = { workspace = true }

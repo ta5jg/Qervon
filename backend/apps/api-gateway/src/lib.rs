@@ -1,5 +1,5 @@
 // =============================================================================
-// File:           backend/crates/infrastructure/src/lib.rs
+// File:           backend/apps/api-gateway/src/lib.rs
 // Project:        Qervon
 // Author:         USDTG GROUP TECHNOLOGY LLC
 // Developer:      Irfan Gedik
@@ -7,8 +7,7 @@
 // Version:        0.1.0
 //
 // Description:
-//   Qervon infrastructure kernel: concrete adapters for domain repository ports.
-//   Provides in-memory adapters for tests/dev and Postgres adapters for runtime.
+//   Qervon API Gateway library surface (router, handlers, state).
 //
 // Specification:
 //   QAS-000001 through QAS-000006, QES-000002, QES-000006.
@@ -17,7 +16,6 @@
 //   Qervon License v1.0 — see LICENSE in the repository root.
 // =============================================================================
 
-pub mod memory;
-pub mod postgres;
-
-pub use memory::InMemoryStore;
+pub mod api_error;
+pub mod http;
+pub mod state;

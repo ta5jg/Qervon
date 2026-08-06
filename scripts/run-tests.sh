@@ -9,13 +9,19 @@
 # Version:        0.1.0
 #
 # Description:
-#   Provides repository automation for Qervon engineering workflows.
+#   Runs the Qervon backend test suite (unit + integration).
 #
 # Specification:
-#   QMI-000000 and applicable Qervon Engineering Standards.
+#   QMI-000000, QAS-000001 through QAS-000006, QES-000002, QES-000006.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
 
 set -eu
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+cd "$ROOT/backend"
+
+cargo test --workspace --all-targets
