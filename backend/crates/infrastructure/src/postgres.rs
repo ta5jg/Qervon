@@ -215,7 +215,11 @@ impl CourierRepository for PgCourierRepository {
             None => query.bind(None::<f64>).bind(None::<f64>),
         };
         query = query.bind(courier.registered_at);
-        query.execute(&self.pool).await.map(|_| ()).map_err(map_db_error)
+        query
+            .execute(&self.pool)
+            .await
+            .map(|_| ())
+            .map_err(map_db_error)
     }
 
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Courier>, DomainError> {

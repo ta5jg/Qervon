@@ -33,9 +33,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     let database_url = std::env::var("DATABASE_URL").map_err(|_| "DATABASE_URL is required")?;
-    let migrations_dir = std::env::var("MIGRATIONS_DIR").map(PathBuf::from).unwrap_or_else(
-        |_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../migrations"),
-    );
+    let migrations_dir = std::env::var("MIGRATIONS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../migrations"));
 
     let pool = PgPoolOptions::new().connect(&database_url).await?;
     let applied = run_migrations(&pool, Path::new(&migrations_dir)).await?;
