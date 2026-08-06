@@ -3,15 +3,63 @@
 # Project:        Qervon
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
-# Created Date:   2026-08-05
+# Created Date:   2026-08-06
 # Version:        0.1.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Runs the Qervon backend gates: formatting, clippy, and the full test suite.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QAS-000001 through QAS-000006, QES-000002, QES-000006.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "scripts/**"
+      - "rust-toolchain.toml"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "scripts/**"
+      - "rust-toolchain.toml"
+      - ".github/workflows/backend.yml"
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Format
+        working-directory: backend
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        working-directory: backend
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        working-directory: backend
+        run: cargo test --workspace --all-targets
