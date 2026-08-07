@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Rust workspace for the Qervon foundation layer.
 #
 # Specification:
 #   QMI-000000, QFS, QAS-000010, and applicable QES documents.
@@ -15,3 +15,16 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/events",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.90"
+authors = ["USDTG GROUP TECHNOLOGY LLC", "Irfan Gedik"]
+license = "LicenseRef-Qervon-v1.0"

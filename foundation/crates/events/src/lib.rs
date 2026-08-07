@@ -7,11 +7,30 @@
  * Version:        0.1.0
  *
  * Description:
- *   Defines the public module boundary for the Qervon Events foundation crate.
+ *   Qervon Events foundation crate: domain event envelope, bus abstraction,
+ *   concrete event types, and an in-memory bus for testing.
  *
  * Specification:
- *   QMI-000000, QFS, QAS-000010, and applicable QES documents.
+ *   QAS-000003, QFS-000003, QES-000002, QES-000006.
  *
  * License:
  *   Qervon License v1.0 — see LICENSE in the repository root.
  * ============================================================================= */
+
+pub mod event;
+
+pub use event::{
+    // Core abstractions
+    EventBus,
+    EventBusError,
+    EventEnvelope,
+    // Concrete events
+    CourierAssigned,
+    CourierLocationUpdated,
+    InvoiceIssued,
+    NotificationSent,
+    OrderCreated,
+    OrderDelivered,
+    // In-memory adapter
+    InMemoryEventBus,
+};

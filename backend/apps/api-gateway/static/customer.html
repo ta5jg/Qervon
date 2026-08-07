@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qervon Müşteri Portal — Kurye Çağır & Takip Et</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+
+  <style>
+    :root {
+      --bg-main: #060913;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(56, 189, 248, 0.3);
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent-purple: #a855f7;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 260px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #10b981, #0284c7);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+    .brand-text { font-size: 18px; font-weight: 800; background: linear-gradient(to right, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .brand-tag { font-size: 9px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    .nav-group { margin-bottom: 20px; }
+    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.8px; margin-bottom: 8px; padding-left: 8px; }
+
+    .nav-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; border-radius: 10px;
+      color: var(--text-muted); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s ease; margin-bottom: 4px;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: rgba(16, 185, 129, 0.1); color: var(--accent-emerald);
+      border: 1px solid rgba(16, 185, 129, 0.3); box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    }
+    .nav-item i { width: 18px; height: 18px; }
+
+    /* Main Area */
+    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    .header-bar {
+      padding: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .metric-card { padding: 14px 18px; border-radius: 14px; position: relative; overflow: hidden; }
+    .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--accent-emerald), var(--primary)); }
+    .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .metric-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    .metric-value { font-size: 22px; font-weight: 800; }
+
+    /* Content Panes */
+    .view-content { flex: 1; padding: 20px; overflow: hidden; position: relative; }
+    .tab-pane { display: none; height: 100%; width: 100%; }
+    .tab-pane.active { display: flex; gap: 16px; }
+
+    /* Create Order Form Panel */
+    .order-form-box { width: 420px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    .form-title { font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
+    .form-input:focus, .form-select:focus { border-color: var(--accent-emerald); }
+
+    .btn-create {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff; font-weight: 700; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 13px; margin-top: 8px;
+    }
+    .btn-create:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
+
+    /* Map Box */
+    .map-box { flex: 1; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+    #map { width: 100%; height: 100%; }
+
+    /* Tables */
+    .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
+    .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { padding: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
+    td { padding: 14px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
+
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+
+    /* Address Grid */
+    .address-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
+    .address-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 16px; border: 1px solid var(--border); position: relative; }
+    .address-card.default { border-color: var(--accent-emerald); }
+    .address-card-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside class="sidebar glass">
+    <div>
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="user-check" style="color:#fff;"></i></div>
+        <div>
+          <div class="brand-text">QERVON</div>
+          <div class="brand-tag">MÜŞTERİ PORTALI</div>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Hızlı İşlemler</div>
+        <div class="nav-item active" onclick="switchCustomerTab('call')">
+          <i data-lucide="send"></i> Kurye Çağır & Takip Et
+        </div>
+        <div class="nav-item" onclick="switchCustomerTab('history')">
+          <i data-lucide="history"></i> Geçmiş Siparişlerim
+        </div>
+        <div class="nav-item" onclick="switchCustomerTab('addresses')">
+          <i data-lucide="bookmark"></i> Adres Defterim
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">Kurumsal Hizmetler</div>
+        <div class="nav-item" onclick="switchCustomerTab('bulk')">
+          <i data-lucide="file-spreadsheet"></i> Toplu Sipariş (Excel)
+        </div>
+        <div class="nav-item" onclick="switchCustomerTab('invoices')">
+          <i data-lucide="file-text"></i> Faturalar & Cari
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main View -->
+  <main class="main-container">
+    
+    <!-- Top Header -->
+    <header class="header-bar">
+      <div class="metric-card glass">
+        <div class="metric-header">
+          <span class="metric-title">Kayıtlı Adresler</span>
+          <i data-lucide="map-pin" style="color:var(--accent-emerald);"></i>
+        </div>
+        <div class="metric-value">3 Adres</div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-header">
+          <span class="metric-title">Harcanabilir Puan</span>
+          <i data-lucide="award" style="color:var(--primary);"></i>
+        </div>
+        <div class="metric-value">450 Puan</div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-header">
+          <span class="metric-title">Toplam Sipariş</span>
+          <i data-lucide="package-check" style="color:var(--accent-emerald);"></i>
+        </div>
+        <div class="metric-value">28 Teslimat</div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-header">
+          <span class="metric-title">Firma Unvanı</span>
+          <i data-lucide="building-2" style="color:var(--accent-purple);"></i>
+        </div>
+        <div class="metric-value" style="font-size:16px;">ACME Lojistik A.Ş.</div>
+      </div>
+    </header>
+
+    <!-- Viewport Tabs -->
+    <div class="view-content">
+      
+      <!-- TAB 1: KURYE ÇAĞIR & CANLI TAKİP -->
+      <div id="ctab-call" class="tab-pane active">
+        <div class="order-form-box glass">
+          <div class="form-title">
+            <span>Yeni Kurye Çağır</span>
+            <i data-lucide="truck" style="color:var(--accent-emerald);"></i>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Alım Adresi (Nereden?)</label>
+            <select id="pickup-select" class="form-select" onchange="updateRouteOnMap()">
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
+              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Teslimat Adresi (Nereye?)</label>
+            <select id="dropoff-select" class="form-select" onchange="updateRouteOnMap()">
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
+              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Paket Tipi</label>
+            <select id="package-type" class="form-select">
+              <option value="document">📄 Evrak / Zarf (Hızlı Motor)</option>
+              <option value="food">🍱 Gıda / Yemek</option>
+              <option value="box">📦 Koli / Paket (VIP Araç)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Teslimat Hızı</label>
+            <select id="speed-type" class="form-select">
+              <option value="express">⚡ VIP Ekspres (30-45 Dk Tahmini)</option>
+              <option value="standard">🕒 Standart Kurye (60 Dk)</option>
+            </select>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:12px; margin-top:4px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+            <span>Tahmini Taşıma Ücreti:</span>
+            <b style="font-size:16px; color:var(--accent-emerald);">₺ 45.00</b>
+          </div>
+
+          <button class="btn-create" onclick="createCustomerOrder()">Kuryeyi Çağır & Canlı Takip Et</button>
+        </div>
+
+        <div class="map-box glass">
+          <div id="map"></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: GEÇMİŞ SİPARİŞLER -->
+      <div id="ctab-history" class="tab-pane">
+        <div class="data-card glass">
+          <div class="form-title">Geçmiş Siparişlerim</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sipariş No</th>
+                  <th>Tarih</th>
+                  <th>Alım Adresi</th>
+                  <th>Teslimat Adresi</th>
+                  <th>Paket Türü</th>
+                  <th>Tutar</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>#Q-99182</code></td>
+                  <td>07 Ağu 2026 13:40</td>
+                  <td>Sultanahmet Restoran</td>
+                  <td>Maslak Plaza No:12</td>
+                  <td>Evrak / Zarf</td>
+                  <td>₺ 45.00</td>
+                  <td><span class="badge badge-green">Teslim Edildi</span></td>
+                </tr>
+                <tr>
+                  <td><code>#Q-99140</code></td>
+                  <td>06 Ağu 2026 10:15</td>
+                  <td>Kadıköy Depo</td>
+                  <td>Levent Kanyon AVM</td>
+                  <td>VIP Koli</td>
+                  <td>₺ 85.00</td>
+                  <td><span class="badge badge-green">Teslim Edildi</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ADRES DEFTERİ -->
+      <div id="ctab-addresses" class="tab-pane">
+        <div class="data-card glass">
+          <div class="form-title">Kayıtlı Adres Defterim</div>
+          <div class="address-grid">
+            <div class="address-card default">
+              <div class="address-card-title">
+                <span>Ev Adresi</span>
+                <span class="badge badge-green">Varsayılan</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+                Sultanahmet Mah. Fatih / İstanbul<br>
+                GPS: 41.0082, 28.9784
+              </div>
+            </div>
+
+            <div class="address-card">
+              <div class="address-card-title">
+                <span>Ofis Adresi</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+                Maslak Plaza No:12 Sarıyer / İstanbul<br>
+                GPS: 41.0200, 28.9850
+              </div>
+            </div>
+
+            <div class="address-card">
+              <div class="address-card-title">
+                <span>Kadıköy Depo</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+                Kadıköy Rıhtım No:44 Kadıköy / İstanbul<br>
+                GPS: 40.9900, 29.0200
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: TOPLU SİPARİŞ (EXCEL) -->
+      <div id="ctab-bulk" class="tab-pane">
+        <div class="data-card glass">
+          <div class="form-title">Kurumsal Toplu Sipariş Yükleme (Excel / CSV)</div>
+          <div style="margin-top:20px; border:2px dashed var(--border); border-radius:16px; padding:40px; text-align:center; color:var(--text-muted);">
+            <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-emerald); margin-bottom:12px;"></i>
+            <div style="font-size:16px; font-weight:700; color:#fff;">Excel / CSV Dosyanızı Buraya Sürükleyin</div>
+            <div style="font-size:12px; margin-top:6px;">Şablon dosyasını indirerek yüzlerce adrese tek tıkla kurye ataması yapabilirsiniz.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: FATURALAR -->
+      <div id="ctab-invoices" class="tab-pane">
+        <div class="data-card glass">
+          <div class="form-title">Kurumsal Fatura & E-Arşiv</div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fatura No</th>
+                  <th>Dönem</th>
+                  <th>Toplam Sipariş</th>
+                  <th>Tutar</th>
+                  <th>Durum</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>#INV-2026-08</code></td>
+                  <td>Ağustos 2026</td>
+                  <td>28 Teslimat</td>
+                  <td>₺ 1,260.00</td>
+                  <td><span class="badge badge-blue">Ödendi</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    // Map Setup
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19, attribution: '&copy; CARTO'
+    }).addTo(map);
+
+    const pickupMarker = L.marker([41.0082, 28.9784]).addTo(map).bindPopup("Alım Adresi: Sultanahmet");
+    const dropoffMarker = L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
+
+    function updateRouteOnMap() {
+      // Map update simulation
+      map.flyTo([41.0141, 28.9817], 13);
+    }
+
+    async function createCustomerOrder() {
+      alert("Kurye Siparişiniz Alındı! Yapay Zeka (AI Dispatcher) en yakın kuryeyi yönlendiriyor...");
+      const res = await fetch('/v1/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_id: "019fdbde-a5c0-7202-8461-a823def9e5fd",
+          pickup: { latitude: 41.0082, longitude: 28.9784, label: "Sultanahmet Ev" },
+          dropoff: { latitude: 41.0200, longitude: 28.9850, label: "Maslak Ofis" },
+          fare_amount_minor: 4500, fare_currency: "TRY"
+        })
+      });
+      const order = await res.json();
+      await fetch(`/v1/orders/${order.id}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      alert(`Sipariş Başarılı! Kurye Atandı. Sipariş ID: #${order.id.substring(0,8)}`);
+    }
+
+    function switchCustomerTab(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      const pane = document.getElementById(`ctab-${tabId}`);
+      if (pane) {
+        pane.classList.add('active');
+        if (tabId === 'call') {
+          setTimeout(() => map.invalidateSize(), 100);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

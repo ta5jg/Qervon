@@ -19,8 +19,11 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use qervon_domain::{
-    Address, Assignment, AssignmentRepository, Courier, CourierRepository, DomainError, Location,
-    Money, Order, OrderId, OrderRepository,
+    Address, Assignment, AssignmentRepository, Courier, CourierPayout, CourierPayoutRepository,
+    CourierRepository, CustomerId, CustomerProfile, CustomerRepository, DomainError, Invoice,
+    InvoiceId, InvoiceRepository, Location, Money, Notification, NotificationId,
+    NotificationRepository, Order, OrderId, OrderRepository, TrackingPoint, TrackingRepository,
+    TrackingSession, User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository,
 };
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
@@ -339,6 +342,104 @@ impl AssignmentRepository for PgAssignmentRepository {
             .await
             .map_err(map_db_error)?
             .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+}
+
+#[derive(FromRow)]
+struct UserRow {
+    id: Uuid,
+    email: String,
+    phone: Option<String>,
+    display_name: String,
+    role: String,
+    status: String,
+    created_at: DateTime<Utc>,
+}
+
+impl UserRow {
+    fn into_domain(self) -> Result<User, DomainError> {
+        Ok(User {
+            id: UserId(self.id),
+            email: self.email,
+            phone: self.phone,
+            display_name: self.display_name,
+            role: self.role.parse()?,
+            status: self.status.parse()?,
+            created_at: self.created_at,
+        })
+    }
+}
+
+#[derive(Clone)]
+pub struct PgUserRepository {
+    pool: PgPool,
+}
+
+impl PgUserRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[async_trait]
+impl UserRepository for PgUserRepository {
+    async fn create(&self, user: &User) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO identity.users (id, email, phone, display_name, role, status, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        )
+        .bind(user.id.0)
+        .bind(&user.email)
+        .bind(&user.phone)
+        .bind(&user.display_name)
+        .bind(user.role.as_str())
+        .bind(user.status.as_str())
+        .bind(user.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_by_id(&self, id: UserId) -> Result<Option<User>, DomainError> {
+        let row: Option<UserRow> = sqlx::query_as(
+            "SELECT id, email, phone, display_name, role, status, created_at FROM identity.users WHERE id = $1",
+        )
+        .bind(id.0)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(UserRow::into_domain).transpose()
+    }
+
+    async fn find_by_email(&self, email: &str) -> Result<Option<User>, DomainError> {
+        let row: Option<UserRow> = sqlx::query_as(
+            "SELECT id, email, phone, display_name, role, status, created_at FROM identity.users WHERE LOWER(email) = LOWER($1)",
+        )
+        .bind(email)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(UserRow::into_domain).transpose()
+    }
+
+    async fn update(&self, user: &User) -> Result<(), DomainError> {
+        let affected = sqlx::query(
+            "UPDATE identity.users SET phone = $2, display_name = $3, role = $4, status = $5 WHERE id = $1",
+        )
+        .bind(user.id.0)
+        .bind(&user.phone)
+        .bind(&user.display_name)
+        .bind(user.role.as_str())
+        .bind(user.status.as_str())
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
         if affected == 0 {
             return Err(map_row_absent());
         }

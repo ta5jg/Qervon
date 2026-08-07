@@ -54,6 +54,13 @@ pub struct UpdateLocationRequest {
     pub longitude: f64,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct RegisterUserRequest {
+    pub email: String,
+    pub display_name: String,
+    pub role: String,
+}
+
 // ---------- Value-object DTOs ----------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,6 +108,25 @@ pub struct AssignmentResponse {
     pub courier_id: Uuid,
     pub status: AssignmentStatus,
     pub assigned_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct UserResponse {
+    pub id: Uuid,
+    pub email: String,
+    pub display_name: String,
+    pub role: String,
+    pub status: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct CustomerProfileResponse {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub company_name: Option<String>,
+    pub loyalty_points: u64,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -168,6 +194,31 @@ impl From<&Assignment> for AssignmentResponse {
             courier_id: assignment.courier_id,
             status: assignment.status,
             assigned_at: assignment.assigned_at,
+        }
+    }
+}
+
+impl From<&qervon_domain::User> for UserResponse {
+    fn from(user: &qervon_domain::User) -> Self {
+        Self {
+            id: user.id.0,
+            email: user.email.clone(),
+            display_name: user.display_name.clone(),
+            role: user.role.as_str().to_string(),
+            status: user.status.as_str().to_string(),
+            created_at: user.created_at,
+        }
+    }
+}
+
+impl From<&qervon_domain::CustomerProfile> for CustomerProfileResponse {
+    fn from(profile: &qervon_domain::CustomerProfile) -> Self {
+        Self {
+            id: profile.id.0,
+            user_id: profile.user_id.0,
+            company_name: profile.company_name.clone(),
+            loyalty_points: profile.loyalty_points,
+            created_at: profile.created_at,
         }
     }
 }

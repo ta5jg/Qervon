@@ -137,3 +137,24 @@ async fn rejecting_invalid_vehicle_returns_422() {
     assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(body["status"], 422);
 }
+
+#[tokio::test]
+async fn register_user_over_http() {
+    let app = app();
+    let (status, user) = request(
+        app,
+        "POST",
+        "/v1/users",
+        json!({
+            "email": "ahmet@qervon.com",
+            "display_name": "Ahmet Yılmaz",
+            "role": "admin"
+        }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    assert_eq!(user["email"], "ahmet@qervon.com");
+    assert_eq!(user["role"], "admin");
+    assert_eq!(user["status"], "active");
+}
+

@@ -35,7 +35,10 @@ use crate::state::AppState;
 
 pub fn router(state: AppState) -> Router {
     Router::new()
+        .route("/", get(serve_dashboard))
+        .route("/customer", get(serve_customer_portal))
         .route("/health", get(health))
+        .route("/v1/users", post(register_user))
         .route("/v1/couriers", post(register_courier).get(list_couriers))
         .route("/v1/couriers/{id}/location", post(update_courier_location))
         .route("/v1/orders", post(create_order))
@@ -44,11 +47,55 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/orders/{id}/transit", post(start_transit))
         .route("/v1/orders/{id}/deliver", post(deliver_order))
         .route("/v1/orders/{id}/cancel", post(cancel_order))
+        .route("/ws/tracking", get(ws_tracking_handler))
         .with_state(state)
+}
+
+async fn serve_dashboard() -> axum::response::Html<&'static str> {
+    axum::response::Html(include_str!("../static/index.html"))
+}
+
+async fn serve_customer_portal() -> axum::response::Html<&'static str> {
+    axum::response::Html(include_str!("../static/customer.html"))
 }
 
 async fn health() -> Json<Value> {
     Json(json!({ "status": "ok" }))
+}
+
+async fn ws_tracking_handler(
+    ws: axum::extract::ws::WebSocketUpgrade,
+    State(state): State<AppState>,
+) -> impl axum::response::IntoResponse {
+    ws.on_upgrade(|mut socket| async move {
+        let mut rx = state.location_tx.subscribe();
+        while let Ok(msg) = rx.recv().await {
+            if let Ok(json) = serde_json::to_string(&msg) {
+                if socket.send(axum::extract::ws::Message::Text(json.into())).await.is_err() {
+                    break;
+                }
+            }
+        }
+    })
+}
+
+async fn register_user(
+    State(state): State<AppState>,
+    Json(request): Json<qervon_api_contracts::RegisterUserRequest>,
+) -> Result<(StatusCode, Json<qervon_api_contracts::UserResponse>), ApiError> {
+    let role: qervon_domain::UserRole = request
+        .role
+        .parse()
+        .map_err(|_| ApiError::unprocessable("invalid user role"))?;
+    let user = state
+        .identity
+        .register_user(qervon_application::CreateUserInput {
+            email: request.email,
+            display_name: request.display_name,
+            role,
+        })
+        .await?;
+    Ok((StatusCode::CREATED, Json((&user).into())))
 }
 
 async fn register_courier(
@@ -87,6 +134,15 @@ async fn update_courier_location(
         .couriers
         .update_courier_location(courier_id, location)
         .await?;
+    
+    // Broadcast live location event over WebSocket channel
+    let _ = state.location_tx.send(crate::state::LocationUpdateEvent {
+        courier_id,
+        latitude: request.latitude,
+        longitude: request.longitude,
+        timestamp: chrono::Utc::now(),
+    });
+
     Ok(Json((&courier).into()))
 }
 

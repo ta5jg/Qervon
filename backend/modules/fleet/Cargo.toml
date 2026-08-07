@@ -7,11 +7,23 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon Fleet domain module (vertical composition root).
 #
 # Specification:
-#   QLS-000006, QAS-000002, QAS-000006.
+#   QLS-000006, QAS-000002, QAS-000003, QES-000002, QES-000006.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-fleet-module"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+qervon-application = { path = "../../crates/application" }
+qervon-domain = { path = "../../crates/domain" }
+uuid = { workspace = true }

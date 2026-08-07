@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon Identity domain module (vertical composition root).
 #
 # Specification:
 #   QAS-000002, QAS-000003, QAS-000004, QAS-000005, QAS-000006.
@@ -15,3 +15,15 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-identity-module"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+qervon-application = { path = "../../crates/application" }
+qervon-domain = { path = "../../crates/domain" }
+uuid = { workspace = true }

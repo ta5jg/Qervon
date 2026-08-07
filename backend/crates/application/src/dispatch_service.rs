@@ -70,16 +70,10 @@ where
     pub async fn auto_assign(&self, order_id: OrderId) -> Result<Assignment, ApplicationError> {
         let order = self.require_order(order_id).await?;
         let candidates = self.couriers.list_available().await?;
-        let best = candidates
-            .into_iter()
-            .filter_map(|courier| {
-                let distance = courier
-                    .current_location
-                    .map(|origin| origin.distance_km(&order.pickup.location))?;
-                Some((courier, distance))
-            })
-            .min_by(|a, b| a.1.total_cmp(&b.1))
-            .map(|(courier, _)| courier.id)
+        let ranked = crate::AiDispatcher::rank_candidates(&candidates, &order.pickup.location);
+        let best = ranked
+            .first()
+            .map(|score| score.courier_id)
             .ok_or(ApplicationError::Conflict(
                 "no available courier with a known location".to_string(),
             ))?;

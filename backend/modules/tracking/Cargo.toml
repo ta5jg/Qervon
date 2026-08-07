@@ -7,7 +7,7 @@
 # Version:        0.1.0
 #
 # Description:
-#   Defines Rust package or workspace metadata for the Qervon repository.
+#   Defines the Qervon Tracking domain module (vertical composition root).
 #
 # Specification:
 #   QLS-000007, QAS-000003, QAS-000006, QAS-000007.
@@ -15,3 +15,15 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+[package]
+name = "qervon-tracking-module"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+qervon-application = { path = "../../crates/application" }
+qervon-domain = { path = "../../crates/domain" }
+uuid = { workspace = true }

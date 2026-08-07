@@ -20,4 +20,12 @@
 pub mod memory;
 pub mod postgres;
 
-pub use memory::InMemoryStore;
+pub use memory::{
+    InMemoryAssignmentRepository, InMemoryCourierRepository, InMemoryCustomerRepository,
+    InMemoryInvoiceRepository, InMemoryNotificationRepository, InMemoryOrderRepository,
+    InMemoryPayoutRepository, InMemoryStore, InMemoryTrackingRepository, InMemoryUserRepository,
+    InMemoryVehicleRepository,
+};
+pub use postgres::{
+    PgAssignmentRepository, PgCourierRepository, PgOrderRepository, PgUserRepository,
+};

@@ -17,12 +17,27 @@
 //   Qervon License v1.0 — see LICENSE in the repository root.
 // =============================================================================
 
+pub mod ai_dispatcher;
+pub mod billing_service;
 pub mod courier_service;
+pub mod customer_service;
 pub mod dispatch_service;
 pub mod error;
+pub mod fleet_service;
+pub mod notification_service;
 pub mod order_service;
+pub mod tracking_service;
+pub mod user_service;
 
+pub use ai_dispatcher::{AiDispatcher, DispatchScore};
+pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput};
 pub use courier_service::{CourierService, RegisterCourierInput};
+pub use customer_service::CustomerService;
 pub use dispatch_service::DispatchService;
 pub use error::ApplicationError;
+pub use fleet_service::{FleetService, RegisterVehicleInput};
+pub use notification_service::{NotificationService, SendNotificationInput};
 pub use order_service::{CreateOrderInput, OrderService};
+pub use tracking_service::TrackingService;
+pub use user_service::{CreateUserInput, UserService};
+

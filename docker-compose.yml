@@ -1,0 +1,52 @@
+# ==============================================================================
+# File:           docker-compose.yml
+# Project:        Qervon
+# Author:         USDTG GROUP TECHNOLOGY LLC
+# Developer:      Irfan Gedik
+# Created Date:   2026-08-05
+# Version:        0.1.0
+#
+# Description:
+#   Docker Compose setup for Qervon Platform (PostgreSQL + API Gateway).
+#
+# License:
+#   Qervon License v1.0 — see LICENSE in the repository root.
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qervon-postgres
+    environment:
+      POSTGRES_USER: qervon
+      POSTGRES_PASSWORD: qervon_secret_password
+      POSTGRES_DB: qervon_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qervon -d qervon_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qervon-api-gateway
+    environment:
+      QERVON_STORAGE: postgres
+      DATABASE_URL: postgres://qervon:qervon_secret_password@postgres:5432/qervon_db
+      RUST_LOG: info
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -28,15 +28,23 @@ name = "qervon-api-gateway"
 path = "src/main.rs"
 
 [dependencies]
-axum = { workspace = true }
+axum = { workspace = true, features = ["ws"] }
 qervon-api-contracts = { path = "../../crates/api-contracts" }
 qervon-application = { path = "../../crates/application" }
+qervon-billing-module = { path = "../../modules/billing" }
 qervon-couriers-module = { path = "../../modules/couriers" }
+qervon-customers-module = { path = "../../modules/customers" }
 qervon-dispatch-module = { path = "../../modules/dispatch" }
 qervon-domain = { path = "../../crates/domain" }
+qervon-fleet-module = { path = "../../modules/fleet" }
+qervon-identity-module = { path = "../../modules/identity" }
 qervon-infrastructure = { path = "../../crates/infrastructure" }
+qervon-notifications-module = { path = "../../modules/notifications" }
 qervon-orders-module = { path = "../../modules/orders" }
+qervon-tracking-module = { path = "../../modules/tracking" }
 serde_json = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

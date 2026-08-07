@@ -26,9 +26,15 @@ members = [
     "crates/domain",
     "crates/infrastructure",
     "crates/test-support",
+    "modules/billing",
     "modules/couriers",
+    "modules/customers",
     "modules/dispatch",
+    "modules/fleet",
+    "modules/identity",
+    "modules/notifications",
     "modules/orders",
+    "modules/tracking",
 ]
 
 [workspace.package]
