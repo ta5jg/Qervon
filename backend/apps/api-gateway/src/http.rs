@@ -85,10 +85,20 @@ async fn serve_openapi_spec() -> Json<serde_json::Value> {
     }))
 }
 
+async fn serve_mobile_customer() -> axum::response::Html<&'static str> {
+    axum::response::Html(include_str!("../static/mobile-customer.html"))
+}
+
+async fn serve_mobile_courier() -> axum::response::Html<&'static str> {
+    axum::response::Html(include_str!("../static/mobile-courier.html"))
+}
+
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/", get(serve_dashboard))
         .route("/customer", get(serve_customer_portal))
+        .route("/mobile-customer", get(serve_mobile_customer))
+        .route("/mobile-courier", get(serve_mobile_courier))
         .route("/swagger-ui", get(serve_swagger_ui))
         .route("/api-docs/openapi.json", get(serve_openapi_spec))
         .route("/health", get(health))
