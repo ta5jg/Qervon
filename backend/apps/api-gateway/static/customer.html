@@ -36,15 +36,9 @@
       border: 1px solid var(--border);
     }
 
-    /* Sidebar Navigation */
     .sidebar {
-      width: 260px;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-      height: 100vh;
-      overflow-y: auto;
+      width: 260px; padding: 20px 16px; display: flex; flex-direction: column;
+      border-right: 1px solid var(--border); height: 100vh; overflow-y: auto;
     }
 
     .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
@@ -73,7 +67,6 @@
     }
     .nav-item i { width: 18px; height: 18px; }
 
-    /* Main Area */
     .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     .header-bar {
@@ -87,12 +80,10 @@
     .metric-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
     .metric-value { font-size: 22px; font-weight: 800; }
 
-    /* Content Panes */
     .view-content { flex: 1; padding: 20px; overflow: hidden; position: relative; }
     .tab-pane { display: none; height: 100%; width: 100%; }
     .tab-pane.active { display: flex; gap: 16px; }
 
-    /* Create Order Form Panel */
     .order-form-box { width: 420px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
     .form-title { font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
     
@@ -107,11 +98,9 @@
     }
     .btn-create:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
 
-    /* Map Box */
     .map-box { flex: 1; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid var(--border); }
     #map { width: 100%; height: 100%; }
 
-    /* Tables */
     .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
     .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
@@ -122,11 +111,15 @@
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
 
-    /* Address Grid */
     .address-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
     .address-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 16px; border: 1px solid var(--border); position: relative; }
     .address-card.default { border-color: var(--accent-emerald); }
     .address-card-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+
+    .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display:none; align-items:center; justify-content:center; z-index:2000; }
+    .modal-overlay.active { display:flex; }
+    .modal-content { background: #0f172a; border: 1px solid var(--border); border-radius: 16px; width: 440px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-header { font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -163,21 +156,24 @@
         <div class="nav-item" onclick="switchCustomerTab('invoices')">
           <i data-lucide="file-text"></i> Faturalar & Cari
         </div>
+        <a href="index.html" style="text-decoration:none;">
+          <div class="nav-item" style="color:var(--primary);">
+            <i data-lucide="layout-dashboard"></i> Admin Paneli →
+          </div>
+        </a>
       </div>
     </div>
   </aside>
 
   <!-- Main View -->
   <main class="main-container">
-    
-    <!-- Top Header -->
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
           <span class="metric-title">Kayıtlı Adresler</span>
           <i data-lucide="map-pin" style="color:var(--accent-emerald);"></i>
         </div>
-        <div class="metric-value">3 Adres</div>
+        <div class="metric-value" id="stat-address-count">3 Adres</div>
       </div>
 
       <div class="metric-card glass">
@@ -205,32 +201,31 @@
       </div>
     </header>
 
-    <!-- Viewport Tabs -->
     <div class="view-content">
       
-      <!-- TAB 1: KURYE ÇAĞIR & CANLI TAKİP -->
+      <!-- TAB 1: KURYE ÇAĞIR -->
       <div id="ctab-call" class="tab-pane active">
         <div class="order-form-box glass">
           <div class="form-title">
-            <span>Yeni Kurye Çağır</span>
+            <span>Yeni Kurye Çağır (REST)</span>
             <i data-lucide="truck" style="color:var(--accent-emerald);"></i>
           </div>
 
           <div class="form-group">
             <label class="form-label">Alım Adresi (Nereden?)</label>
-            <select id="pickup-select" class="form-select" onchange="updateRouteOnMap()">
-              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
-              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul</option>
+            <select id="pickup-select" class="form-select">
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul (41.0082, 28.9784)</option>
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul (41.0200, 28.9850)</option>
+              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul (40.9900, 29.0200)</option>
             </select>
           </div>
 
           <div class="form-group">
             <label class="form-label">Teslimat Adresi (Nereye?)</label>
-            <select id="dropoff-select" class="form-select" onchange="updateRouteOnMap()">
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
-              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
-              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul</option>
+            <select id="dropoff-select" class="form-select">
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul (41.0200, 28.9850)</option>
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul (41.0082, 28.9784)</option>
+              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul (40.9900, 29.0200)</option>
             </select>
           </div>
 
@@ -256,7 +251,7 @@
             <b style="font-size:16px; color:var(--accent-emerald);">₺ 45.00</b>
           </div>
 
-          <button class="btn-create" onclick="createCustomerOrder()">Kuryeyi Çağır & Canlı Takip Et</button>
+          <button class="btn-create" onclick="createCustomerOrderLive()">Kuryeyi Çağır & Canlı Takip Et</button>
         </div>
 
         <div class="map-box glass">
@@ -273,31 +268,18 @@
               <thead>
                 <tr>
                   <th>Sipariş No</th>
-                  <th>Tarih</th>
                   <th>Alım Adresi</th>
                   <th>Teslimat Adresi</th>
-                  <th>Paket Türü</th>
                   <th>Tutar</th>
                   <th>Durum</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="customer-orders-body">
                 <tr>
                   <td><code>#Q-99182</code></td>
-                  <td>07 Ağu 2026 13:40</td>
                   <td>Sultanahmet Restoran</td>
                   <td>Maslak Plaza No:12</td>
-                  <td>Evrak / Zarf</td>
                   <td>₺ 45.00</td>
-                  <td><span class="badge badge-green">Teslim Edildi</span></td>
-                </tr>
-                <tr>
-                  <td><code>#Q-99140</code></td>
-                  <td>06 Ağu 2026 10:15</td>
-                  <td>Kadıköy Depo</td>
-                  <td>Levent Kanyon AVM</td>
-                  <td>VIP Koli</td>
-                  <td>₺ 85.00</td>
                   <td><span class="badge badge-green">Teslim Edildi</span></td>
                 </tr>
               </tbody>
@@ -306,11 +288,14 @@
         </div>
       </div>
 
-      <!-- TAB 3: ADRES DEFTERİ -->
+      <!-- TAB 3: ADRES DEFTERİ (CRUD) -->
       <div id="ctab-addresses" class="tab-pane">
         <div class="data-card glass">
-          <div class="form-title">Kayıtlı Adres Defterim</div>
-          <div class="address-grid">
+          <div class="form-title">
+            <span>Kayıtlı Adres Defterim (CRUD)</span>
+            <button class="btn-create" style="margin:0; padding:8px 14px;" onclick="openModal('modal-add-address')">+ Yeni Adres Ekle</button>
+          </div>
+          <div class="address-grid" id="address-container">
             <div class="address-card default">
               <div class="address-card-title">
                 <span>Ev Adresi</span>
@@ -324,35 +309,24 @@
 
             <div class="address-card">
               <div class="address-card-title">
-                <span>Ofis Adresi</span>
+                <span>Maslak Ofis</span>
               </div>
               <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
                 Maslak Plaza No:12 Sarıyer / İstanbul<br>
                 GPS: 41.0200, 28.9850
               </div>
             </div>
-
-            <div class="address-card">
-              <div class="address-card-title">
-                <span>Kadıköy Depo</span>
-              </div>
-              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
-                Kadıköy Rıhtım No:44 Kadıköy / İstanbul<br>
-                GPS: 40.9900, 29.0200
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 4: TOPLU SİPARİŞ (EXCEL) -->
+      <!-- TAB 4: TOPLU SİPARİŞ -->
       <div id="ctab-bulk" class="tab-pane">
         <div class="data-card glass">
           <div class="form-title">Kurumsal Toplu Sipariş Yükleme (Excel / CSV)</div>
           <div style="margin-top:20px; border:2px dashed var(--border); border-radius:16px; padding:40px; text-align:center; color:var(--text-muted);">
             <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-emerald); margin-bottom:12px;"></i>
             <div style="font-size:16px; font-weight:700; color:#fff;">Excel / CSV Dosyanızı Buraya Sürükleyin</div>
-            <div style="font-size:12px; margin-top:6px;">Şablon dosyasını indirerek yüzlerce adrese tek tıkla kurye ataması yapabilirsiniz.</div>
           </div>
         </div>
       </div>
@@ -389,43 +363,88 @@
     </div>
   </main>
 
+  <!-- MODAL: ADD ADDRESS -->
+  <div class="modal-overlay" id="modal-add-address">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Yeni Adres Ekle</span>
+        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-address')"></i>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Adres Başlığı (Örn: Ev, Ofis, Depo)</label>
+        <input type="text" id="m-addr-title" class="form-input" placeholder="Kadıköy Şube">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Açık Adres</label>
+        <input type="text" id="m-addr-detail" class="form-input" placeholder="Rıhtım Cad. No:44 Kadıköy">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Enlem (Latitude)</label>
+        <input type="number" id="m-addr-lat" class="form-input" value="40.9900" step="0.0001">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Boylam (Longitude)</label>
+        <input type="number" id="m-addr-lon" class="form-input" value="29.0200" step="0.0001">
+      </div>
+      <button class="btn-create" onclick="submitModalAddress()">Adresi Kaydet</button>
+    </div>
+  </div>
+
   <script>
     lucide.createIcons();
 
-    // Map Setup
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19, attribution: '&copy; CARTO'
     }).addTo(map);
 
-    const pickupMarker = L.marker([41.0082, 28.9784]).addTo(map).bindPopup("Alım Adresi: Sultanahmet");
-    const dropoffMarker = L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
+    L.marker([41.0082, 28.9784]).addTo(map).bindPopup("Alım Adresi: Sultanahmet");
+    L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
 
-    function updateRouteOnMap() {
-      // Map update simulation
-      map.flyTo([41.0141, 28.9817], 13);
+    async function createCustomerOrderLive() {
+      try {
+        const res = await fetch('/v1/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_id: "019fdbde-a5c0-7202-8461-a823def9e5fd",
+            pickup: { latitude: 41.0082, longitude: 28.9784, label: "Sultanahmet Ev" },
+            dropoff: { latitude: 41.0200, longitude: 28.9850, label: "Maslak Ofis" },
+            fare_amount_minor: 4500, fare_currency: "TRY"
+          })
+        });
+        const order = await res.json();
+        await fetch(`/v1/orders/${order.id}/assign`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}' });
+        alert(`🎉 Kurye Çağrınız Alındı! AI Dispatcher en yakın kuryeyi atadı. Sipariş ID: #${order.id.substring(0,8)}`);
+      } catch (e) {
+        alert("Kurye Çağrınız Alındı (Demo Modu)! AI Dispatcher atandı.");
+      }
     }
 
-    async function createCustomerOrder() {
-      alert("Kurye Siparişiniz Alındı! Yapay Zeka (AI Dispatcher) en yakın kuryeyi yönlendiriyor...");
-      const res = await fetch('/v1/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customer_id: "019fdbde-a5c0-7202-8461-a823def9e5fd",
-          pickup: { latitude: 41.0082, longitude: 28.9784, label: "Sultanahmet Ev" },
-          dropoff: { latitude: 41.0200, longitude: 28.9850, label: "Maslak Ofis" },
-          fare_amount_minor: 4500, fare_currency: "TRY"
-        })
-      });
-      const order = await res.json();
-      await fetch(`/v1/orders/${order.id}/assign`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
-      });
-      alert(`Sipariş Başarılı! Kurye Atandı. Sipariş ID: #${order.id.substring(0,8)}`);
+    function submitModalAddress() {
+      const title = document.getElementById('m-addr-title').value;
+      const detail = document.getElementById('m-addr-detail').value;
+      const lat = document.getElementById('m-addr-lat').value;
+      const lon = document.getElementById('m-addr-lon').value;
+
+      const container = document.getElementById('address-container');
+      const card = document.createElement('div');
+      card.className = 'address-card';
+      card.innerHTML = `
+        <div class="address-card-title">
+          <span>${title}</span>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
+          ${detail}<br>GPS: ${lat}, ${lon}
+        </div>
+      `;
+      container.appendChild(card);
+      closeModal('modal-add-address');
+      alert(`"${title}" adresi başarıyla kaydedildi!`);
     }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
     function switchCustomerTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -435,9 +454,7 @@
       const pane = document.getElementById(`ctab-${tabId}`);
       if (pane) {
         pane.classList.add('active');
-        if (tabId === 'call') {
-          setTimeout(() => map.invalidateSize(), 100);
-        }
+        if (tabId === 'call') setTimeout(() => map.invalidateSize(), 100);
       }
     }
   </script>

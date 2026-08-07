@@ -16,13 +16,13 @@
     :root {
       --bg-main: #060913;
       --bg-card: rgba(15, 23, 42, 0.75);
-      --bg-card-hover: rgba(30, 41, 59, 0.85);
       --border: rgba(255, 255, 255, 0.08);
       --border-accent: rgba(56, 189, 248, 0.3);
       --primary: #38bdf8;
       --primary-glow: rgba(56, 189, 248, 0.25);
       --accent-purple: #a855f7;
       --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -37,15 +37,9 @@
       border: 1px solid var(--border);
     }
 
-    /* Fixed Sidebar (No Overflow) */
     .sidebar {
-      width: 260px;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-      height: 100vh;
-      overflow-y: auto;
+      width: 260px; padding: 20px 16px; display: flex; flex-direction: column;
+      border-right: 1px solid var(--border); height: 100vh; overflow-y: auto;
     }
 
     .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
@@ -76,7 +70,6 @@
 
     .sidebar-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
 
-    /* Main Workspace */
     .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     .header-bar {
@@ -93,12 +86,10 @@
     .badge-positive { color: var(--accent-emerald); }
     .badge-purple { color: var(--accent-purple); }
 
-    /* Views container */
     .view-content { flex: 1; padding: 20px; overflow: hidden; position: relative; }
     .tab-pane { display: none; height: 100%; width: 100%; }
     .tab-pane.active { display: flex; gap: 16px; }
 
-    /* Map Tab Layout */
     .map-box { flex: 1; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid var(--border); }
     #map { width: 100%; height: 100%; }
 
@@ -115,8 +106,8 @@
 
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
-    .form-input { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; outline: none; }
-    .form-input:focus { border-color: var(--primary); }
+    .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; outline: none; }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
 
     .btn-submit { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 700; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; }
     .btn-submit:hover { opacity: 0.9; }
@@ -125,7 +116,6 @@
     .stream-log { background: #090e1a; border-radius: 8px; padding: 10px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
     .log-time { color: var(--accent-purple); font-weight: 600; }
 
-    /* Tables & Data views */
     .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
     .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
@@ -137,11 +127,21 @@
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
     .badge-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-rose { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    .btn-table-action { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: #1e293b; color: #fff; font-size: 11px; cursor: pointer; margin-right: 4px; }
+    .btn-table-action:hover { background: var(--primary); color: #000; }
+
+    /* Modal Styling */
+    .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display:none; align-items:center; justify-content:center; z-index:2000; }
+    .modal-overlay.active { display:flex; }
+    .modal-content { background: #0f172a; border: 1px solid var(--border); border-radius: 16px; width: 440px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+    .modal-header { font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar (No overflow) -->
+  <!-- Sidebar -->
   <aside class="sidebar glass">
     <div>
       <div class="brand">
@@ -173,6 +173,11 @@
         <div class="nav-item" onclick="switchTab('finance')">
           <i data-lucide="credit-card"></i> Finans & Hak ediş
         </div>
+        <a href="customer.html" style="text-decoration:none;">
+          <div class="nav-item" style="color:var(--accent-emerald);">
+            <i data-lucide="user-check"></i> Müşteri Portalı →
+          </div>
+        </a>
       </div>
     </div>
 
@@ -186,14 +191,13 @@
   <!-- Main View -->
   <main class="main-container">
     
-    <!-- Top Metrics -->
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
           <span class="metric-title">Aktif Kuryeler</span>
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value">1 Online</div>
+        <div class="metric-value" id="stat-couriers-count">0 Online</div>
         <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> WebSocket GPS Yayında</div>
       </div>
 
@@ -202,7 +206,7 @@
           <span class="metric-title">Canlı Siparişler</span>
           <i data-lucide="shopping-bag" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value">1 Yolda</div>
+        <div class="metric-value" id="stat-orders-count">0 Toplam</div>
         <div class="metric-footer badge-purple"><i data-lucide="sparkles" style="width:12px;"></i> AI Dispatch Atandı</div>
       </div>
 
@@ -225,15 +229,15 @@
       </div>
     </header>
 
-    <!-- Viewport Content Panes -->
     <div class="view-content">
       
-      <!-- TAB 1: MAP & FLEET -->
+      <!-- TAB 1: MAP -->
       <div id="tab-map" class="tab-pane active">
         <div class="map-box glass">
           <div class="map-controls">
-            <button class="btn-action" onclick="triggerSimulatedMovement()"><i data-lucide="play-circle"></i> Kurye Hareket Simülasyonu</button>
-            <button class="btn-action" onclick="submitNewOrder()"><i data-lucide="plus-circle"></i> Sipariş & AI Atama</button>
+            <button class="btn-action" onclick="triggerSimulatedMovement()"><i data-lucide="play-circle"></i> Kurye GPS Hareket Simülasyonu</button>
+            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus-circle"></i> Yeni Sipariş Ekle (REST)</button>
+            <button class="btn-action" onclick="openModal('modal-add-courier')"><i data-lucide="user-plus"></i> Kurye Ekle (REST)</button>
           </div>
           <div id="map"></div>
         </div>
@@ -241,7 +245,7 @@
         <aside class="side-panel glass">
           <div class="panel-title">
             <span>Canlı Takip Akışı</span>
-            <span class="badge badge-green">LIVE WS</span>
+            <span class="badge badge-green">REST & WS CANLI</span>
           </div>
 
           <div class="op-card" style="background:rgba(30,41,59,0.5); padding:12px; border-radius:10px; border:1px solid var(--border);">
@@ -252,74 +256,65 @@
             <button class="btn-submit" style="margin-top:8px; width:100%;" onclick="submitNewOrder()">Siparişi Başlat & AI Atama Yap</button>
           </div>
 
-          <div class="panel-title" style="font-size:12px;">Anlık Loglar</div>
+          <div class="panel-title" style="font-size:12px;">Anlık Akış Logları</div>
           <div class="stream-container" id="stream-logs">
             <div class="stream-log">
-              <div class="log-time">14:06 — SYSTEM</div>
-              <div>Qervon LOS WebSocket bağlı. Endpoint: /ws/tracking</div>
+              <div class="log-time">REST & WS KÖPRÜSÜ</div>
+              <div>Backend canlı API aktif: http://localhost:8080/v1</div>
             </div>
           </div>
         </aside>
       </div>
 
-      <!-- TAB 2: ORDERS -->
+      <!-- TAB 2: ORDERS (FULL CRUD) -->
       <div id="tab-orders" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">Sipariş Yönetimi <span class="badge badge-blue">1 Aktif</span></div>
+          <div class="panel-title">
+            <span>Sipariş Yönetimi (Canlı CRUD)</span>
+            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus"></i> Yeni Sipariş Oluştur</button>
+          </div>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
                   <th>Sipariş ID</th>
-                  <th>Müşteri</th>
-                  <th>Alım Adresi</th>
-                  <th>Teslimat Adresi</th>
+                  <th>Alım Noktası</th>
+                  <th>Teslimat Noktası</th>
                   <th>Tutar</th>
                   <th>Durum</th>
-                  <th>Atanan Kurye</th>
+                  <th>Atanan Kurye ID</th>
+                  <th>İşlemler</th>
                 </tr>
               </thead>
               <tbody id="orders-table-body">
-                <tr>
-                  <td><code>#019fdbde</code></td>
-                  <td>Irfan Gedik</td>
-                  <td>Sultanahmet Restoran</td>
-                  <td>Maslak Plaza No:12</td>
-                  <td>₺ 25.00</td>
-                  <td><span class="badge badge-purple">In Transit</span></td>
-                  <td>Ahmet Kurye (Motor)</td>
-                </tr>
+                <!-- Dynamically loaded via REST API -->
               </tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- TAB 3: COURIERS -->
+      <!-- TAB 3: COURIERS (FULL CRUD) -->
       <div id="tab-couriers" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">Kurye ve Filo Listesi <span class="badge badge-green">1 Available</span></div>
+          <div class="panel-title">
+            <span>Kuryeler & Filo Listesi (Canlı CRUD)</span>
+            <button class="btn-action" onclick="openModal('modal-add-courier')"><i data-lucide="user-plus"></i> Kurye Ekle</button>
+          </div>
           <div class="table-container">
             <table>
               <thead>
                 <tr>
-                  <th>Kurye Adı</th>
+                  <th>Kurye ID</th>
+                  <th>İsim</th>
                   <th>Araç Tipi</th>
                   <th>Durum</th>
-                  <th>Son Konum (GPS)</th>
-                  <th>Hız / Batarya</th>
-                  <th>Günlük Teslimat</th>
+                  <th>Son Konum</th>
+                  <th>İşlemler</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td><b>Ahmet Kurye</b></td>
-                  <td>Motorcycle 🏍️</td>
-                  <td><span class="badge badge-green">Available</span></td>
-                  <td>41.0082, 28.9784</td>
-                  <td>35 km/h · %88</td>
-                  <td>14 Paket</td>
-                </tr>
+              <tbody id="couriers-table-body">
+                <!-- Dynamically loaded via REST API -->
               </tbody>
             </table>
           </div>
@@ -331,7 +326,7 @@
         <div class="data-card glass">
           <div class="panel-title">Yapay Zeka (AI Dispatcher) Skorlama Matrisi</div>
           <div style="margin-top:14px; font-size:13px; color:var(--text-muted);">
-            AI Dispatcher kuryenin anlık WGS84 mesafesi, araç tipi hız optimizasyonu (Motosiklet: 35 km/h vs Otomobil: 25 km/h) ve ortalama ETA sürelerine göre en yüksek skorlu kuryeyi otomatik olarak atar.
+            AI Dispatcher kuryenin anlık WGS84 mesafesi, araç tipi hız optimizasyonu ve ortalama ETA sürelerine göre en yüksek skorlu kuryeyi otomatik olarak atar.
           </div>
           <div class="table-container">
             <table>
@@ -345,7 +340,7 @@
                   <th>Karar</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="ai-table-body">
                 <tr>
                   <td>Ahmet Kurye</td>
                   <td>Motorcycle</td>
@@ -406,84 +401,240 @@
     </div>
   </main>
 
+  <!-- MODAL: ADD ORDER -->
+  <div class="modal-overlay" id="modal-add-order">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Yeni Sipariş Oluştur (REST API)</span>
+        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-order')"></i>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alım Adresi Etiketi</label>
+        <input type="text" id="m-pickup-label" class="form-input" value="Restoran A (Sultanahmet)">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Teslimat Adresi Etiketi</label>
+        <input type="text" id="m-dropoff-label" class="form-input" value="Maslak Plaza Kat 8">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Taşıma Ücreti (₺)</label>
+        <input type="number" id="m-fare" class="form-input" value="45.00">
+      </div>
+      <button class="btn-submit" onclick="submitModalOrder()">Siparişi Kaydet & AI Atama Yap</button>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD COURIER -->
+  <div class="modal-overlay" id="modal-add-courier">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>Yeni Kurye Kaydet (REST API)</span>
+        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-courier')"></i>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kurye Adı Soyadı</label>
+        <input type="text" id="m-courier-name" class="form-input" placeholder="Mehmet Kurye">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Araç Tipi</label>
+        <select id="m-courier-vehicle" class="form-select">
+          <option value="motorcycle">🏍️ Motosiklet (Motorcycle)</option>
+          <option value="automobile">🚗 Otomobil (Automobile)</option>
+          <option value="bicycle">🚲 Bisiklet (Bicycle)</option>
+          <option value="foot">🚶 Yaya Kurye (Foot)</option>
+        </select>
+      </div>
+      <button class="btn-submit" onclick="submitModalCourier()">Kuryeyi Sistemde Oluştur</button>
+    </div>
+  </div>
+
   <script>
     lucide.createIcons();
 
-    // Map setup
+    // Leaflet map setup
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19, attribution: '&copy; CARTO'
     }).addTo(map);
 
-    const courierIcon = L.divIcon({
-      html: `<div style="background:#38bdf8; width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #38bdf8;"></div>`,
-      className: ''
-    });
+    const courierMarkers = {};
+    let activeCourierId = null;
 
-    let currentLat = 41.0082;
-    let currentLon = 28.9784;
+    // Load initial REST data
+    loadOrders();
+    loadCouriers();
 
-    const courierMarker = L.marker([currentLat, currentLon], { icon: courierIcon }).addTo(map)
-      .bindPopup("<b>Ahmet Kurye (Motor)</b>");
+    async function loadOrders() {
+      try {
+        const res = await fetch('/v1/orders');
+        if (!res.ok) return;
+        const orders = await res.json();
+        document.getElementById('stat-orders-count').innerText = `${orders.length} Toplam`;
+
+        const tbody = document.getElementById('orders-table-body');
+        tbody.innerHTML = '';
+        orders.forEach(o => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>#${o.id.substring(0,8)}</code></td>
+            <td>${o.pickup.label}</td>
+            <td>${o.dropoff.label}</td>
+            <td>₺ ${(o.fare.amount_minor/100).toFixed(2)}</td>
+            <td><span class="badge badge-purple">${o.status}</span></td>
+            <td><code>${o.assigned_courier_id ? o.assigned_courier_id.substring(0,8) : 'Atanmadı'}</code></td>
+            <td>
+              <button class="btn-table-action" onclick="assignOrderAI('${o.id}')">AI Dispatch</button>
+              <button class="btn-table-action" onclick="updateOrderStatus('${o.id}', 'transit')">Yola Çıkar</button>
+              <button class="btn-table-action" onclick="updateOrderStatus('${o.id}', 'deliver')">Teslim Et</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {}
+    }
+
+    async function loadCouriers() {
+      try {
+        const res = await fetch('/v1/couriers');
+        if (!res.ok) return;
+        const couriers = await res.json();
+        document.getElementById('stat-couriers-count').innerText = `${couriers.length} Online`;
+
+        const tbody = document.getElementById('couriers-table-body');
+        tbody.innerHTML = '';
+        couriers.forEach(c => {
+          if (!activeCourierId) activeCourierId = c.id;
+          
+          if (c.current_location) {
+            if (!courierMarkers[c.id]) {
+              const icon = L.divIcon({
+                html: `<div style="background:#38bdf8; width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #38bdf8;"></div>`,
+                className: ''
+              });
+              courierMarkers[c.id] = L.marker([c.current_location.latitude, c.current_location.longitude], { icon }).addTo(map)
+                .bindPopup(`<b>${c.name}</b><br>Araç: ${c.vehicle}`);
+            } else {
+              courierMarkers[c.id].setLatLng([c.current_location.latitude, c.current_location.longitude]);
+            }
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>#${c.id.substring(0,8)}</code></td>
+            <td><b>${c.name}</b></td>
+            <td>${c.vehicle}</td>
+            <td><span class="badge badge-green">${c.status}</span></td>
+            <td>${c.current_location ? `${c.current_location.latitude.toFixed(4)}, ${c.current_location.longitude.toFixed(4)}` : 'Konum Yok'}</td>
+            <td>
+              <button class="btn-table-action" onclick="moveCourierGPS('${c.id}')">GPS Konumu Ver</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {}
+    }
 
     // WebSocket Stream
-    const wsUrl = `ws://${window.location.host}/ws/tracking`;
-    const ws = new WebSocket(wsUrl);
-    const logsContainer = document.getElementById('stream-logs');
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        currentLat = data.latitude;
-        currentLon = data.longitude;
-        courierMarker.setLatLng([currentLat, currentLon]);
-        addLog(`GPS: Lat ${currentLat.toFixed(4)}, Lon ${currentLon.toFixed(4)}`);
-      } catch (e) {}
-    };
+    try {
+      const wsUrl = `ws://${window.location.host}/ws/tracking`;
+      const ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          addLog(`WS GPS: Kurye #${data.courier_id.substring(0,6)} → Lat: ${data.latitude.toFixed(4)}, Lon: ${data.longitude.toFixed(4)}`);
+          loadCouriers();
+        } catch (e) {}
+      };
+    } catch(e) {}
 
     function addLog(msg) {
+      const logs = document.getElementById('stream-logs');
       const log = document.createElement('div');
       log.className = 'stream-log';
       log.innerHTML = `<div class="log-time">${new Date().toLocaleTimeString()}</div><div>${msg}</div>`;
-      logsContainer.insertBefore(log, logsContainer.firstChild);
+      logs.insertBefore(log, logs.firstChild);
     }
 
     async function triggerSimulatedMovement() {
-      currentLat += (Math.random() - 0.5) * 0.004;
-      currentLon += (Math.random() - 0.5) * 0.004;
-      addLog("Kurye Hareket Etti...");
-      await fetch(`/v1/couriers/019fdbde-af56-74b3-8b2d-8fe8e81bf1f2/location`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude: currentLat, longitude: currentLon })
-      });
+      if (!activeCourierId) {
+        await submitModalCourier("Ahmet Kurye (Motor)", "motorcycle");
+      }
+      const lat = 41.0082 + (Math.random() - 0.5) * 0.005;
+      const lon = 28.9784 + (Math.random() - 0.5) * 0.005;
+      await moveCourierGPS(activeCourierId, lat, lon);
     }
 
-    async function submitNewOrder() {
-      const label = document.getElementById('order-label').value;
-      addLog(`Yeni Sipariş: ${label}`);
+    async function moveCourierGPS(courierId, lat, lon) {
+      const targetLat = lat || (41.0082 + (Math.random() - 0.5) * 0.005);
+      const targetLon = lon || (28.9784 + (Math.random() - 0.5) * 0.005);
+      await fetch(`/v1/couriers/${courierId}/location`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latitude: targetLat, longitude: targetLon })
+      });
+      addLog(`Kurye #${courierId.substring(0,6)} GPS güncellendi.`);
+      loadCouriers();
+    }
+
+    async function submitModalOrder() {
+      const pickup = document.getElementById('m-pickup-label').value;
+      const dropoff = document.getElementById('m-dropoff-label').value;
+      const fare = parseFloat(document.getElementById('m-fare').value) * 100;
+
       const res = await fetch('/v1/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customer_id: "019fdbde-a5c0-7202-8461-a823def9e5fd",
-          pickup: { latitude: 41.0090, longitude: 28.9790, label: label },
-          dropoff: { latitude: 41.0200, longitude: 28.9850, label: "Müşteri" },
-          fare_amount_minor: 2500, fare_currency: "TRY"
+          pickup: { latitude: 41.0082, longitude: 28.9784, label: pickup },
+          dropoff: { latitude: 41.0200, longitude: 28.9850, label: dropoff },
+          fare_amount_minor: fare, fare_currency: "TRY"
         })
       });
       const order = await res.json();
-      addLog(`AI Dispatch Atanıyor (Order: #${order.id.substring(0,6)})...`);
+      closeModal('modal-add-order');
+      addLog(`REST: Yeni Sipariş Oluşturuldu #${order.id.substring(0,6)}`);
+      
+      // Auto Assign via AI
+      await assignOrderAI(order.id);
+      loadOrders();
+    }
 
-      await fetch(`/v1/orders/${order.id}/assign`, {
+    async function submitModalCourier(customName, customVehicle) {
+      const name = customName || document.getElementById('m-courier-name').value;
+      const vehicle = customVehicle || document.getElementById('m-courier-vehicle').value;
+
+      const res = await fetch('/v1/couriers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name || "Ahmet Kurye", vehicle: vehicle })
+      });
+      const c = await res.json();
+      activeCourierId = c.id;
+      closeModal('modal-add-courier');
+      addLog(`REST: Yeni Kurye Kaydedildi #${c.id.substring(0,6)}`);
+      loadCouriers();
+    }
+
+    async function assignOrderAI(orderId) {
+      await fetch(`/v1/orders/${orderId}/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({})
       });
-      addLog(`AI Dispatcher Ataması Başarılı!`);
+      addLog(`AI Dispatcher: Siparişe kurye atandı #${orderId.substring(0,6)}`);
+      loadOrders();
     }
 
-    // Dynamic Tab Switching
+    async function updateOrderStatus(orderId, action) {
+      await fetch(`/v1/orders/${orderId}/${action}`, { method: 'POST' });
+      addLog(`Sipariş Durumu Güncellendi: ${action.toUpperCase()}`);
+      loadOrders();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
     function switchTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
@@ -492,9 +643,7 @@
       const pane = document.getElementById(`tab-${tabId}`);
       if (pane) {
         pane.classList.add('active');
-        if (tabId === 'map') {
-          setTimeout(() => map.invalidateSize(), 100);
-        }
+        if (tabId === 'map') setTimeout(() => map.invalidateSize(), 100);
       }
     }
   </script>

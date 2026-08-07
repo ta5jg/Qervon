@@ -64,4 +64,8 @@ where
             .await?
             .ok_or(ApplicationError::NotFound)
     }
+
+    pub async fn list_all(&self) -> Result<Vec<Order>, ApplicationError> {
+        Ok(self.orders.list_all().await?)
+    }
 }

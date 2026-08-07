@@ -49,4 +49,10 @@ where
     ) -> Result<Order, qervon_application::ApplicationError> {
         self.service.get(id).await
     }
+
+    pub async fn list_all(
+        &self,
+    ) -> Result<Vec<Order>, qervon_application::ApplicationError> {
+        self.service.list_all().await
+    }
 }

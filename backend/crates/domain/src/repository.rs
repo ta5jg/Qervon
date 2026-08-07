@@ -40,6 +40,7 @@ pub trait OrderRepository: Send + Sync {
     async fn create(&self, order: &Order) -> Result<(), DomainError>;
     async fn find_by_id(&self, id: OrderId) -> Result<Option<Order>, DomainError>;
     async fn update(&self, order: &Order) -> Result<(), DomainError>;
+    async fn list_all(&self) -> Result<Vec<Order>, DomainError>;
 }
 
 #[async_trait]
@@ -52,6 +53,9 @@ impl OrderRepository for Arc<dyn OrderRepository> {
     }
     async fn update(&self, order: &Order) -> Result<(), DomainError> {
         (**self).update(order).await
+    }
+    async fn list_all(&self) -> Result<Vec<Order>, DomainError> {
+        (**self).list_all().await
     }
 }
 

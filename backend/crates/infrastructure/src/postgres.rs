@@ -157,6 +157,16 @@ impl OrderRepository for PgOrderRepository {
         }
         Ok(())
     }
+
+    async fn list_all(&self) -> Result<Vec<Order>, DomainError> {
+        let rows: Vec<OrderRow> = sqlx::query_as(&format!(
+            "SELECT {ORDER_COLUMNS} FROM orders.orders ORDER BY created_at DESC"
+        ))
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter().map(OrderRow::into_domain).collect()
+    }
 }
 
 #[derive(FromRow)]

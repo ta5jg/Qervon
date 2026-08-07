@@ -143,6 +143,10 @@ impl OrderRepository for InMemoryOrderRepository {
         self.store.write().unwrap().insert(order.id, order.clone());
         Ok(())
     }
+
+    async fn list_all(&self) -> Result<Vec<Order>, DomainError> {
+        Ok(self.store.read().unwrap().values().cloned().collect())
+    }
 }
 
 // ---------------------------------------------------------------------------
