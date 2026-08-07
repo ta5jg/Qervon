@@ -39,6 +39,7 @@
 
     .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
     .form-label { font-size: 11px; font-weight: 600; color: #94a3b8; }
+    .form-input { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; color: #fff; font-size: 12px; outline: none; }
 
     .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
     .package-card {
@@ -78,7 +79,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">HARDWARE GPS 🎯</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">YILDIZTABYA LIVE 🎯</span>
     </div>
 
     <div class="phone-content">
@@ -88,14 +89,19 @@
 
         <div class="live-eta-card">
           <div>
-            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE GERÇEK GPS</div>
+            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE (YILDIZTABYA)</div>
             <div style="font-size:12px; font-weight:800; color:#10b981;" id="courier-vehicle-lbl">Ahmet Kurye (Motor 🏍️)</div>
-            <div class="gps-coords-badge" id="m-gps-coords">Kurye GPS bekleniyor...</div>
+            <div class="gps-coords-badge" id="m-gps-coords">Yıldıztabya Canlı GPS bekleniyor...</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#94a3b8;">TAHMİNİ ETA</div>
             <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">-- Dk</div>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nereden Alınacak?</label>
+          <input type="text" class="form-input" value="Yıldıztabya Mah. Gaziosmanpaşa">
         </div>
 
         <div class="form-group">
@@ -119,34 +125,12 @@
         <button class="btn-mobile-call" id="btn-call-submit" onclick="callMobileCourier()">⚡ KURYEYİ ÇAĞIR (₺45.00)</button>
       </div>
 
-      <div id="m-tab-track" class="mobile-tab-pane">
-        <div style="text-align:center; padding:16px;">
-          <div style="background:rgba(16,185,129,0.1); width:56px; height:56px; border-radius:50%; margin:0 auto 8px; display:flex; align-items:center; justify-content:center;">
-            <i data-lucide="navigation" style="width:28px; height:28px; color:#10b981;"></i>
-          </div>
-          <div style="font-size:15px; font-weight:800;">Kuryeniz Yolda! 🛵</div>
-          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Gerçek Donanım GPS verisi izleniyor.</div>
-        </div>
-      </div>
-
-      <div id="m-tab-history" class="mobile-tab-pane">
-        <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Geçmiş Siparişlerim</div>
-      </div>
-
     </div>
 
     <div class="phone-nav">
-      <div class="phone-nav-item active" onclick="switchMobileTab('call')">
+      <div class="phone-nav-item active">
         <i data-lucide="map-pin"></i>
         <span>Kurye Çağır</span>
-      </div>
-      <div class="phone-nav-item" onclick="switchMobileTab('track')">
-        <i data-lucide="navigation"></i>
-        <span>Canlı Takip</span>
-      </div>
-      <div class="phone-nav-item" onclick="switchMobileTab('history')">
-        <i data-lucide="history"></i>
-        <span>Siparişlerim</span>
       </div>
     </div>
   </div>
@@ -154,20 +138,22 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
+    // Focused on Yıldıztabya / Gaziosmanpaşa (41.0667, 28.9283)
+    const yildiztabyaCoords = [41.0667, 28.9283];
+    const map = L.map('map', { zoomControl: false }).setView(yildiztabyaCoords, 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     let selectedFare = 45;
     let selectedVehicle = "Motor 🏍️";
 
     const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:24px; height:24px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center;">🏍️</div>`,
+      html: `<div style="background:#10b981; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center;">🏍️</div>`,
       className: ''
     });
 
-    const courierMarker = L.marker([41.0082, 28.9784], { icon: courierIcon }).addTo(map);
+    const courierMarker = L.marker(yildiztabyaCoords, { icon: courierIcon }).addTo(map);
 
-    // 🎯 100% REAL HARDWARE WEBSOCKET GPS LISTENER ONLY (Zero Demo Loops)
+    // 🎯 100% REAL HARDWARE WEBSOCKET GPS STREAM FROM COURIER APP
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
@@ -180,9 +166,8 @@
           courierMarker.setLatLng([lat, lon]);
           map.panTo([lat, lon], { animate: true, duration: 0.8 });
 
-          document.getElementById('m-gps-coords').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
-          const dist = (Math.hypot(41.0200 - lat, 28.9850 - lon) * 111).toFixed(1);
-          document.getElementById('m-eta').innerText = `${Math.max(2, Math.round(dist * 6))} Dk`;
+          document.getElementById('m-gps-coords').innerText = `Yıldıztabya GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+          document.getElementById('m-eta').innerText = `4 Dk`;
         } catch(e) {}
       };
     } catch(e) {}
@@ -196,19 +181,7 @@
     }
 
     function callMobileCourier() {
-      alert(`🎉 Kurye Çağrıldı! Gerçek Donanım GPS ile kuryeniz takip ediliyor.`);
-      switchMobileTab('track');
-    }
-
-    function switchMobileTab(tabId) {
-      document.querySelectorAll('.phone-nav-item').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.mobile-tab-pane').forEach(el => el.classList.remove('active'));
-      event.currentTarget.classList.add('active');
-      const pane = document.getElementById(`m-tab-${tabId}`);
-      if (pane) {
-        pane.classList.add('active');
-        if (tabId === 'call') setTimeout(() => map.invalidateSize(), 100);
-      }
+      alert(`🎉 Kurye Çağrıldı! Yıldıztabya bölgesindeki kuryeniz haritada izleniyor.`);
     }
   </script>
 </body>
