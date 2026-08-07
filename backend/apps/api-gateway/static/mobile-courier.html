@@ -51,8 +51,12 @@
     .switch-btn.offline { background: #64748b; }
     .switch-btn.offline::after { right: 29px; }
 
-    .gps-live-badge {
-      font-family: monospace; font-size: 11px; color: #38bdf8; background: rgba(56,189,248,0.1); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.3); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    .gps-hardware-card {
+      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; padding: 10px 14px; margin-bottom: 10px;
+    }
+
+    .gps-coords-val {
+      font-family: monospace; font-size: 12px; font-weight: 700; color: #10b981; margin-top: 2px;
     }
 
     .job-alert-card {
@@ -88,7 +92,7 @@
       <div class="brand-title">
         <i data-lucide="navigation" style="width:20px;"></i> QERVON KURYE
       </div>
-      <span style="font-size:10px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 8px; border-radius:10px; font-weight:700;">NAVIGASYON LIVE</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">REAL HARDWARE GPS 🎯</span>
     </div>
 
     <div class="phone-content">
@@ -97,14 +101,18 @@
         <div class="online-toggle-card">
           <div>
             <div style="font-size:10px; color:#94a3b8;">GÖREV DURUMU</div>
-            <div style="font-size:13px; font-weight:800; color:#10b981;" id="courier-status-label">ONLINE (GPS YAYINDA)</div>
+            <div style="font-size:13px; font-weight:800; color:#10b981;" id="courier-status-label">ONLINE (CİHAZ GPS YAYINDA)</div>
           </div>
           <div class="switch-btn" id="online-switch" onclick="toggleCourierOnline()"></div>
         </div>
 
-        <div class="gps-live-badge">
-          <span>📡 ROTA ÜZERİNDE GPS:</span>
-          <b id="k-gps-live-val">41.0082, 28.9784</b>
+        <!-- Real Device Hardware GPS Info Card -->
+        <div class="gps-hardware-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:10px; font-weight:700; color:#94a3b8;">FİZİKSEL CİHAZ GPS KONUMU</span>
+            <span style="font-size:10px; font-weight:700; color:#10b981;" id="gps-accuracy-lbl">Hassasiyet: ±5m</span>
+          </div>
+          <div class="gps-coords-val" id="real-gps-val">Konum izni bekleniyor...</div>
         </div>
 
         <!-- AI Dispatch Job Notification -->
@@ -166,62 +174,62 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    // Realistic Waypoints (Straight Route Vector Navigation)
-    const waypoints = [
-      [41.0082, 28.9784], // Sultanahmet Restoran
-      [41.0120, 28.9800], // Eminönü Geçidi
-      [41.0160, 28.9820], // Karaköy Köprüsü
-      [41.0200, 28.9850]  // Maslak Plaza
-    ];
-
-    let currentSegment = 0;
-    let stepProgress = 0;
     let isOnline = true;
+    let watchId = null;
     const courierId = "019fdbde-af56-74b3-8b2d-8fe8e81bf1f2";
 
     const courierIcon = L.divIcon({
-      html: `<div style="background:#38bdf8; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #38bdf8; display:flex; align-items:center; justify-content:center;">🏍️</div>`,
+      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold;">🏍️</div>`,
       className: ''
     });
 
-    const courierMarker = L.marker(waypoints[0], { icon: courierIcon }).addTo(map);
+    const courierMarker = L.marker([41.0082, 28.9784], { icon: courierIcon }).addTo(map)
+      .bindPopup("<b>Fiziksel Cihaz GPS Konumunuz</b>");
 
-    // Route Polyline
-    L.polyline(waypoints, { color: '#38bdf8', weight: 4, dashArray: '6, 6' }).addTo(map);
+    // 🎯 REAL HARDWARE DEVICE GPS WATCHER (No Simulation, 100% Real Hardware GPS)
+    function startRealHardwareGPSWatcher() {
+      if ('geolocation' in navigator) {
+        watchId = navigator.geolocation.watchPosition(
+          async (position) => {
+            if (!isOnline) return;
 
-    // Smooth Linear Vector Movement Loop (Every 1.5 seconds)
-    setInterval(async () => {
-      if (!isOnline) return;
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const accuracy = position.coords.accuracy ? Math.round(position.coords.accuracy) : 5;
 
-      stepProgress += 0.2;
-      if (stepProgress >= 1.0) {
-        stepProgress = 0;
-        currentSegment = (currentSegment + 1) % (waypoints.length - 1);
+            // Update UI with EXACT real hardware coordinates
+            document.getElementById('real-gps-val').innerText = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
+            document.getElementById('gps-accuracy-lbl').innerText = `Hassasiyet: ±${accuracy}m`;
+
+            // Update Marker and Pan Map ONLY when device physically moves
+            courierMarker.setLatLng([lat, lon]);
+            map.panTo([lat, lon], { animate: true, duration: 0.8 });
+
+            // Post EXACT real hardware GPS to backend API
+            try {
+              await fetch(`/v1/couriers/${courierId}/location`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude: lat, longitude: lon })
+              });
+            } catch(e) {}
+          },
+          (error) => {
+            document.getElementById('real-gps-val').innerText = "Konum izni bekleniyor (Tarayıcıdan izin verin)";
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 10000
+          }
+        );
+      } else {
+        document.getElementById('real-gps-val').innerText = "Cihazda GPS desteği bulunamadı.";
       }
-
-      const p1 = waypoints[currentSegment];
-      const p2 = waypoints[currentSegment + 1];
-
-      // Linear Interpolation (Lerp)
-      const lat = p1[0] + (p2[0] - p1[0]) * stepProgress;
-      const lon = p1[1] + (p2[1] - p1[1]) * stepProgress;
-
-      courierMarker.setLatLng([lat, lon]);
-      map.panTo([lat, lon], { animate: true, duration: 1.0 });
-
-      document.getElementById('k-gps-live-val').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-
-      try {
-        await fetch(`/v1/couriers/${courierId}/location`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ latitude: lat, longitude: lon })
-        });
-      } catch(e) {}
-    }, 1500);
+    }
 
     function toggleCourierOnline() {
       isOnline = !isOnline;
@@ -229,12 +237,14 @@
       const lbl = document.getElementById('courier-status-label');
       if (isOnline) {
         sw.classList.remove('offline');
-        lbl.innerText = "ONLINE (GPS YAYINDA)";
+        lbl.innerText = "ONLINE (CİHAZ GPS YAYINDA)";
         lbl.style.color = "#10b981";
+        startRealHardwareGPSWatcher();
       } else {
         sw.classList.add('offline');
         lbl.innerText = "OFFLINE (PASİF)";
         lbl.style.color = "#ef4444";
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
       }
     }
 
@@ -263,6 +273,9 @@
         if (tabId === 'home') setTimeout(() => map.invalidateSize(), 100);
       }
     }
+
+    // Start Real Hardware GPS Watcher automatically
+    startRealHardwareGPSWatcher();
   </script>
 </body>
 </html>
