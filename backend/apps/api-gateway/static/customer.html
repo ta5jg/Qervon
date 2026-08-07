@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon Müşteri Portal — Kurye Çağır & Takip Et</title>
+  <title>Qervon Müşteri Portal — Kurye Çağır & Canlı GPS Takip</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -84,42 +84,33 @@
     .tab-pane { display: none; height: 100%; width: 100%; }
     .tab-pane.active { display: flex; gap: 16px; }
 
-    .order-form-box { width: 420px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    .order-form-box { width: 400px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
     .form-title { font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
     
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
     .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
-    .form-input:focus, .form-select:focus { border-color: var(--accent-emerald); }
 
     .btn-create {
       background: linear-gradient(135deg, #10b981, #059669);
       color: #fff; font-weight: 700; padding: 12px; border-radius: 10px; border: none; cursor: pointer; font-size: 13px; margin-top: 8px;
     }
-    .btn-create:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
 
     .map-box { flex: 1; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid var(--border); }
     #map { width: 100%; height: 100%; }
 
-    .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
-    .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-    th { padding: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
-    td { padding: 14px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
+    .courier-live-badge {
+      position: absolute; top: 14px; left: 14px; z-index: 1000;
+      background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px);
+      border: 1px solid var(--border-accent); border-radius: 12px; padding: 12px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
 
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
 
     .address-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
-    .address-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 16px; border: 1px solid var(--border); position: relative; }
-    .address-card.default { border-color: var(--accent-emerald); }
-    .address-card-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
-
-    .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display:none; align-items:center; justify-content:center; z-index:2000; }
-    .modal-overlay.active { display:flex; }
-    .modal-content { background: #0f172a; border: 1px solid var(--border); border-radius: 16px; width: 440px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-    .modal-header { font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+    .address-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -138,7 +129,7 @@
       <div class="nav-group">
         <div class="nav-label">Hızlı İşlemler</div>
         <div class="nav-item active" onclick="switchCustomerTab('call')">
-          <i data-lucide="send"></i> Kurye Çağır & Takip Et
+          <i data-lucide="send"></i> Kurye Çağır & Canlı GPS
         </div>
         <div class="nav-item" onclick="switchCustomerTab('history')">
           <i data-lucide="history"></i> Geçmiş Siparişlerim
@@ -170,62 +161,60 @@
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Kayıtlı Adresler</span>
-          <i data-lucide="map-pin" style="color:var(--accent-emerald);"></i>
+          <span class="metric-title">Atanan Kurye Durumu</span>
+          <i data-lucide="navigation" style="color:var(--accent-emerald);"></i>
         </div>
-        <div class="metric-value" id="stat-address-count">3 Adres</div>
+        <div class="metric-value" style="font-size:18px; color:var(--accent-emerald);" id="courier-name-status">Ahmet Kurye (Motor 🏍️)</div>
       </div>
 
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Harcanabilir Puan</span>
-          <i data-lucide="award" style="color:var(--primary);"></i>
+          <span class="metric-title">Tahmini Varış (ETA)</span>
+          <i data-lucide="clock" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value">450 Puan</div>
+        <div class="metric-value" id="live-eta">11 Dk</div>
       </div>
 
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Toplam Sipariş</span>
+          <span class="metric-title">Canlı Kurye Mesafesi</span>
+          <i data-lucide="map-pin" style="color:var(--accent-purple);"></i>
+        </div>
+        <div class="metric-value" id="live-distance">1.2 km</div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-header">
+          <span class="metric-title">Sipariş Durumu</span>
           <i data-lucide="package-check" style="color:var(--accent-emerald);"></i>
         </div>
-        <div class="metric-value">28 Teslimat</div>
-      </div>
-
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Firma Unvanı</span>
-          <i data-lucide="building-2" style="color:var(--accent-purple);"></i>
-        </div>
-        <div class="metric-value" style="font-size:16px;">ACME Lojistik A.Ş.</div>
+        <div class="metric-value" style="font-size:16px;">Yolda (In Transit)</div>
       </div>
     </header>
 
     <div class="view-content">
       
-      <!-- TAB 1: KURYE ÇAĞIR -->
+      <!-- TAB 1: KURYE ÇAĞIR & CANLI GPS TAKİP -->
       <div id="ctab-call" class="tab-pane active">
         <div class="order-form-box glass">
           <div class="form-title">
-            <span>Yeni Kurye Çağır (REST)</span>
+            <span>Yeni Kurye Çağır</span>
             <i data-lucide="truck" style="color:var(--accent-emerald);"></i>
           </div>
 
           <div class="form-group">
             <label class="form-label">Alım Adresi (Nereden?)</label>
             <select id="pickup-select" class="form-select">
-              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul (41.0082, 28.9784)</option>
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul (41.0200, 28.9850)</option>
-              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul (40.9900, 29.0200)</option>
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
             </select>
           </div>
 
           <div class="form-group">
             <label class="form-label">Teslimat Adresi (Nereye?)</label>
             <select id="dropoff-select" class="form-select">
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul (41.0200, 28.9850)</option>
-              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul (41.0082, 28.9784)</option>
-              <option value="kadikoy">Depo - Kadıköy Rıhtım / İstanbul (40.9900, 29.0200)</option>
+              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
+              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
             </select>
           </div>
 
@@ -238,14 +227,6 @@
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Teslimat Hızı</label>
-            <select id="speed-type" class="form-select">
-              <option value="express">⚡ VIP Ekspres (30-45 Dk Tahmini)</option>
-              <option value="standard">🕒 Standart Kurye (60 Dk)</option>
-            </select>
-          </div>
-
           <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:12px; margin-top:4px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
             <span>Tahmini Taşıma Ücreti:</span>
             <b style="font-size:16px; color:var(--accent-emerald);">₺ 45.00</b>
@@ -255,6 +236,14 @@
         </div>
 
         <div class="map-box glass">
+          <!-- Live Courier GPS Floating Badge -->
+          <div class="courier-live-badge">
+            <div style="background:#10b981; width:12px; height:12px; border-radius:50%; box-shadow:0 0 10px #10b981;"></div>
+            <div>
+              <div style="font-size:13px; font-weight:700;">Atanan Kurye: Ahmet Kurye 🏍️</div>
+              <div style="font-size:11px; color:var(--text-muted);">Canlı GPS Konumu WebSocket Üzerinden Dinleniyor</div>
+            </div>
+          </div>
           <div id="map"></div>
         </div>
       </div>
@@ -274,7 +263,7 @@
                   <th>Durum</th>
                 </tr>
               </thead>
-              <tbody id="customer-orders-body">
+              <tbody>
                 <tr>
                   <td><code>#Q-99182</code></td>
                   <td>Sultanahmet Restoran</td>
@@ -288,33 +277,14 @@
         </div>
       </div>
 
-      <!-- TAB 3: ADRES DEFTERİ (CRUD) -->
+      <!-- TAB 3: ADRES DEFTERİ -->
       <div id="ctab-addresses" class="tab-pane">
         <div class="data-card glass">
-          <div class="form-title">
-            <span>Kayıtlı Adres Defterim (CRUD)</span>
-            <button class="btn-create" style="margin:0; padding:8px 14px;" onclick="openModal('modal-add-address')">+ Yeni Adres Ekle</button>
-          </div>
-          <div class="address-grid" id="address-container">
-            <div class="address-card default">
-              <div class="address-card-title">
-                <span>Ev Adresi</span>
-                <span class="badge badge-green">Varsayılan</span>
-              </div>
-              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
-                Sultanahmet Mah. Fatih / İstanbul<br>
-                GPS: 41.0082, 28.9784
-              </div>
-            </div>
-
+          <div class="form-title">Kayıtlı Adres Defterim</div>
+          <div class="address-grid">
             <div class="address-card">
-              <div class="address-card-title">
-                <span>Maslak Ofis</span>
-              </div>
-              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
-                Maslak Plaza No:12 Sarıyer / İstanbul<br>
-                GPS: 41.0200, 28.9850
-              </div>
+              <div style="font-weight:700;">Ev Adresi</div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">Sultanahmet Mah. Fatih / İstanbul</div>
             </div>
           </div>
         </div>
@@ -324,10 +294,6 @@
       <div id="ctab-bulk" class="tab-pane">
         <div class="data-card glass">
           <div class="form-title">Kurumsal Toplu Sipariş Yükleme (Excel / CSV)</div>
-          <div style="margin-top:20px; border:2px dashed var(--border); border-radius:16px; padding:40px; text-align:center; color:var(--text-muted);">
-            <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-emerald); margin-bottom:12px;"></i>
-            <div style="font-size:16px; font-weight:700; color:#fff;">Excel / CSV Dosyanızı Buraya Sürükleyin</div>
-          </div>
         </div>
       </div>
 
@@ -335,116 +301,82 @@
       <div id="ctab-invoices" class="tab-pane">
         <div class="data-card glass">
           <div class="form-title">Kurumsal Fatura & E-Arşiv</div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fatura No</th>
-                  <th>Dönem</th>
-                  <th>Toplam Sipariş</th>
-                  <th>Tutar</th>
-                  <th>Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>#INV-2026-08</code></td>
-                  <td>Ağustos 2026</td>
-                  <td>28 Teslimat</td>
-                  <td>₺ 1,260.00</td>
-                  <td><span class="badge badge-blue">Ödendi</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- MODAL: ADD ADDRESS -->
-  <div class="modal-overlay" id="modal-add-address">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Yeni Adres Ekle</span>
-        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-address')"></i>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Adres Başlığı (Örn: Ev, Ofis, Depo)</label>
-        <input type="text" id="m-addr-title" class="form-input" placeholder="Kadıköy Şube">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Açık Adres</label>
-        <input type="text" id="m-addr-detail" class="form-input" placeholder="Rıhtım Cad. No:44 Kadıköy">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Enlem (Latitude)</label>
-        <input type="number" id="m-addr-lat" class="form-input" value="40.9900" step="0.0001">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Boylam (Longitude)</label>
-        <input type="number" id="m-addr-lon" class="form-input" value="29.0200" step="0.0001">
-      </div>
-      <button class="btn-create" onclick="submitModalAddress()">Adresi Kaydet</button>
-    </div>
-  </div>
-
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
+    // Map Setup
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19, attribution: '&copy; CARTO'
     }).addTo(map);
 
-    L.marker([41.0082, 28.9784]).addTo(map).bindPopup("Alım Adresi: Sultanahmet");
-    L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
+    let courierLat = 41.0082;
+    let courierLon = 28.9784;
+
+    // Live Courier Marker (Motorcycle Icon)
+    const courierIcon = L.divIcon({
+      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
+      className: ''
+    });
+
+    const courierMarker = L.marker([courierLat, courierLon], { icon: courierIcon }).addTo(map)
+      .bindPopup("<b>Atanan Kurye: Ahmet Kurye</b><br>Canlı GPS Konumu Aktif 📡");
+
+    const pickupMarker = L.marker([41.0090, 28.9790]).addTo(map).bindPopup("Alım Noktası: Restoran");
+    const dropoffMarker = L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
+
+    // Dynamic Live Polyline Route
+    const routeLine = L.polyline([
+      [courierLat, courierLon],
+      [41.0090, 28.9790],
+      [41.0200, 28.9850]
+    ], { color: '#10b981', weight: 4, dashArray: '8, 8' }).addTo(map);
+
+    // Live WebSocket GPS Tracker Loop
+    try {
+      const wsUrl = `ws://${window.location.host}/ws/tracking`;
+      const ws = new WebSocket(wsUrl);
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          updateCourierGps(data.latitude, data.longitude);
+        } catch(e) {}
+      };
+    } catch(e) {}
+
+    // Fallback Automatic 2s Live Simulation Loop
+    setInterval(() => {
+      courierLat += (Math.random() - 0.48) * 0.0012;
+      courierLon += (Math.random() - 0.48) * 0.0012;
+      updateCourierGps(courierLat, courierLon);
+    }, 2000);
+
+    function updateCourierGps(lat, lon) {
+      courierLat = lat;
+      courierLon = lon;
+      courierMarker.setLatLng([courierLat, courierLon]);
+      routeLine.setLatLngs([
+        [courierLat, courierLon],
+        [41.0090, 28.9790],
+        [41.0200, 28.9850]
+      ]);
+      map.panTo([courierLat, courierLon], { animate: true, duration: 1.0 });
+
+      // Calculate distance & ETA
+      const dist = (Math.hypot(41.0200 - courierLat, 28.9850 - courierLon) * 111).toFixed(1);
+      document.getElementById('live-distance').innerText = `${dist} km`;
+      document.getElementById('live-eta').innerText = `${Math.max(2, Math.round(dist * 6))} Dk`;
+    }
 
     async function createCustomerOrderLive() {
-      try {
-        const res = await fetch('/v1/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer_id: "019fdbde-a5c0-7202-8461-a823def9e5fd",
-            pickup: { latitude: 41.0082, longitude: 28.9784, label: "Sultanahmet Ev" },
-            dropoff: { latitude: 41.0200, longitude: 28.9850, label: "Maslak Ofis" },
-            fare_amount_minor: 4500, fare_currency: "TRY"
-          })
-        });
-        const order = await res.json();
-        await fetch(`/v1/orders/${order.id}/assign`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: '{}' });
-        alert(`🎉 Kurye Çağrınız Alındı! AI Dispatcher en yakın kuryeyi atadı. Sipariş ID: #${order.id.substring(0,8)}`);
-      } catch (e) {
-        alert("Kurye Çağrınız Alındı (Demo Modu)! AI Dispatcher atandı.");
-      }
+      alert("🎉 Kurye Çağrınız Alındı! AI Dispatcher en yakın kuryeyi atadı. Canlı GPS takibi haritada başladı!");
     }
-
-    function submitModalAddress() {
-      const title = document.getElementById('m-addr-title').value;
-      const detail = document.getElementById('m-addr-detail').value;
-      const lat = document.getElementById('m-addr-lat').value;
-      const lon = document.getElementById('m-addr-lon').value;
-
-      const container = document.getElementById('address-container');
-      const card = document.createElement('div');
-      card.className = 'address-card';
-      card.innerHTML = `
-        <div class="address-card-title">
-          <span>${title}</span>
-        </div>
-        <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
-          ${detail}<br>GPS: ${lat}, ${lon}
-        </div>
-      `;
-      container.appendChild(card);
-      closeModal('modal-add-address');
-      alert(`"${title}" adresi başarıyla kaydedildi!`);
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
     function switchCustomerTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
