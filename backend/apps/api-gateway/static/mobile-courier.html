@@ -88,7 +88,7 @@
       <div class="brand-title">
         <i data-lucide="navigation" style="width:20px;"></i> QERVON KURYE
       </div>
-      <span style="font-size:10px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 8px; border-radius:10px; font-weight:700;">TERMINAL LIVE</span>
+      <span style="font-size:10px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 8px; border-radius:10px; font-weight:700;">NAVIGASYON LIVE</span>
     </div>
 
     <div class="phone-content">
@@ -102,9 +102,8 @@
           <div class="switch-btn" id="online-switch" onclick="toggleCourierOnline()"></div>
         </div>
 
-        <!-- Live GPS Tracker Badge -->
         <div class="gps-live-badge">
-          <span>📡 ANLIK GPS:</span>
+          <span>📡 ROTA ÜZERİNDE GPS:</span>
           <b id="k-gps-live-val">41.0082, 28.9784</b>
         </div>
 
@@ -170,30 +169,51 @@
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let lat = 41.0082;
-    let lon = 28.9784;
+    // Realistic Waypoints (Straight Route Vector Navigation)
+    const waypoints = [
+      [41.0082, 28.9784], // Sultanahmet Restoran
+      [41.0120, 28.9800], // Eminönü Geçidi
+      [41.0160, 28.9820], // Karaköy Köprüsü
+      [41.0200, 28.9850]  // Maslak Plaza
+    ];
+
+    let currentSegment = 0;
+    let stepProgress = 0;
     let isOnline = true;
     const courierId = "019fdbde-af56-74b3-8b2d-8fe8e81bf1f2";
 
     const courierIcon = L.divIcon({
-      html: `<div style="background:#38bdf8; width:24px; height:24px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #38bdf8; display:flex; align-items:center; justify-content:center;">🏍️</div>`,
+      html: `<div style="background:#38bdf8; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #38bdf8; display:flex; align-items:center; justify-content:center;">🏍️</div>`,
       className: ''
     });
 
-    const courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
+    const courierMarker = L.marker(waypoints[0], { icon: courierIcon }).addTo(map);
 
-    // Live GPS Movement & REST Sync Loop (Every 2 seconds)
+    // Route Polyline
+    L.polyline(waypoints, { color: '#38bdf8', weight: 4, dashArray: '6, 6' }).addTo(map);
+
+    // Smooth Linear Vector Movement Loop (Every 1.5 seconds)
     setInterval(async () => {
       if (!isOnline) return;
-      lat += (Math.random() - 0.48) * 0.0015;
-      lon += (Math.random() - 0.48) * 0.0015;
-      
+
+      stepProgress += 0.2;
+      if (stepProgress >= 1.0) {
+        stepProgress = 0;
+        currentSegment = (currentSegment + 1) % (waypoints.length - 1);
+      }
+
+      const p1 = waypoints[currentSegment];
+      const p2 = waypoints[currentSegment + 1];
+
+      // Linear Interpolation (Lerp)
+      const lat = p1[0] + (p2[0] - p1[0]) * stepProgress;
+      const lon = p1[1] + (p2[1] - p1[1]) * stepProgress;
+
       courierMarker.setLatLng([lat, lon]);
       map.panTo([lat, lon], { animate: true, duration: 1.0 });
 
       document.getElementById('k-gps-live-val').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 
-      // Post live GPS update to backend API
       try {
         await fetch(`/v1/couriers/${courierId}/location`, {
           method: 'POST',
@@ -201,7 +221,7 @@
           body: JSON.stringify({ latitude: lat, longitude: lon })
         });
       } catch(e) {}
-    }, 2000);
+    }, 1500);
 
     function toggleCourierOnline() {
       isOnline = !isOnline;
