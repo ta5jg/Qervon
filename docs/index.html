@@ -22,7 +22,6 @@
       --primary-glow: rgba(56, 189, 248, 0.25);
       --accent-purple: #a855f7;
       --accent-emerald: #10b981;
-      --accent-rose: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -100,6 +99,7 @@
       backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px; transition: all 0.2s;
     }
     .btn-action:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary-glow); }
+    .btn-action.active-gps { background: var(--accent-emerald); color: #000; border-color: var(--accent-emerald); }
 
     .side-panel { width: 340px; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
     .panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
@@ -110,7 +110,6 @@
     .form-input:focus, .form-select:focus { border-color: var(--primary); }
 
     .btn-submit { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 700; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; }
-    .btn-submit:hover { opacity: 0.9; }
 
     .stream-container { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 260px; }
     .stream-log { background: #090e1a; border-radius: 8px; padding: 10px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
@@ -121,16 +120,13 @@
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
     th { padding: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
     td { padding: 14px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
-    tr:hover { background: rgba(255, 255, 255, 0.02); }
 
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
     .badge-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
-    .badge-rose { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.3); }
 
     .btn-table-action { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: #1e293b; color: #fff; font-size: 11px; cursor: pointer; margin-right: 4px; }
-    .btn-table-action:hover { background: var(--primary); color: #000; }
 
     .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display:none; align-items:center; justify-content:center; z-index:2000; }
     .modal-overlay.active { display:flex; }
@@ -189,15 +185,14 @@
 
   <!-- Main View -->
   <main class="main-container">
-    
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
           <span class="metric-title">Aktif Kuryeler</span>
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value" id="stat-couriers-count">1 Online</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> WebSocket GPS Yayında</div>
+        <div class="metric-value">1 Online</div>
+        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> Canlı GPS Stream Aktif</div>
       </div>
 
       <div class="metric-card glass">
@@ -205,7 +200,7 @@
           <span class="metric-title">Canlı Siparişler</span>
           <i data-lucide="shopping-bag" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="stat-orders-count">1 Toplam</div>
+        <div class="metric-value">1 Yolda</div>
         <div class="metric-footer badge-purple"><i data-lucide="sparkles" style="width:12px;"></i> AI Dispatch Atandı</div>
       </div>
 
@@ -234,17 +229,20 @@
       <div id="tab-map" class="tab-pane active">
         <div class="map-box glass">
           <div class="map-controls">
-            <button class="btn-action" onclick="triggerSimulatedMovement()"><i data-lucide="play-circle"></i> Kurye GPS Hareket Simülasyonu</button>
-            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus-circle"></i> Yeni Sipariş Ekle (REST)</button>
-            <button class="btn-action" onclick="openModal('modal-add-courier')"><i data-lucide="user-plus"></i> Kurye Ekle (REST)</button>
+            <button class="btn-action active-gps" id="btn-toggle-gps" onclick="toggleAutoGPS()">
+              <i data-lucide="radio"></i> Otomatik Canlı GPS Stream: <b id="gps-status-text">AÇIK (2s)</b>
+            </button>
+            <button class="btn-action" onclick="useRealBrowserGPS()">
+              <i data-lucide="locate"></i> Cihazımın Gerçek GPS'ini Kullan
+            </button>
           </div>
           <div id="map"></div>
         </div>
 
         <aside class="side-panel glass">
           <div class="panel-title">
-            <span>Canlı Takip Akışı</span>
-            <span class="badge badge-green">DEMO WS</span>
+            <span>Canlı GPS Takip Akışı</span>
+            <span class="badge badge-green">LIVE DEMO</span>
           </div>
 
           <div class="op-card" style="background:rgba(30,41,59,0.5); padding:12px; border-radius:10px; border:1px solid var(--border);">
@@ -255,11 +253,11 @@
             <button class="btn-submit" style="margin-top:8px; width:100%;" onclick="submitNewOrder()">Siparişi Başlat & AI Atama Yap</button>
           </div>
 
-          <div class="panel-title" style="font-size:12px;">Anlık Akış Logları</div>
+          <div class="panel-title" style="font-size:12px;">Canlı GPS Konum Akışı</div>
           <div class="stream-container" id="stream-logs">
             <div class="stream-log">
-              <div class="log-time">DEMO MODU</div>
-              <div>GitHub Pages Live Önizleme Yayında!</div>
+              <div class="log-time">GPS DÖNGÜSÜ</div>
+              <div>Her 2 saniyede bir kurye konumu canlı güncelleniyor.</div>
             </div>
           </div>
         </aside>
@@ -268,10 +266,7 @@
       <!-- TAB 2: ORDERS -->
       <div id="tab-orders" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">
-            <span>Sipariş Yönetimi (Canlı CRUD)</span>
-            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus"></i> Yeni Sipariş Oluştur</button>
-          </div>
+          <div class="panel-title">Sipariş Yönetimi <span class="badge badge-blue">1 Aktif</span></div>
           <div class="table-container">
             <table>
               <thead>
@@ -282,10 +277,9 @@
                   <th>Tutar</th>
                   <th>Durum</th>
                   <th>Atanan Kurye</th>
-                  <th>İşlemler</th>
                 </tr>
               </thead>
-              <tbody id="orders-table-body">
+              <tbody>
                 <tr>
                   <td><code>#019fdbde</code></td>
                   <td>Sultanahmet Restoran</td>
@@ -293,10 +287,6 @@
                   <td>₺ 45.00</td>
                   <td><span class="badge badge-purple">In Transit</span></td>
                   <td>Ahmet Kurye (Motor)</td>
-                  <td>
-                    <button class="btn-table-action" onclick="alert('AI Dispatcher Yeniden Çalıştırıldı!')">AI Dispatch</button>
-                    <button class="btn-table-action" onclick="alert('Sipariş Teslim Edildi!')">Teslim Et</button>
-                  </td>
                 </tr>
               </tbody>
             </table>
@@ -307,10 +297,7 @@
       <!-- TAB 3: COURIERS -->
       <div id="tab-couriers" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">
-            <span>Kuryeler & Filo Listesi (Canlı CRUD)</span>
-            <button class="btn-action" onclick="openModal('modal-add-courier')"><i data-lucide="user-plus"></i> Kurye Ekle</button>
-          </div>
+          <div class="panel-title">Kuryeler & Filo Listesi <span class="badge badge-green">1 Available</span></div>
           <div class="table-container">
             <table>
               <thead>
@@ -320,19 +307,15 @@
                   <th>Araç Tipi</th>
                   <th>Durum</th>
                   <th>Son Konum</th>
-                  <th>İşlemler</th>
                 </tr>
               </thead>
-              <tbody id="couriers-table-body">
+              <tbody>
                 <tr>
                   <td><code>#C-88192</code></td>
                   <td><b>Ahmet Kurye</b></td>
                   <td>Motorcycle 🏍️</td>
                   <td><span class="badge badge-green">Available</span></td>
                   <td>41.0082, 28.9784</td>
-                  <td>
-                    <button class="btn-table-action" onclick="triggerSimulatedMovement()">GPS Konum Simülasyonu</button>
-                  </td>
                 </tr>
               </tbody>
             </table>
@@ -344,9 +327,6 @@
       <div id="tab-ai" class="tab-pane">
         <div class="data-card glass">
           <div class="panel-title">Yapay Zeka (AI Dispatcher) Skorlama Matrisi</div>
-          <div style="margin-top:14px; font-size:13px; color:var(--text-muted);">
-            AI Dispatcher kuryenin anlık WGS84 mesafesi, araç tipi hız optimizasyonu ve ortalama ETA sürelerine göre en yüksek skorlu kuryeyi otomatik olarak atar.
-          </div>
           <div class="table-container">
             <table>
               <thead>
@@ -408,10 +388,9 @@
       <!-- TAB 6: SETTINGS -->
       <div id="tab-settings" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">Sistem & Bağlantı Ayarları</div>
-          <div style="margin-top:16px; font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:12px;">
-            <div><b>Backend Engine:</b> Qervon Modular Monolith (Rust 1.90)</div>
-            <div><b>Active Storage:</b> In-Memory / PostgreSQL Auto-Fallback</div>
+          <div class="panel-title">Sistem Ayarları</div>
+          <div style="margin-top:16px; font-size:13px; color:var(--text-muted);">
+            Qervon Modular Monolith Rust 1.90 Engine
           </div>
         </div>
       </div>
@@ -419,86 +398,78 @@
     </div>
   </main>
 
-  <!-- MODAL: ADD ORDER -->
-  <div class="modal-overlay" id="modal-add-order">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Yeni Sipariş Oluştur</span>
-        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-order')"></i>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Alım Adresi Etiketi</label>
-        <input type="text" id="m-pickup-label" class="form-input" value="Restoran A (Sultanahmet)">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Teslimat Adresi Etiketi</label>
-        <input type="text" id="m-dropoff-label" class="form-input" value="Maslak Plaza Kat 8">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Taşıma Ücreti (₺)</label>
-        <input type="number" id="m-fare" class="form-input" value="45.00">
-      </div>
-      <button class="btn-submit" onclick="submitModalOrderDemo()">Siparişi Kaydet & AI Atama Yap</button>
-    </div>
-  </div>
-
-  <!-- MODAL: ADD COURIER -->
-  <div class="modal-overlay" id="modal-add-courier">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Yeni Kurye Kaydet</span>
-        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-courier')"></i>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Kurye Adı Soyadı</label>
-        <input type="text" id="m-courier-name" class="form-input" placeholder="Mehmet Kurye">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Araç Tipi</label>
-        <select id="m-courier-vehicle" class="form-select">
-          <option value="motorcycle">🏍️ Motosiklet (Motorcycle)</option>
-          <option value="automobile">🚗 Otomobil (Automobile)</option>
-          <option value="bicycle">🚲 Bisiklet (Bicycle)</option>
-        </select>
-      </div>
-      <button class="btn-submit" onclick="submitModalCourierDemo()">Kuryeyi Sistemde Oluştur</button>
-    </div>
-  </div>
-
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       maxZoom: 19, attribution: '&copy; CARTO'
     }).addTo(map);
 
+    let currentLat = 41.0082;
+    let currentLon = 28.9784;
+    let isGpsAutoStream = true;
+    let gpsInterval = null;
+
     const courierIcon = L.divIcon({
-      html: `<div style="background:#38bdf8; width:22px; height:22px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 15px #38bdf8;"></div>`,
+      html: `<div style="background:#38bdf8; width:26px; height:26px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #38bdf8; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
       className: ''
     });
 
-    let currentLat = 41.0082;
-    let currentLon = 28.9784;
-
     const courierMarker = L.marker([currentLat, currentLon], { icon: courierIcon }).addTo(map)
-      .bindPopup("<b>Ahmet Kurye (Motor)</b>");
+      .bindPopup("<b>Ahmet Kurye (Motor)</b><br>Canlı GPS Akışı Aktif 📡");
 
-    const logsContainer = document.getElementById('stream-logs');
+    L.marker([41.0090, 28.9790]).addTo(map).bindPopup("Alım Noktası: Restoran");
+    L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
+
+    function startAutoGpsLoop() {
+      if (gpsInterval) clearInterval(gpsInterval);
+      gpsInterval = setInterval(() => {
+        if (!isGpsAutoStream) return;
+        
+        currentLat += (Math.random() - 0.48) * 0.0015;
+        currentLon += (Math.random() - 0.48) * 0.0015;
+        
+        courierMarker.setLatLng([currentLat, currentLon]);
+        map.panTo([currentLat, currentLon], { animate: true, duration: 1.0 });
+        
+        addLog(`📍 CANLI GPS: Kurye Hareket Etti (${currentLat.toFixed(4)}, ${currentLon.toFixed(4)})`);
+      }, 2000);
+    }
+
+    function toggleAutoGPS() {
+      isGpsAutoStream = !isGpsAutoStream;
+      const btn = document.getElementById('btn-toggle-gps');
+      const txt = document.getElementById('gps-status-text');
+      if (isGpsAutoStream) {
+        btn.classList.add('active-gps');
+        txt.innerText = "AÇIK (2s)";
+        addLog("▶️ Canlı GPS Akışı Başlatıldı.");
+      } else {
+        btn.classList.remove('active-gps');
+        txt.innerText = "DURDURULDU";
+        addLog("⏸️ Canlı GPS Akışı Durduruldu.");
+      }
+    }
+
+    function useRealBrowserGPS() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(position => {
+          currentLat = position.coords.latitude;
+          currentLon = position.coords.longitude;
+          courierMarker.setLatLng([currentLat, currentLon]);
+          map.panTo([currentLat, currentLon]);
+          addLog(`🎯 Gerçek Cihaz GPS Algılandı: ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);
+        });
+      }
+    }
 
     function addLog(msg) {
+      const logs = document.getElementById('stream-logs');
       const log = document.createElement('div');
       log.className = 'stream-log';
       log.innerHTML = `<div class="log-time">${new Date().toLocaleTimeString()}</div><div>${msg}</div>`;
-      logsContainer.insertBefore(log, logsContainer.firstChild);
-    }
-
-    function triggerSimulatedMovement() {
-      currentLat += (Math.random() - 0.5) * 0.004;
-      currentLon += (Math.random() - 0.5) * 0.004;
-      courierMarker.setLatLng([currentLat, currentLon]);
-      map.panTo([currentLat, currentLon]);
-      addLog(`Kurye GPS Konum Simülasyonu: ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);
+      logs.insertBefore(log, logs.firstChild);
     }
 
     function submitNewOrder() {
@@ -508,19 +479,6 @@
         addLog(`AI Dispatcher Ataması Başarılı! En Uygun Kurye: Ahmet Kurye (Motor)`);
       }, 500);
     }
-
-    function submitModalOrderDemo() {
-      closeModal('modal-add-order');
-      addLog("REST: Yeni Sipariş Eklendi! AI Dispatcher çalıştırlıyor...");
-    }
-
-    function submitModalCourierDemo() {
-      closeModal('modal-add-courier');
-      addLog("REST: Yeni Kurye Sisteme Kaydedildi!");
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
     function switchTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -533,6 +491,8 @@
         if (tabId === 'map') setTimeout(() => map.invalidateSize(), 100);
       }
     }
+
+    startAutoGpsLoop();
   </script>
 </body>
 </html>
