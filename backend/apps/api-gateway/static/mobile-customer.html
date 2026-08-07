@@ -39,7 +39,6 @@
 
     .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
     .form-label { font-size: 11px; font-weight: 600; color: #94a3b8; }
-    .form-input { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; color: #fff; font-size: 12px; outline: none; }
 
     .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
     .package-card {
@@ -79,7 +78,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">GPS LIVE 📡</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">HARDWARE GPS 🎯</span>
     </div>
 
     <div class="phone-content">
@@ -89,13 +88,13 @@
 
         <div class="live-eta-card">
           <div>
-            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE GPS</div>
+            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE GERÇEK GPS</div>
             <div style="font-size:12px; font-weight:800; color:#10b981;" id="courier-vehicle-lbl">Ahmet Kurye (Motor 🏍️)</div>
-            <div class="gps-coords-badge" id="m-gps-coords">Lat: 41.0082, Lon: 28.9784</div>
+            <div class="gps-coords-badge" id="m-gps-coords">Kurye GPS bekleniyor...</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#94a3b8;">TAHMİNİ ETA</div>
-            <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">9 Dk</div>
+            <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">-- Dk</div>
           </div>
         </div>
 
@@ -126,13 +125,7 @@
             <i data-lucide="navigation" style="width:28px; height:28px; color:#10b981;"></i>
           </div>
           <div style="font-size:15px; font-weight:800;">Kuryeniz Yolda! 🛵</div>
-          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">WebSocket ile canlı GPS akışı yapılıyor.</div>
-        </div>
-        <div style="background:#1e293b; border-radius:14px; padding:14px;">
-          <div style="font-size:12px; margin-bottom:6px;"><b>Kurye:</b> Ahmet Yılmaz</div>
-          <div style="font-size:12px; margin-bottom:6px;"><b>Araç:</b> <span id="track-vehicle-name">Motosiklet</span></div>
-          <div style="font-size:12px; margin-bottom:6px;"><b>Anlık GPS:</b> <span style="color:#10b981;" id="track-gps-live">41.0082, 28.9784</span></div>
-          <div style="font-size:12px;"><b>Plaka:</b> 34 QR 991</div>
+          <div style="font-size:11px; color:#94a3b8; margin-top:2px;">Gerçek Donanım GPS verisi izleniyor.</div>
         </div>
       </div>
 
@@ -161,11 +154,9 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let lat = 41.0082;
-    let lon = 28.9784;
     let selectedFare = 45;
     let selectedVehicle = "Motor 🏍️";
 
@@ -174,38 +165,27 @@
       className: ''
     });
 
-    const courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
+    const courierMarker = L.marker([41.0082, 28.9784], { icon: courierIcon }).addTo(map);
 
-    // WebSocket Live Stream Listener
+    // 🎯 100% REAL HARDWARE WEBSOCKET GPS LISTENER ONLY (Zero Demo Loops)
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          updateLiveGps(data.latitude, data.longitude);
+          const lat = data.latitude;
+          const lon = data.longitude;
+
+          courierMarker.setLatLng([lat, lon]);
+          map.panTo([lat, lon], { animate: true, duration: 0.8 });
+
+          document.getElementById('m-gps-coords').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
+          const dist = (Math.hypot(41.0200 - lat, 28.9850 - lon) * 111).toFixed(1);
+          document.getElementById('m-eta').innerText = `${Math.max(2, Math.round(dist * 6))} Dk`;
         } catch(e) {}
       };
     } catch(e) {}
-
-    // Fallback Real-time Loop (Every 2 seconds)
-    setInterval(() => {
-      lat += (Math.random() - 0.48) * 0.0015;
-      lon += (Math.random() - 0.48) * 0.0015;
-      updateLiveGps(lat, lon);
-    }, 2000);
-
-    function updateLiveGps(nLat, nLon) {
-      lat = nLat; lon = nLon;
-      courierMarker.setLatLng([lat, lon]);
-      map.panTo([lat, lon], { animate: true, duration: 1.0 });
-
-      document.getElementById('m-gps-coords').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)}`;
-      document.getElementById('track-gps-live').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-      
-      const dist = (Math.hypot(41.0200 - lat, 28.9850 - lon) * 111).toFixed(1);
-      document.getElementById('m-eta').innerText = `${Math.max(2, Math.round(dist * 6))} Dk`;
-    }
 
     function selectPackageType(cardEl, type, fare, vehicle) {
       document.querySelectorAll('.package-card').forEach(el => el.classList.remove('active'));
@@ -216,7 +196,7 @@
     }
 
     function callMobileCourier() {
-      alert(`🎉 Kurye Çağrıldı! Live GPS ile kuryeniz haritada aktif.`);
+      alert(`🎉 Kurye Çağrıldı! Gerçek Donanım GPS ile kuryeniz takip ediliyor.`);
       switchMobileTab('track');
     }
 

@@ -22,7 +22,6 @@
       --primary-glow: rgba(56, 189, 248, 0.25);
       --accent-purple: #a855f7;
       --accent-emerald: #10b981;
-      --accent-rose: #f43f5e;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
@@ -68,8 +67,6 @@
     }
     .nav-item i { width: 18px; height: 18px; }
 
-    .sidebar-footer { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
-
     .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
     .header-bar {
@@ -84,7 +81,6 @@
     .metric-value { font-size: 22px; font-weight: 800; }
     .metric-footer { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-top: 4px; font-weight: 600; }
     .badge-positive { color: var(--accent-emerald); }
-    .badge-purple { color: var(--accent-purple); }
 
     .view-content { flex: 1; padding: 20px; overflow: hidden; position: relative; }
     .tab-pane { display: none; height: 100%; width: 100%; }
@@ -99,8 +95,6 @@
       padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer;
       backdrop-filter: blur(10px); display: flex; align-items: center; gap: 6px; transition: all 0.2s;
     }
-    .btn-action:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary-glow); }
-    .btn-action.active-gps { background: var(--accent-emerald); color: #000; border-color: var(--accent-emerald); }
 
     .side-panel { width: 340px; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
     .panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
@@ -112,18 +106,6 @@
     .courier-list-item:hover, .courier-list-item.selected {
       border-color: var(--primary); background: rgba(56,189,248,0.15); box-shadow: 0 0 12px var(--primary-glow);
     }
-
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
-    .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; outline: none; }
-
-    .btn-submit { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 700; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; }
-
-    .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
-    .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-    th { padding: 12px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; }
-    td { padding: 14px 12px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
 
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
@@ -149,16 +131,10 @@
         <div class="nav-item active" onclick="switchTab('map')">
           <i data-lucide="map-pin"></i> Canlı Harita & Fleet
         </div>
-        <div class="nav-item" onclick="switchTab('orders')">
-          <i data-lucide="package"></i> Sipariş Yönetimi
-        </div>
-        <div class="nav-item" onclick="switchTab('couriers')">
-          <i data-lucide="truck"></i> Kuryeler & Filo
-        </div>
       </div>
 
       <div class="nav-group">
-        <div class="nav-label">Simülatörler & Portallar</div>
+        <div class="nav-label">Portallar</div>
         <a href="mobile-courier.html" target="_blank" style="text-decoration:none;">
           <div class="nav-item" style="color:var(--primary);">
             <i data-lucide="smartphone"></i> Kurye Mobil Terminali →
@@ -178,11 +154,11 @@
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Sistemdeki Aktif Kuryeler</span>
+          <span class="metric-title">Gerçek Kuryeler</span>
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value">3 Online</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> Hardware GPS Canlı</div>
+        <div class="metric-value">3 Kayıtlı</div>
+        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> Donanım GPS Dinleniyor</div>
       </div>
 
       <div class="metric-card glass">
@@ -190,33 +166,16 @@
           <span class="metric-title">Harita Görünümü</span>
           <i data-lucide="map" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Tüm Kuryeler (3)</div>
-      </div>
-
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Tahmini ETA</span>
-          <i data-lucide="clock" style="color:var(--primary);"></i>
-        </div>
-        <div class="metric-value">11.8 Dk</div>
-      </div>
-
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Günlük Ciro</span>
-          <i data-lucide="dollar-sign" style="color:var(--accent-emerald);"></i>
-        </div>
-        <div class="metric-value">₺ 2,500.00</div>
+        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Tüm Kuryeler</div>
       </div>
     </header>
 
     <div class="view-content">
       
-      <!-- TAB 1: MAP -->
       <div id="tab-map" class="tab-pane active">
         <div class="map-box glass">
           <div class="map-controls">
-            <button class="btn-action active-gps" id="btn-show-all-couriers" onclick="selectAllCouriers()">
+            <button class="btn-action" id="btn-show-all-couriers" onclick="selectAllCouriers()">
               <i data-lucide="users"></i> TÜM KURYELERİ GÖSTER (TÜMÜ)
             </button>
           </div>
@@ -225,68 +184,27 @@
 
         <aside class="side-panel glass">
           <div class="panel-title">
-            <span>Sistem Kuryeleri (Seçin)</span>
-            <span class="badge badge-green">LIVE GPS</span>
+            <span>Canlı Kurye Seçimi</span>
+            <span class="badge badge-green">HARDWARE GPS ONLY</span>
           </div>
-          <div style="font-size:11px; color:var(--text-muted);">Bir kuryeye tıklayarak sadece onun konumuna odaklanabilirsiniz:</div>
 
-          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;" id="courier-list-container">
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
             <div class="courier-list-item selected" id="item-all" onclick="selectAllCouriers()">
               <div>
                 <div style="font-size:12px; font-weight:700;">🌐 TÜM KURYELERİ HARİTADA GÖSTER</div>
-                <div style="font-size:10px; color:var(--text-muted);">Sistemdeki 3 kuryenin hepsi kadrajda</div>
+                <div style="font-size:10px; color:var(--text-muted);">Donanım GPS verileri ile canlı harita</div>
               </div>
             </div>
 
-            <div class="courier-list-item" id="item-c1" onclick="selectCourierOnMap('c1', [41.0082, 28.9784], 'Ahmet Kurye')">
+            <div class="courier-list-item" id="item-c1" onclick="selectCourierOnMap('c1', 'Ahmet Kurye')">
               <div>
-                <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye (Motor)</div>
-                <div style="font-size:10px; color:var(--accent-emerald);">Canlı Donanım GPS: 41.0082, 28.9784</div>
+                <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye</div>
+                <div style="font-size:10px; color:var(--accent-emerald);" id="coords-c1">Canlı GPS Dinleniyor...</div>
               </div>
-              <span class="badge badge-green">Aktif</span>
-            </div>
-
-            <div class="courier-list-item" id="item-c2" onclick="selectCourierOnMap('c2', [41.0200, 28.9850], 'Mehmet Kurye')">
-              <div>
-                <div style="font-size:12px; font-weight:700;">🚗 Mehmet Kurye (VIP Araç)</div>
-                <div style="font-size:10px; color:var(--primary);">Konum: Maslak Plaza (41.0200, 28.9850)</div>
-              </div>
-              <span class="badge badge-blue">Yolda</span>
-            </div>
-
-            <div class="courier-list-item" id="item-c3" onclick="selectCourierOnMap('c3', [41.0120, 28.9800], 'Caner Kurye')">
-              <div>
-                <div style="font-size:12px; font-weight:700;">🚲 Caner Kurye (Bisiklet)</div>
-                <div style="font-size:10px; color:var(--accent-purple);">Konum: Eminönü (41.0120, 28.9800)</div>
-              </div>
-              <span class="badge badge-purple">Uygun</span>
+              <span class="badge badge-green">Cihaz GPS</span>
             </div>
           </div>
         </aside>
-      </div>
-
-      <!-- TAB 2: ORDERS -->
-      <div id="tab-orders" class="tab-pane">
-        <div class="data-card glass">
-          <div class="panel-title">Sipariş Yönetimi</div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr><th>Sipariş ID</th><th>Alım</th><th>Teslimat</th><th>Durum</th><th>Atanan Kurye</th></tr>
-              </thead>
-              <tbody>
-                <tr><td><code>#Q-99182</code></td><td>Sultanahmet Restoran</td><td>Maslak Plaza</td><td><span class="badge badge-purple">Yolda</span></td><td>Ahmet Kurye</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: COURIERS -->
-      <div id="tab-couriers" class="tab-pane">
-        <div class="data-card glass">
-          <div class="panel-title">Kuryeler & Filo</div>
-        </div>
       </div>
 
     </div>
@@ -295,55 +213,48 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0120, 28.9800], 13);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     const couriers = {
-      'c1': { name: 'Ahmet Kurye (Motor 🏍️)', coords: [41.0082, 28.9784], color: '#10b981' },
-      'c2': { name: 'Mehmet Kurye (VIP Araç 🚗)', coords: [41.0200, 28.9850], color: '#38bdf8' },
-      'c3': { name: 'Caner Kurye (Bisiklet 🚲)', coords: [41.0120, 28.9800], color: '#a855f7' }
+      'c1': { name: 'Ahmet Kurye (Donanım GPS 🏍️)', coords: [41.0082, 28.9784], color: '#10b981' }
     };
 
     const markers = {};
 
-    // Add all couriers to map with custom glow icons
     Object.keys(couriers).forEach(id => {
       const c = couriers[id];
       const icon = L.divIcon({
         html: `<div style="background:${c.color}; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px ${c.color}; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
         className: ''
       });
-      markers[id] = L.marker(c.coords, { icon: icon }).addTo(map).bindPopup(`<b>${c.name}</b><br>Canlı Donanım GPS`);
+      markers[id] = L.marker(c.coords, { icon: icon }).addTo(map).bindPopup(`<b>${c.name}</b>`);
     });
 
-    // Listen to real hardware WebSocket GPS stream for Courier C1
+    // 🎯 100% REAL HARDWARE WEBSOCKET GPS LISTENER ONLY (Zero Demo Loops)
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          couriers['c1'].coords = [data.latitude, data.longitude];
-          markers['c1'].setLatLng([data.latitude, data.longitude]);
+          const lat = data.latitude;
+          const lon = data.longitude;
+
+          couriers['c1'].coords = [lat, lon];
+          markers['c1'].setLatLng([lat, lon]);
+          
+          document.getElementById('coords-c1').innerText = `GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
         } catch(e) {}
       };
     } catch(e) {}
 
-    function selectCourierOnMap(id, coords, name) {
+    function selectCourierOnMap(id, name) {
       document.querySelectorAll('.courier-list-item').forEach(el => el.classList.remove('selected'));
       document.getElementById(`item-${id}`).classList.add('selected');
 
-      // Hide all other markers, show only selected
-      Object.keys(markers).forEach(mId => {
-        if (mId === id) {
-          map.addLayer(markers[mId]);
-          markers[mId].openPopup();
-        } else {
-          map.removeLayer(markers[mId]);
-        }
-      });
-
-      map.setView(coords, 16, { animate: true, duration: 1.0 });
+      map.setView(couriers[id].coords, 16, { animate: true, duration: 0.8 });
+      markers[id].openPopup();
       document.getElementById('map-view-label').innerText = `Odak: ${name}`;
     }
 
@@ -351,14 +262,9 @@
       document.querySelectorAll('.courier-list-item').forEach(el => el.classList.remove('selected'));
       document.getElementById('item-all').classList.add('selected');
 
-      // Show all markers
-      Object.keys(markers).forEach(mId => {
-        map.addLayer(markers[mId]);
-      });
-
       const bounds = L.latLngBounds(Object.values(couriers).map(c => c.coords));
       map.fitBounds(bounds, { padding: [50, 50] });
-      document.getElementById('map-view-label').innerText = "Tüm Kuryeler (3)";
+      document.getElementById('map-view-label').innerText = "Tüm Kuryeler";
     }
 
     function switchTab(tabId) {
