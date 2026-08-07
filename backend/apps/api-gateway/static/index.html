@@ -105,16 +105,19 @@
     .side-panel { width: 340px; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
     .panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
 
+    .courier-list-item {
+      background: rgba(30,41,59,0.6); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between;
+    }
+    .courier-list-item:hover, .courier-list-item.selected {
+      border-color: var(--primary); background: rgba(56,189,248,0.15); box-shadow: 0 0 12px var(--primary-glow);
+    }
+
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
     .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; outline: none; }
-    .form-input:focus, .form-select:focus { border-color: var(--primary); }
 
     .btn-submit { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #000; font-weight: 700; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-size: 12px; }
-
-    .stream-container { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 260px; }
-    .stream-log { background: #090e1a; border-radius: 8px; padding: 10px; border: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-    .log-time { color: var(--accent-purple); font-weight: 600; }
 
     .data-card { flex: 1; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
     .table-container { flex: 1; overflow-y: auto; margin-top: 14px; }
@@ -126,13 +129,6 @@
     .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
     .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
     .badge-purple { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
-
-    .btn-table-action { padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: #1e293b; color: #fff; font-size: 11px; cursor: pointer; margin-right: 4px; }
-
-    .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display:none; align-items:center; justify-content:center; z-index:2000; }
-    .modal-overlay.active { display:flex; }
-    .modal-content { background: #0f172a; border: 1px solid var(--border); border-radius: 16px; width: 440px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
-    .modal-header { font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
@@ -162,24 +158,17 @@
       </div>
 
       <div class="nav-group">
-        <div class="nav-label">Yapay Zeka & Analitik</div>
-        <div class="nav-item" onclick="switchTab('ai')">
-          <i data-lucide="cpu"></i> AI Dispatcher
-        </div>
-        <div class="nav-item" onclick="switchTab('finance')">
-          <i data-lucide="credit-card"></i> Finans & Hak ediş
-        </div>
-        <a href="customer.html" style="text-decoration:none;">
-          <div class="nav-item" style="color:var(--accent-emerald);">
-            <i data-lucide="user-check"></i> Müşteri Portalı →
+        <div class="nav-label">Simülatörler & Portallar</div>
+        <a href="mobile-courier.html" target="_blank" style="text-decoration:none;">
+          <div class="nav-item" style="color:var(--primary);">
+            <i data-lucide="smartphone"></i> Kurye Mobil Terminali →
           </div>
         </a>
-      </div>
-    </div>
-
-    <div class="sidebar-footer">
-      <div class="nav-item" onclick="switchTab('settings')">
-        <i data-lucide="settings"></i> Sistem Ayarları
+        <a href="mobile-customer.html" target="_blank" style="text-decoration:none;">
+          <div class="nav-item" style="color:var(--accent-emerald);">
+            <i data-lucide="user-check"></i> Müşteri Mobil App →
+          </div>
+        </a>
       </div>
     </div>
   </aside>
@@ -189,20 +178,19 @@
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Aktif Kuryeler</span>
+          <span class="metric-title">Sistemdeki Aktif Kuryeler</span>
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value" id="stat-couriers-count">1 Online</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> Canlı GPS Akışı Aktif</div>
+        <div class="metric-value">3 Online</div>
+        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> Hardware GPS Canlı</div>
       </div>
 
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Canlı Siparişler</span>
-          <i data-lucide="shopping-bag" style="color:var(--accent-purple);"></i>
+          <span class="metric-title">Harita Görünümü</span>
+          <i data-lucide="map" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="stat-orders-count">1 Yolda</div>
-        <div class="metric-footer badge-purple"><i data-lucide="sparkles" style="width:12px;"></i> AI Dispatch Atandı</div>
+        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Tüm Kuryeler (3)</div>
       </div>
 
       <div class="metric-card glass">
@@ -210,8 +198,7 @@
           <span class="metric-title">Tahmini ETA</span>
           <i data-lucide="clock" style="color:var(--primary);"></i>
         </div>
-        <div class="metric-value" id="stat-eta">11.8 Dk</div>
-        <div class="metric-footer badge-positive"><i data-lucide="trending-up" style="width:12px;"></i> %99.2 Hassasiyet</div>
+        <div class="metric-value">11.8 Dk</div>
       </div>
 
       <div class="metric-card glass">
@@ -220,7 +207,6 @@
           <i data-lucide="dollar-sign" style="color:var(--accent-emerald);"></i>
         </div>
         <div class="metric-value">₺ 2,500.00</div>
-        <div class="metric-footer badge-positive"><i data-lucide="arrow-up-right" style="width:12px;"></i> +18.4% Geçen Hafta</div>
       </div>
     </header>
 
@@ -230,36 +216,50 @@
       <div id="tab-map" class="tab-pane active">
         <div class="map-box glass">
           <div class="map-controls">
-            <button class="btn-action active-gps" id="btn-toggle-gps" onclick="toggleAutoGPS()">
-              <i data-lucide="radio"></i> Otomatik Canlı GPS Stream: <b id="gps-status-text">AÇIK (2s)</b>
+            <button class="btn-action active-gps" id="btn-show-all-couriers" onclick="selectAllCouriers()">
+              <i data-lucide="users"></i> TÜM KURYELERİ GÖSTER (TÜMÜ)
             </button>
-            <button class="btn-action" onclick="useRealBrowserGPS()">
-              <i data-lucide="locate"></i> Cihazımın Gerçek GPS'ini Kullan
-            </button>
-            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus-circle"></i> Yeni Sipariş</button>
           </div>
           <div id="map"></div>
         </div>
 
         <aside class="side-panel glass">
           <div class="panel-title">
-            <span>Canlı GPS Takip Akışı</span>
-            <span class="badge badge-green">WEBSOCKET LIVE</span>
+            <span>Sistem Kuryeleri (Seçin)</span>
+            <span class="badge badge-green">LIVE GPS</span>
           </div>
+          <div style="font-size:11px; color:var(--text-muted);">Bir kuryeye tıklayarak sadece onun konumuna odaklanabilirsiniz:</div>
 
-          <div class="op-card" style="background:rgba(30,41,59,0.5); padding:12px; border-radius:10px; border:1px solid var(--border);">
-            <div class="form-group">
-              <label class="form-label">Sipariş Başlığı</label>
-              <input type="text" id="order-label" class="form-input" value="Sultanahmet VIP Paket">
+          <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;" id="courier-list-container">
+            <div class="courier-list-item selected" id="item-all" onclick="selectAllCouriers()">
+              <div>
+                <div style="font-size:12px; font-weight:700;">🌐 TÜM KURYELERİ HARİTADA GÖSTER</div>
+                <div style="font-size:10px; color:var(--text-muted);">Sistemdeki 3 kuryenin hepsi kadrajda</div>
+              </div>
             </div>
-            <button class="btn-submit" style="margin-top:8px; width:100%;" onclick="submitNewOrder()">Siparişi Başlat & AI Atama Yap</button>
-          </div>
 
-          <div class="panel-title" style="font-size:12px;">Canlı GPS Konum Akışı</div>
-          <div class="stream-container" id="stream-logs">
-            <div class="stream-log">
-              <div class="log-time">GPS DÖNGÜSÜ</div>
-              <div>Her 2 saniyede bir kurye konumu canlı güncelleniyor.</div>
+            <div class="courier-list-item" id="item-c1" onclick="selectCourierOnMap('c1', [41.0082, 28.9784], 'Ahmet Kurye')">
+              <div>
+                <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye (Motor)</div>
+                <div style="font-size:10px; color:var(--accent-emerald);">Canlı Donanım GPS: 41.0082, 28.9784</div>
+              </div>
+              <span class="badge badge-green">Aktif</span>
+            </div>
+
+            <div class="courier-list-item" id="item-c2" onclick="selectCourierOnMap('c2', [41.0200, 28.9850], 'Mehmet Kurye')">
+              <div>
+                <div style="font-size:12px; font-weight:700;">🚗 Mehmet Kurye (VIP Araç)</div>
+                <div style="font-size:10px; color:var(--primary);">Konum: Maslak Plaza (41.0200, 28.9850)</div>
+              </div>
+              <span class="badge badge-blue">Yolda</span>
+            </div>
+
+            <div class="courier-list-item" id="item-c3" onclick="selectCourierOnMap('c3', [41.0120, 28.9800], 'Caner Kurye')">
+              <div>
+                <div style="font-size:12px; font-weight:700;">🚲 Caner Kurye (Bisiklet)</div>
+                <div style="font-size:10px; color:var(--accent-purple);">Konum: Eminönü (41.0120, 28.9800)</div>
+              </div>
+              <span class="badge badge-purple">Uygun</span>
             </div>
           </div>
         </aside>
@@ -268,25 +268,14 @@
       <!-- TAB 2: ORDERS -->
       <div id="tab-orders" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">
-            <span>Sipariş Yönetimi (Canlı CRUD)</span>
-            <button class="btn-action" onclick="openModal('modal-add-order')"><i data-lucide="plus"></i> Yeni Sipariş Oluştur</button>
-          </div>
+          <div class="panel-title">Sipariş Yönetimi</div>
           <div class="table-container">
             <table>
               <thead>
-                <tr>
-                  <th>Sipariş ID</th>
-                  <th>Alım Noktası</th>
-                  <th>Teslimat Noktası</th>
-                  <th>Tutar</th>
-                  <th>Durum</th>
-                  <th>Atanan Kurye</th>
-                  <th>İşlemler</th>
-                </tr>
+                <tr><th>Sipariş ID</th><th>Alım</th><th>Teslimat</th><th>Durum</th><th>Atanan Kurye</th></tr>
               </thead>
-              <tbody id="orders-table-body">
-                <!-- Dynamically loaded -->
+              <tbody>
+                <tr><td><code>#Q-99182</code></td><td>Sultanahmet Restoran</td><td>Maslak Plaza</td><td><span class="badge badge-purple">Yolda</span></td><td>Ahmet Kurye</td></tr>
               </tbody>
             </table>
           </div>
@@ -296,293 +285,85 @@
       <!-- TAB 3: COURIERS -->
       <div id="tab-couriers" class="tab-pane">
         <div class="data-card glass">
-          <div class="panel-title">
-            <span>Kuryeler & Filo Listesi (Canlı GPS)</span>
-            <button class="btn-action" onclick="openModal('modal-add-courier')"><i data-lucide="user-plus"></i> Kurye Ekle</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Kurye ID</th>
-                  <th>İsim</th>
-                  <th>Araç Tipi</th>
-                  <th>Durum</th>
-                  <th>Son Konum (GPS)</th>
-                  <th>İşlemler</th>
-                </tr>
-              </thead>
-              <tbody id="couriers-table-body">
-                <!-- Dynamically loaded -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 4: AI DISPATCHER -->
-      <div id="tab-ai" class="tab-pane">
-        <div class="data-card glass">
-          <div class="panel-title">Yapay Zeka (AI Dispatcher) Skorlama Matrisi</div>
-          <div style="margin-top:14px; font-size:13px; color:var(--text-muted);">
-            AI Dispatcher kuryenin anlık WGS84 mesafesi, araç tipi hız optimizasyonu ve ortalama ETA sürelerine göre en yüksek skorlu kuryeyi otomatik olarak atar.
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Aday Kurye</th>
-                  <th>Araç</th>
-                  <th>Mesafe</th>
-                  <th>Tahmini ETA</th>
-                  <th>AI Skor</th>
-                  <th>Karar</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Ahmet Kurye</td>
-                  <td>Motorcycle</td>
-                  <td>0.8 km</td>
-                  <td>1.4 Dk</td>
-                  <td><b style="color:var(--accent-emerald);">0.92 (En İyi)</b></td>
-                  <td><span class="badge badge-green">ATANDI</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 5: FINANCE -->
-      <div id="tab-finance" class="tab-pane">
-        <div class="data-card glass">
-          <div class="panel-title">Finans & Kurye Hak Edişleri</div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>İşlem ID</th>
-                  <th>Taraf</th>
-                  <th>Tutar (Brüt)</th>
-                  <th>Komisyon</th>
-                  <th>Net Ödeme</th>
-                  <th>Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>#PAY-8821</code></td>
-                  <td>Ahmet Kurye</td>
-                  <td>₺ 350.00</td>
-                  <td>₺ 52.50 (%15)</td>
-                  <td>₺ 297.50</td>
-                  <td><span class="badge badge-blue">Onaylandı</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 6: SETTINGS -->
-      <div id="tab-settings" class="tab-pane">
-        <div class="data-card glass">
-          <div class="panel-title">Sistem & Bağlantı Ayarları</div>
-          <div style="margin-top:16px; font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:12px;">
-            <div><b>Backend Engine:</b> Qervon Modular Monolith (Rust 1.90)</div>
-            <div><b>Active Storage:</b> In-Memory / PostgreSQL Auto-Fallback</div>
-            <div><b>WebSocket Channel:</b> <code>ws://localhost:8080/ws/tracking</code></div>
-          </div>
+          <div class="panel-title">Kuryeler & Filo</div>
         </div>
       </div>
 
     </div>
   </main>
 
-  <!-- MODALS -->
-  <div class="modal-overlay" id="modal-add-order">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Yeni Sipariş Oluştur</span>
-        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-order')"></i>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Alım Adresi Etiketi</label>
-        <input type="text" id="m-pickup-label" class="form-input" value="Restoran A (Sultanahmet)">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Teslimat Adresi Etiketi</label>
-        <input type="text" id="m-dropoff-label" class="form-input" value="Maslak Plaza Kat 8">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Taşıma Ücreti (₺)</label>
-        <input type="number" id="m-fare" class="form-input" value="45.00">
-      </div>
-      <button class="btn-submit" onclick="submitModalOrder()">Siparişi Kaydet & AI Atama Yap</button>
-    </div>
-  </div>
-
-  <div class="modal-overlay" id="modal-add-courier">
-    <div class="modal-content">
-      <div class="modal-header">
-        <span>Yeni Kurye Kaydet</span>
-        <i data-lucide="x" style="cursor:pointer;" onclick="closeModal('modal-add-courier')"></i>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Kurye Adı Soyadı</label>
-        <input type="text" id="m-courier-name" class="form-input" placeholder="Mehmet Kurye">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Araç Tipi</label>
-        <select id="m-courier-vehicle" class="form-select">
-          <option value="motorcycle">🏍️ Motosiklet (Motorcycle)</option>
-          <option value="automobile">🚗 Otomobil (Automobile)</option>
-          <option value="bicycle">🚲 Bisiklet (Bicycle)</option>
-        </select>
-      </div>
-      <button class="btn-submit" onclick="submitModalCourier()">Kuryeyi Sistemde Oluştur</button>
-    </div>
-  </div>
-
   <script>
     lucide.createIcons();
 
-    // Map Setup
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, attribution: '&copy; CARTO'
-    }).addTo(map);
+    const map = L.map('map', { zoomControl: false }).setView([41.0120, 28.9800], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let currentLat = 41.0082;
-    let currentLon = 28.9784;
-    let activeCourierId = "019fdbde-af56-74b3-8b2d-8fe8e81bf1f2";
-    let isGpsAutoStream = true;
-    let gpsInterval = null;
+    const couriers = {
+      'c1': { name: 'Ahmet Kurye (Motor 🏍️)', coords: [41.0082, 28.9784], color: '#10b981' },
+      'c2': { name: 'Mehmet Kurye (VIP Araç 🚗)', coords: [41.0200, 28.9850], color: '#38bdf8' },
+      'c3': { name: 'Caner Kurye (Bisiklet 🚲)', coords: [41.0120, 28.9800], color: '#a855f7' }
+    };
 
-    const courierIcon = L.divIcon({
-      html: `<div style="background:#38bdf8; width:26px; height:26px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #38bdf8; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
-      className: ''
+    const markers = {};
+
+    // Add all couriers to map with custom glow icons
+    Object.keys(couriers).forEach(id => {
+      const c = couriers[id];
+      const icon = L.divIcon({
+        html: `<div style="background:${c.color}; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px ${c.color}; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
+        className: ''
+      });
+      markers[id] = L.marker(c.coords, { icon: icon }).addTo(map).bindPopup(`<b>${c.name}</b><br>Canlı Donanım GPS`);
     });
 
-    const courierMarker = L.marker([currentLat, currentLon], { icon: courierIcon }).addTo(map)
-      .bindPopup("<b>Ahmet Kurye (Motor)</b><br>Canlı GPS Akışı Aktif 📡");
-
-    L.marker([41.0090, 28.9790]).addTo(map).bindPopup("Alım Noktası: Restoran");
-    L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
-
-    // Route Polyline
-    const routeLine = L.polyline([
-      [currentLat, currentLon],
-      [41.0090, 28.9790],
-      [41.0200, 28.9850]
-    ], { color: '#38bdf8', weight: 4, dashArray: '8, 8' }).addTo(map);
-
-    // WebSocket Stream Listener
+    // Listen to real hardware WebSocket GPS stream for Courier C1
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          currentLat = data.latitude;
-          currentLon = data.longitude;
-          updateCourierOnMap(currentLat, currentLon);
-          addLog(`📡 WS GPS STREAM: Lat ${currentLat.toFixed(4)}, Lon ${currentLon.toFixed(4)}`);
-        } catch (e) {}
+          couriers['c1'].coords = [data.latitude, data.longitude];
+          markers['c1'].setLatLng([data.latitude, data.longitude]);
+        } catch(e) {}
       };
     } catch(e) {}
 
-    // Auto GPS Movement Loop (Every 2 seconds)
-    function startAutoGpsLoop() {
-      if (gpsInterval) clearInterval(gpsInterval);
-      gpsInterval = setInterval(async () => {
-        if (!isGpsAutoStream) return;
-        
-        // Move towards delivery point smoothly
-        currentLat += (Math.random() - 0.48) * 0.0015;
-        currentLon += (Math.random() - 0.48) * 0.0015;
-        
-        updateCourierOnMap(currentLat, currentLon);
+    function selectCourierOnMap(id, coords, name) {
+      document.querySelectorAll('.courier-list-item').forEach(el => el.classList.remove('selected'));
+      document.getElementById(`item-${id}`).classList.add('selected');
 
-        try {
-          await fetch(`/v1/couriers/${activeCourierId}/location`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ latitude: currentLat, longitude: currentLon })
-          });
-        } catch(e) {}
-        
-        addLog(`📍 CANLI GPS: Kurye Hareket Etti (${currentLat.toFixed(4)}, ${currentLon.toFixed(4)})`);
-      }, 2000);
+      // Hide all other markers, show only selected
+      Object.keys(markers).forEach(mId => {
+        if (mId === id) {
+          map.addLayer(markers[mId]);
+          markers[mId].openPopup();
+        } else {
+          map.removeLayer(markers[mId]);
+        }
+      });
+
+      map.setView(coords, 16, { animate: true, duration: 1.0 });
+      document.getElementById('map-view-label').innerText = `Odak: ${name}`;
     }
 
-    function updateCourierOnMap(lat, lon) {
-      courierMarker.setLatLng([lat, lon]);
-      map.panTo([lat, lon], { animate: true, duration: 1.0 });
-    }
+    function selectAllCouriers() {
+      document.querySelectorAll('.courier-list-item').forEach(el => el.classList.remove('selected'));
+      document.getElementById('item-all').classList.add('selected');
 
-    function toggleAutoGPS() {
-      isGpsAutoStream = !isGpsAutoStream;
-      const btn = document.getElementById('btn-toggle-gps');
-      const txt = document.getElementById('gps-status-text');
-      if (isGpsAutoStream) {
-        btn.classList.add('active-gps');
-        txt.innerText = "AÇIK (2s)";
-        addLog("▶️ Canlı GPS Akışı Başlatıldı.");
-      } else {
-        btn.classList.remove('active-gps');
-        txt.innerText = "DURDURULDU";
-        addLog("⏸️ Canlı GPS Akışı Durduruldu.");
-      }
-    }
+      // Show all markers
+      Object.keys(markers).forEach(mId => {
+        map.addLayer(markers[mId]);
+      });
 
-    function useRealBrowserGPS() {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(position => {
-          currentLat = position.coords.latitude;
-          currentLon = position.coords.longitude;
-          updateCourierOnMap(currentLat, currentLon);
-          addLog(`🎯 Gerçek Cihaz GPS Algılandı: ${currentLat.toFixed(4)}, ${currentLon.toFixed(4)}`);
-        }, err => {
-          alert("Tarayıcı GPS izni verilemedi. Varsayılan konum kullanılıyor.");
-        });
-      }
+      const bounds = L.latLngBounds(Object.values(couriers).map(c => c.coords));
+      map.fitBounds(bounds, { padding: [50, 50] });
+      document.getElementById('map-view-label').innerText = "Tüm Kuryeler (3)";
     }
-
-    function addLog(msg) {
-      const logs = document.getElementById('stream-logs');
-      const log = document.createElement('div');
-      log.className = 'stream-log';
-      log.innerHTML = `<div class="log-time">${new Date().toLocaleTimeString()}</div><div>${msg}</div>`;
-      logs.insertBefore(log, logs.firstChild);
-    }
-
-    async function submitNewOrder() {
-      const label = document.getElementById('order-label').value;
-      addLog(`Yeni Sipariş Başlatıldı: ${label}`);
-      setTimeout(() => {
-        addLog(`AI Dispatcher Ataması Başarılı! En Uygun Kurye: Ahmet Kurye (Motor)`);
-      }, 500);
-    }
-
-    async function submitModalOrder() {
-      closeModal('modal-add-order');
-      addLog("REST: Yeni Sipariş Eklendi! AI Dispatcher çalıştırılıyor...");
-    }
-
-    async function submitModalCourier() {
-      closeModal('modal-add-courier');
-      addLog("REST: Yeni Kurye Sisteme Kaydedildi!");
-    }
-
-    function openModal(id) { document.getElementById(id).classList.add('active'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
     function switchTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-
       event.currentTarget.classList.add('active');
       const pane = document.getElementById(`tab-${tabId}`);
       if (pane) {
@@ -590,9 +371,6 @@
         if (tabId === 'map') setTimeout(() => map.invalidateSize(), 100);
       }
     }
-
-    // Start live loop automatically on boot
-    startAutoGpsLoop();
   </script>
 </body>
 </html>

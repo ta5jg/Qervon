@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon Müşteri Portal — Kurye Çağır & Canlı GPS Takip</title>
+  <title>Qervon Müşteri Portal — Atanan Kurye Canlı Takip</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,7 +89,7 @@
     
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
-    .form-input, .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
+    .form-select { background: #0f172a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none; }
 
     .btn-create {
       background: linear-gradient(135deg, #10b981, #059669);
@@ -105,12 +105,6 @@
       border: 1px solid var(--border-accent); border-radius: 12px; padding: 12px 18px;
       display: flex; align-items: center; gap: 14px;
     }
-
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .badge-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-
-    .address-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 14px; }
-    .address-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
   </style>
 </head>
 <body>
@@ -134,19 +128,10 @@
         <div class="nav-item" onclick="switchCustomerTab('history')">
           <i data-lucide="history"></i> Geçmiş Siparişlerim
         </div>
-        <div class="nav-item" onclick="switchCustomerTab('addresses')">
-          <i data-lucide="bookmark"></i> Adres Defterim
-        </div>
       </div>
 
       <div class="nav-group">
-        <div class="nav-label">Kurumsal Hizmetler</div>
-        <div class="nav-item" onclick="switchCustomerTab('bulk')">
-          <i data-lucide="file-spreadsheet"></i> Toplu Sipariş (Excel)
-        </div>
-        <div class="nav-item" onclick="switchCustomerTab('invoices')">
-          <i data-lucide="file-text"></i> Faturalar & Cari
-        </div>
+        <div class="nav-label">Portallar</div>
         <a href="index.html" style="text-decoration:none;">
           <div class="nav-item" style="color:var(--primary);">
             <i data-lucide="layout-dashboard"></i> Admin Paneli →
@@ -161,10 +146,10 @@
     <header class="header-bar">
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Atanan Kurye Durumu</span>
+          <span class="metric-title">Size Atanan Kurye</span>
           <i data-lucide="navigation" style="color:var(--accent-emerald);"></i>
         </div>
-        <div class="metric-value" style="font-size:18px; color:var(--accent-emerald);" id="courier-name-status">Ahmet Kurye (Motor 🏍️)</div>
+        <div class="metric-value" style="font-size:18px; color:var(--accent-emerald);">Ahmet Kurye (Motor 🏍️)</div>
       </div>
 
       <div class="metric-card glass">
@@ -177,10 +162,10 @@
 
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Canlı Kurye Mesafesi</span>
+          <span class="metric-title">Kurye GPS Konumu</span>
           <i data-lucide="map-pin" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="live-distance">1.2 km</div>
+        <div class="metric-value" style="font-size:16px;" id="live-coords">41.0082, 28.9784</div>
       </div>
 
       <div class="metric-card glass">
@@ -194,7 +179,6 @@
 
     <div class="view-content">
       
-      <!-- TAB 1: KURYE ÇAĞIR & CANLI GPS TAKİP -->
       <div id="ctab-call" class="tab-pane active">
         <div class="order-form-box glass">
           <div class="form-title">
@@ -204,103 +188,30 @@
 
           <div class="form-group">
             <label class="form-label">Alım Adresi (Nereden?)</label>
-            <select id="pickup-select" class="form-select">
+            <select class="form-select">
               <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
             </select>
           </div>
 
           <div class="form-group">
             <label class="form-label">Teslimat Adresi (Nereye?)</label>
-            <select id="dropoff-select" class="form-select">
-              <option value="maslak">Ofis - Maslak Plaza, Sarıyer / İstanbul</option>
-              <option value="sultanahmet">Ev - Sultanahmet, Fatih / İstanbul</option>
+            <select class="form-select">
+              <option value="maslak">Maslak Plaza, Sarıyer / İstanbul</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Paket Tipi</label>
-            <select id="package-type" class="form-select">
-              <option value="document">📄 Evrak / Zarf (Hızlı Motor)</option>
-              <option value="food">🍱 Gıda / Yemek</option>
-              <option value="box">📦 Koli / Paket (VIP Araç)</option>
-            </select>
-          </div>
-
-          <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:12px; margin-top:4px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-            <span>Tahmini Taşıma Ücreti:</span>
-            <b style="font-size:16px; color:var(--accent-emerald);">₺ 45.00</b>
-          </div>
-
-          <button class="btn-create" onclick="createCustomerOrderLive()">Kuryeyi Çağır & Canlı Takip Et</button>
+          <button class="btn-create" onclick="createCustomerOrderLive()">Kuryeyi Çağır & Takip Et</button>
         </div>
 
         <div class="map-box glass">
-          <!-- Live Courier GPS Floating Badge -->
           <div class="courier-live-badge">
             <div style="background:#10b981; width:12px; height:12px; border-radius:50%; box-shadow:0 0 10px #10b981;"></div>
             <div>
               <div style="font-size:13px; font-weight:700;">Atanan Kurye: Ahmet Kurye 🏍️</div>
-              <div style="font-size:11px; color:var(--text-muted);">Canlı GPS Konumu WebSocket Üzerinden Dinleniyor</div>
+              <div style="font-size:11px; color:var(--text-muted);">Sadece Sizin Atanan Kuryenizin Konumu Gösteriliyor</div>
             </div>
           </div>
           <div id="map"></div>
-        </div>
-      </div>
-
-      <!-- TAB 2: GEÇMİŞ SİPARİŞLER -->
-      <div id="ctab-history" class="tab-pane">
-        <div class="data-card glass">
-          <div class="form-title">Geçmiş Siparişlerim</div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Sipariş No</th>
-                  <th>Alım Adresi</th>
-                  <th>Teslimat Adresi</th>
-                  <th>Tutar</th>
-                  <th>Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>#Q-99182</code></td>
-                  <td>Sultanahmet Restoran</td>
-                  <td>Maslak Plaza No:12</td>
-                  <td>₺ 45.00</td>
-                  <td><span class="badge badge-green">Teslim Edildi</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 3: ADRES DEFTERİ -->
-      <div id="ctab-addresses" class="tab-pane">
-        <div class="data-card glass">
-          <div class="form-title">Kayıtlı Adres Defterim</div>
-          <div class="address-grid">
-            <div class="address-card">
-              <div style="font-weight:700;">Ev Adresi</div>
-              <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">Sultanahmet Mah. Fatih / İstanbul</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- TAB 4: TOPLU SİPARİŞ -->
-      <div id="ctab-bulk" class="tab-pane">
-        <div class="data-card glass">
-          <div class="form-title">Kurumsal Toplu Sipariş Yükleme (Excel / CSV)</div>
-        </div>
-      </div>
-
-      <!-- TAB 5: FATURALAR -->
-      <div id="ctab-invoices" class="tab-pane">
-        <div class="data-card glass">
-          <div class="form-title">Kurumsal Fatura & E-Arşiv</div>
         </div>
       </div>
 
@@ -310,84 +221,36 @@
   <script>
     lucide.createIcons();
 
-    // Map Setup
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, attribution: '&copy; CARTO'
-    }).addTo(map);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let courierLat = 41.0082;
-    let courierLon = 28.9784;
-
-    // Live Courier Marker (Motorcycle Icon)
     const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
+      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold;">🏍️</div>`,
       className: ''
     });
 
-    const courierMarker = L.marker([courierLat, courierLon], { icon: courierIcon }).addTo(map)
-      .bindPopup("<b>Atanan Kurye: Ahmet Kurye</b><br>Canlı GPS Konumu Aktif 📡");
+    const courierMarker = L.marker([41.0082, 28.9784], { icon: courierIcon }).addTo(map)
+      .bindPopup("<b>Size Atanan Kurye: Ahmet Kurye</b>");
 
-    const pickupMarker = L.marker([41.0090, 28.9790]).addTo(map).bindPopup("Alım Noktası: Restoran");
-    const dropoffMarker = L.marker([41.0200, 28.9850]).addTo(map).bindPopup("Teslimat: Maslak Plaza");
-
-    // Dynamic Live Polyline Route
-    const routeLine = L.polyline([
-      [courierLat, courierLon],
-      [41.0090, 28.9790],
-      [41.0200, 28.9850]
-    ], { color: '#10b981', weight: 4, dashArray: '8, 8' }).addTo(map);
-
-    // Live WebSocket GPS Tracker Loop
+    // Listen to real hardware WebSocket GPS stream for assigned courier
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          updateCourierGps(data.latitude, data.longitude);
+          const lat = data.latitude;
+          const lon = data.longitude;
+
+          courierMarker.setLatLng([lat, lon]);
+          map.panTo([lat, lon], { animate: true, duration: 0.8 });
+          document.getElementById('live-coords').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
         } catch(e) {}
       };
     } catch(e) {}
 
-    // Fallback Automatic 2s Live Simulation Loop
-    setInterval(() => {
-      courierLat += (Math.random() - 0.48) * 0.0012;
-      courierLon += (Math.random() - 0.48) * 0.0012;
-      updateCourierGps(courierLat, courierLon);
-    }, 2000);
-
-    function updateCourierGps(lat, lon) {
-      courierLat = lat;
-      courierLon = lon;
-      courierMarker.setLatLng([courierLat, courierLon]);
-      routeLine.setLatLngs([
-        [courierLat, courierLon],
-        [41.0090, 28.9790],
-        [41.0200, 28.9850]
-      ]);
-      map.panTo([courierLat, courierLon], { animate: true, duration: 1.0 });
-
-      // Calculate distance & ETA
-      const dist = (Math.hypot(41.0200 - courierLat, 28.9850 - courierLon) * 111).toFixed(1);
-      document.getElementById('live-distance').innerText = `${dist} km`;
-      document.getElementById('live-eta').innerText = `${Math.max(2, Math.round(dist * 6))} Dk`;
-    }
-
-    async function createCustomerOrderLive() {
-      alert("🎉 Kurye Çağrınız Alındı! AI Dispatcher en yakın kuryeyi atadı. Canlı GPS takibi haritada başladı!");
-    }
-
-    function switchCustomerTab(tabId) {
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-
-      event.currentTarget.classList.add('active');
-      const pane = document.getElementById(`ctab-${tabId}`);
-      if (pane) {
-        pane.classList.add('active');
-        if (tabId === 'call') setTimeout(() => map.invalidateSize(), 100);
-      }
+    function createCustomerOrderLive() {
+      alert("🎉 Kurye Çağrınız Alındı! Atanan kurye haritada izleniyor.");
     }
   </script>
 </body>
