@@ -121,7 +121,7 @@
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
         <div class="metric-value">1 Aktif Kurye</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> DİNAMİK GPS YAYINI</div>
+        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> HARDWARE GPS LIVE</div>
       </div>
     </header>
 
@@ -138,7 +138,7 @@
           <div class="courier-list-item selected">
             <div>
               <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye</div>
-              <div style="font-size:10px; color:var(--accent-emerald);">Konum: Dinamik GPS Bekleniyor...</div>
+              <div style="font-size:10px; color:var(--accent-emerald);" id="coords-c1">Cihaz GPS Bekleniyor...</div>
             </div>
             <span class="badge badge-green">Aktif</span>
           </div>
@@ -149,7 +149,7 @@
 
   <script>
     lucide.createIcons();
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     let courierMarker = null;
@@ -159,25 +159,39 @@
       className: ''
     });
 
+    function updateMapLocation(lat, lon) {
+      if (!courierMarker) {
+        courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map).bindPopup("<b>Ahmet Kurye (Fiziksel Cihaz GPS)</b>");
+      } else {
+        courierMarker.setLatLng([lat, lon]);
+      }
+      map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
+      document.getElementById('coords-c1').innerText = `GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+    }
+
+    async function fetchInitialPosition() {
+      try {
+        const res = await fetch('/v1/couriers');
+        const couriers = await res.json();
+        if (couriers && couriers.length > 0) {
+          const c = couriers[0];
+          updateMapLocation(c.current_location.latitude, c.current_location.longitude);
+        }
+      } catch(e) {}
+    }
+
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          const lat = data.latitude;
-          const lon = data.longitude;
-
-          if (!courierMarker) {
-            courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map).bindPopup("<b>Ahmet Kurye (Dinamik GPS)</b>");
-            map.setView([lat, lon], 16);
-          } else {
-            courierMarker.setLatLng([lat, lon]);
-            map.panTo([lat, lon], { animate: true, duration: 0.8 });
-          }
+          updateMapLocation(data.latitude, data.longitude);
         } catch(e) {}
       };
     } catch(e) {}
+
+    fetchInitialPosition();
   </script>
 </body>
 </html>

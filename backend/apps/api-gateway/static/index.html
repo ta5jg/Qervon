@@ -156,15 +156,15 @@
           <i data-lucide="navigation" style="color:var(--primary);"></i>
         </div>
         <div class="metric-value">1 Aktif Kurye</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> DİNAMİK GPS YAYINI</div>
+        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> HARDWARE GPS LIVE</div>
       </div>
 
       <div class="metric-card glass">
         <div class="metric-header">
-          <span class="metric-title">Harita Görünümü</span>
+          <span class="metric-title">Harita Odak Bölgesi</span>
           <i data-lucide="map" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Otomatik Kurye Konumu</div>
+        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Kurye Donanım Konumu</div>
       </div>
     </header>
 
@@ -174,7 +174,7 @@
         <div class="map-box glass">
           <div class="map-controls">
             <button class="btn-action" id="btn-show-all-couriers" onclick="focusCourier()">
-              <i data-lucide="target"></i> KURYE KONUMUNA GİT (DİNAMİK)
+              <i data-lucide="target"></i> KURYE DONANIM KONUMUNA ODAKLAN (ZOOM 16)
             </button>
           </div>
           <div id="map"></div>
@@ -182,15 +182,15 @@
 
         <aside class="side-panel glass">
           <div class="panel-title">
-            <span>Donanım GPS Akışı</span>
-            <span class="badge badge-green">DYNAMIC SYNC</span>
+            <span>Canlı Donanım Akışı</span>
+            <span class="badge badge-green">REALTIME HARDWARE</span>
           </div>
 
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
             <div class="courier-list-item selected" id="item-c1" onclick="focusCourier()">
               <div>
                 <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye (Mobil Terminal)</div>
-                <div style="font-size:10px; color:var(--accent-emerald);" id="coords-c1">Canlı GPS Sinyali Bekleniyor...</div>
+                <div style="font-size:10px; color:var(--accent-emerald);" id="coords-c1">Canlı GPS bekleniyor...</div>
               </div>
               <span class="badge badge-green">Hardware GPS</span>
             </div>
@@ -204,8 +204,8 @@
   <script>
     lucide.createIcons();
 
-    // Map initial view with dynamic fallback until first GPS packet arrives
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 13);
+    // Map initial view
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     let lastKnownCoords = null;
@@ -216,28 +216,38 @@
       className: ''
     });
 
-    // 🎯 100% DYNAMIC HARDWARE GPS STREAM LISTENER (Adapts to Üsküdar, Kadıköy, Anywhere)
+    function updateMapLocation(lat, lon) {
+      lastKnownCoords = [lat, lon];
+      if (!courierMarker) {
+        courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map).bindPopup("<b>Ahmet Kurye (Fiziksel Cihaz GPS)</b>");
+      } else {
+        courierMarker.setLatLng([lat, lon]);
+      }
+      map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
+      document.getElementById('coords-c1').innerText = `Cihaz GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      document.getElementById('map-view-label').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    }
+
+    // 1️⃣ Fetch Initial Hardware Position from REST API immediately on load
+    async function fetchInitialPosition() {
+      try {
+        const res = await fetch('/v1/couriers');
+        const couriers = await res.json();
+        if (couriers && couriers.length > 0) {
+          const c = couriers[0];
+          updateMapLocation(c.current_location.latitude, c.current_location.longitude);
+        }
+      } catch(e) {}
+    }
+
+    // 2️⃣ Listen to Realtime WebSocket Broadcast
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          const lat = data.latitude;
-          const lon = data.longitude;
-          
-          lastKnownCoords = [lat, lon];
-
-          if (!courierMarker) {
-            courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map).bindPopup("<b>Ahmet Kurye (Canlı Donanım GPS)</b>");
-            map.setView([lat, lon], 16);
-          } else {
-            courierMarker.setLatLng([lat, lon]);
-            map.panTo([lat, lon], { animate: true, duration: 0.8 });
-          }
-
-          document.getElementById('coords-c1').innerText = `Canlı GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-          document.getElementById('map-view-label').innerText = `Konum: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+          updateMapLocation(data.latitude, data.longitude);
         } catch(e) {}
       };
     } catch(e) {}
@@ -248,6 +258,8 @@
         if (courierMarker) courierMarker.openPopup();
       }
     }
+
+    fetchInitialPosition();
   </script>
 </body>
 </html>
