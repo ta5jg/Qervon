@@ -133,12 +133,9 @@
   <script>
     lucide.createIcons();
 
-    // Zoom level matched exactly with Courier Terminal (Zoom 16)
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let selectedFare = 45;
-    let selectedVehicle = "Motor 🏍️";
     let courierMarker = null;
 
     const courierIcon = L.divIcon({
@@ -157,19 +154,45 @@
       document.getElementById('m-eta').innerText = `3 Dk`;
     }
 
-    // 1️⃣ Initial REST Fetch
+    // 1️⃣ Check LocalStorage instantly (Cross-Tab Instant Broadcast)
+    function checkLocalStorageGPS() {
+      const saved = localStorage.getItem('qervon_last_courier_gps');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          updateCourierLocation(parsed.latitude, parsed.longitude);
+        } catch(e) {}
+      }
+    }
+
+    // 2️⃣ Listen to LocalStorage storage events
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'qervon_last_courier_gps' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          updateCourierLocation(parsed.latitude, parsed.longitude);
+        } catch(e) {}
+      }
+    });
+
+    // 3️⃣ Periodic Check (1 sec loop)
+    setInterval(checkLocalStorageGPS, 1000);
+
+    // 4️⃣ Initial REST API Fetch
     async function fetchInitialPosition() {
       try {
         const res = await fetch('/v1/couriers');
         const couriers = await res.json();
         if (couriers && couriers.length > 0) {
           const c = couriers[0];
-          updateCourierLocation(c.current_location.latitude, c.current_location.longitude);
+          if (c.current_location && c.current_location.latitude > 0) {
+            updateCourierLocation(c.current_location.latitude, c.current_location.longitude);
+          }
         }
       } catch(e) {}
     }
 
-    // 2️⃣ Realtime WebSocket Stream
+    // 5️⃣ Realtime WebSocket Receiver
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
@@ -181,18 +204,7 @@
       };
     } catch(e) {}
 
-    function selectPackageType(cardEl, type, fare, vehicle) {
-      document.querySelectorAll('.package-card').forEach(el => el.classList.remove('active'));
-      cardEl.classList.add('active');
-      selectedFare = fare; selectedVehicle = vehicle;
-      document.getElementById('btn-call-submit').innerText = `⚡ KURYEYİ ÇAĞIR (₺${fare}.00)`;
-      document.getElementById('courier-vehicle-lbl').innerText = `Ahmet Kurye (${vehicle})`;
-    }
-
-    function callMobileCourier() {
-      alert(`🎉 Kurye Çağrıldı! Kuryeniz donanımsal GPS ile haritada izleniyor.`);
-    }
-
+    checkLocalStorageGPS();
     fetchInitialPosition();
   </script>
 </body>

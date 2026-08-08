@@ -67,7 +67,7 @@
           <div class="gps-badge" id="gps-coords-display">Donanım GPS Bağlanıyor...</div>
         </div>
         <div style="text-align:right;">
-          <span style="font-size:9px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 6px; border-radius:6px; font-weight:700;">Sistem Yayında</span>
+          <span style="font-size:9px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 6px; border-radius:6px; font-weight:700;">Broadcast Aktif</span>
         </div>
       </div>
 
@@ -86,7 +86,8 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
+    const courierUuid = "00000000-0000-0000-0000-000000000001";
+    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     const courierIcon = L.divIcon({
@@ -94,14 +95,17 @@
       className: ''
     });
 
-    const courierMarker = L.marker([41.0082, 28.9784], { icon: courierIcon }).addTo(map);
+    const courierMarker = L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
 
     let ws = null;
-    try {
-      ws = new WebSocket(`ws://${window.location.host}/ws/tracking`);
-    } catch(e) {}
+    function initWebSocket() {
+      try {
+        ws = new WebSocket(`ws://${window.location.host}/ws/tracking`);
+      } catch(e) {}
+    }
+    initWebSocket();
 
-    // 🎯 LIVE HARDWARE GPS WATCHER & BACKEND BROADCASTER
+    // 🎯 BROADCAST HARDWARE GPS TO LOCALSTORAGE & SERVER & WEBSOCKET
     if ("geolocation" in navigator) {
       navigator.geolocation.watchPosition(
         async (position) => {
@@ -113,23 +117,24 @@
           map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
           document.getElementById('gps-coords-display').innerText = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
 
-          // 2. Broadcast via REST API to Rust Backend Memory
+          // 2. Save to LocalStorage for cross-tab instant sync
+          localStorage.setItem('qervon_last_courier_gps', JSON.stringify({ latitude: lat, longitude: lon, timestamp: Date.now() }));
+
+          // 3. Broadcast to REST API
           try {
-            await fetch('/v1/couriers/c1/location', {
+            await fetch(`/v1/couriers/${courierUuid}/location`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ latitude: lat, longitude: lon })
             });
           } catch(e) {}
 
-          // 3. Broadcast via WebSocket Stream
+          // 4. Broadcast via WebSocket Stream
           if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ courier_id: 'c1', latitude: lat, longitude: lon }));
+            ws.send(JSON.stringify({ courier_id: courierUuid, latitude: lat, longitude: lon }));
           }
         },
-        (error) => {
-          console.warn("GPS Access Error:", error);
-        },
+        (error) => { console.warn(error); },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
       );
     }

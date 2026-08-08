@@ -164,7 +164,7 @@
           <span class="metric-title">Harita Odak Bölgesi</span>
           <i data-lucide="map" style="color:var(--accent-purple);"></i>
         </div>
-        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Kurye Donanım Konumu</div>
+        <div class="metric-value" id="map-view-label" style="font-size:18px; color:var(--primary);">Kurye Konumu İletiliyor</div>
       </div>
     </header>
 
@@ -205,7 +205,7 @@
     lucide.createIcons();
 
     // Map initial view
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
+    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     let lastKnownCoords = null;
@@ -224,23 +224,49 @@
         courierMarker.setLatLng([lat, lon]);
       }
       map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
-      document.getElementById('coords-c1').innerText = `Cihaz GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      document.getElementById('coords-c1').innerText = `Canlı GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
       document.getElementById('map-view-label').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     }
 
-    // 1️⃣ Fetch Initial Hardware Position from REST API immediately on load
+    // 1️⃣ Check LocalStorage instantly (Cross-Tab Instant Broadcast)
+    function checkLocalStorageGPS() {
+      const saved = localStorage.getItem('qervon_last_courier_gps');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          updateMapLocation(parsed.latitude, parsed.longitude);
+        } catch(e) {}
+      }
+    }
+
+    // 2️⃣ Listen to LocalStorage updates from mobile-courier tab
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'qervon_last_courier_gps' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          updateMapLocation(parsed.latitude, parsed.longitude);
+        } catch(e) {}
+      }
+    });
+
+    // 3️⃣ Periodic Check (Fallback loop every 1 sec)
+    setInterval(checkLocalStorageGPS, 1000);
+
+    // 4️⃣ Initial REST API Fetch
     async function fetchInitialPosition() {
       try {
         const res = await fetch('/v1/couriers');
         const couriers = await res.json();
         if (couriers && couriers.length > 0) {
           const c = couriers[0];
-          updateMapLocation(c.current_location.latitude, c.current_location.longitude);
+          if (c.current_location && c.current_location.latitude > 0) {
+            updateMapLocation(c.current_location.latitude, c.current_location.longitude);
+          }
         }
       } catch(e) {}
     }
 
-    // 2️⃣ Listen to Realtime WebSocket Broadcast
+    // 5️⃣ Realtime WebSocket Receiver
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
@@ -259,6 +285,7 @@
       }
     }
 
+    checkLocalStorageGPS();
     fetchInitialPosition();
   </script>
 </body>
