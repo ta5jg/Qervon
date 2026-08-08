@@ -1306,6 +1306,8 @@ dependencies = [
  "qervon-domain",
  "qervon-infrastructure",
  "qervon-test-support",
+ "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "uuid",

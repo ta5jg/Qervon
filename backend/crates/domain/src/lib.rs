@@ -19,6 +19,7 @@
 
 pub mod billing;
 pub mod courier;
+pub mod courier_wallet;
 pub mod customer;
 pub mod dispatch;
 pub mod error;
@@ -33,6 +34,7 @@ pub mod user;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use courier::{Courier, CourierStatus, VehicleType};
+pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
 pub use dispatch::{Assignment, AssignmentStatus};
 pub use error::DomainError;
