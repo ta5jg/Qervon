@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 
   <style>
@@ -173,6 +174,9 @@
       <div id="tab-map" class="tab-pane active">
         <div class="map-box glass">
           <div class="map-controls">
+            <button class="btn-action" style="background:rgba(239, 68, 68, 0.2); border-color:rgba(239, 68, 68, 0.4); color:#fca5a5;" onclick="toggleHeatmap()">
+              <i data-lucide="flame"></i> 🔥 CANLI ISI HARİTASI (HEATMAP)
+            </button>
             <button class="btn-action" id="btn-show-all-couriers" onclick="focusCourier()">
               <i data-lucide="target"></i> KURYE DONANIM KONUMUNA ODAKLAN (ZOOM 16)
             </button>
@@ -210,6 +214,24 @@
 
     let lastKnownCoords = null;
     let courierMarker = null;
+    let heatLayer = null;
+
+    function toggleHeatmap() {
+      if (heatLayer) {
+        map.removeLayer(heatLayer);
+        heatLayer = null;
+      } else {
+        const center = lastKnownCoords || [41.0638, 28.9351];
+        const heatPoints = [
+          [center[0], center[1], 1.0],
+          [center[0] + 0.002, center[1] + 0.002, 0.8],
+          [center[0] - 0.001, center[1] + 0.003, 0.9],
+          [center[0] + 0.003, center[1] - 0.002, 0.7],
+          [center[0] - 0.002, center[1] - 0.001, 0.6]
+        ];
+        heatLayer = L.heatLayer(heatPoints, { radius: 35, blur: 20, maxZoom: 17 }).addTo(map);
+      }
+    }
 
     const courierIcon = L.divIcon({
       html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,

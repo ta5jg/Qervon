@@ -29,12 +29,14 @@ pub mod money;
 pub mod notification;
 pub mod order;
 pub mod repository;
+pub mod tenant;
 pub mod tracking;
 pub mod user;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use courier::{Courier, CourierStatus, VehicleType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
+pub use tenant::{TenantCompany, TenantId, BranchId, TenantBranch};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
 pub use dispatch::{Assignment, AssignmentStatus};
 pub use error::DomainError;
