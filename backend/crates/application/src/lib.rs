@@ -20,6 +20,7 @@
 pub mod ai_dispatcher;
 pub mod billing_service;
 pub mod bulk_order;
+pub mod courier_leaderboard;
 pub mod courier_service;
 pub mod customer_service;
 pub mod dispatch_service;
@@ -34,6 +35,7 @@ pub mod user_service;
 pub use ai_dispatcher::{AiDispatcher, DispatchScore, WeatherCondition, TrafficContext};
 pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput};
 pub use bulk_order::{BulkOrderParser, BulkOrderRow, WebhookPayload};
+pub use courier_leaderboard::{CourierLeaderboardEngine, CourierLeaderboardEntry};
 pub use notification_hub::{NotificationHubManager, NotificationMessage, ChannelType};
 pub use courier_service::{CourierService, RegisterCourierInput};
 pub use customer_service::CustomerService;
