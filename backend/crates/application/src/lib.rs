@@ -25,10 +25,12 @@ pub mod courier_service;
 pub mod customer_service;
 pub mod dispatch_service;
 pub mod error;
+pub mod field_service;
 pub mod fleet_service;
 pub mod notification_hub;
 pub mod notification_service;
 pub mod order_service;
+pub mod tax_invoicing;
 pub mod tracking_service;
 pub mod user_service;
 
@@ -36,6 +38,8 @@ pub use ai_dispatcher::{AiDispatcher, DispatchScore, WeatherCondition, TrafficCo
 pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput};
 pub use bulk_order::{BulkOrderParser, BulkOrderRow, WebhookPayload};
 pub use courier_leaderboard::{CourierLeaderboardEngine, CourierLeaderboardEntry};
+pub use field_service::{FieldServiceScheduler, FieldServiceAppointment, TimeSlotWindow};
+pub use tax_invoicing::{TaxInvoicingEngine, ElectronicInvoiceDraft};
 pub use notification_hub::{NotificationHubManager, NotificationMessage, ChannelType};
 pub use courier_service::{CourierService, RegisterCourierInput};
 pub use customer_service::CustomerService;

@@ -34,6 +34,7 @@ pub mod route_history;
 pub mod tenant;
 pub mod tracking;
 pub mod user;
+pub mod warehouse_hub;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use courier::{Courier, CourierStatus, VehicleType};
@@ -41,6 +42,7 @@ pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType
 pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
 pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
 pub use tenant::{TenantCompany, TenantId, BranchId, TenantBranch};
+pub use warehouse_hub::{WarehouseHub, HubManifestAssignment};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
 pub use dispatch::{Assignment, AssignmentStatus};
 pub use error::DomainError;
