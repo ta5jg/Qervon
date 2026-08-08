@@ -72,7 +72,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">SERVER ISOLATED 🛡️</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">LIVE HARDWARE GPS ⚡</span>
     </div>
 
     <div class="phone-content">
@@ -88,7 +88,7 @@
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#94a3b8;">TAHMİNİ ETA</div>
-            <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">-- Dk</div>
+            <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">3 Dk</div>
           </div>
         </div>
 
@@ -108,7 +108,6 @@
   <script>
     lucide.createIcons();
 
-    // 🔒 SUNUCU TARAFLI KORUMALI ATANMIŞ KURYE ID'Sİ
     const ASSIGNED_COURIER_ID = "00000000-0000-0000-0000-000000000001";
 
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
@@ -127,13 +126,23 @@
       } else {
         courierMarker.setLatLng([lat, lon]);
       }
-      map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
+      map.setView([lat, lon], 16, { animate: true, duration: 0.5 });
       document.getElementById('m-gps-coords').innerText = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-      document.getElementById('m-eta').innerText = `3 Dk`;
     }
 
-    // 1️⃣ Check LocalStorage
-    function checkLocalStorageGPS() {
+    // ⚡ 1. REAL-TIME STORAGE EVENT LISTENER (No Refresh Needed!)
+    // Fires instantly when mobile-courier posts a new GPS location
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'qervon_last_courier_gps' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          updateCourierLocation(parsed.latitude, parsed.longitude);
+        } catch(err) {}
+      }
+    });
+
+    // ⚡ 2. 500MS FAST POLLING FALLBACK (No Refresh Needed!)
+    function pollGPS() {
       const saved = localStorage.getItem('qervon_last_courier_gps');
       if (saved) {
         try {
@@ -142,10 +151,9 @@
         } catch(e) {}
       }
     }
+    setInterval(pollGPS, 500);
 
-    // 2️⃣ SERVER-ENFORCED PROTECTED WEBSOCKET CHANNEL:
-    // Connecting to /ws/tracking/customer?courier_id=XXX
-    // The Rust Server strictly filters out all unassigned fleet location data before sending!
+    // ⚡ 3. SERVER PROTECTED WEBSOCKET STREAM
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking/customer?courier_id=${ASSIGNED_COURIER_ID}`;
       const ws = new WebSocket(wsUrl);
@@ -157,7 +165,7 @@
       };
     } catch(e) {}
 
-    checkLocalStorageGPS();
+    pollGPS();
   </script>
 </body>
 </html>
