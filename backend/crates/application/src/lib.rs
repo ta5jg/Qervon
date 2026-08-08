@@ -22,6 +22,7 @@ pub mod billing_service;
 pub mod bulk_order;
 pub mod courier_leaderboard;
 pub mod courier_service;
+pub mod currency_exchange;
 pub mod customer_service;
 pub mod dispatch_service;
 pub mod error;
@@ -40,6 +41,7 @@ pub use ai_dispatcher::{AiDispatcher, DispatchScore, WeatherCondition, TrafficCo
 pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput};
 pub use bulk_order::{BulkOrderParser, BulkOrderRow, WebhookPayload};
 pub use courier_leaderboard::{CourierLeaderboardEngine, CourierLeaderboardEntry};
+pub use currency_exchange::CurrencyExchangeEngine;
 pub use field_service::{FieldServiceScheduler, FieldServiceAppointment, TimeSlotWindow};
 pub use parcel_sizing::{ParcelSizingEngine, ParcelDimensions};
 pub use promo_coupon::{PromoCouponEngine, PromoCoupon};

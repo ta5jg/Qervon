@@ -18,6 +18,7 @@
 // =============================================================================
 
 pub mod billing;
+pub mod cold_chain;
 pub mod courier;
 pub mod courier_shift;
 pub mod courier_wallet;
@@ -30,6 +31,7 @@ pub mod location;
 pub mod money;
 pub mod notification;
 pub mod order;
+pub mod proof_of_delivery;
 pub mod repository;
 pub mod route_history;
 pub mod tenant;
@@ -38,10 +40,12 @@ pub mod user;
 pub mod warehouse_hub;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
+pub use cold_chain::ColdChainTelemetry;
 pub use courier::{Courier, CourierStatus, VehicleType};
 pub use courier_shift::{CourierShiftAssignment, ShiftType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
 pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
+pub use proof_of_delivery::ProofOfDeliveryRecord;
 pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
 pub use tenant::{TenantCompany, TenantId, BranchId, TenantBranch};
 pub use warehouse_hub::{WarehouseHub, HubManifestAssignment};
