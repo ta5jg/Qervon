@@ -30,6 +30,8 @@ pub mod fleet_service;
 pub mod notification_hub;
 pub mod notification_service;
 pub mod order_service;
+pub mod parcel_sizing;
+pub mod promo_coupon;
 pub mod tax_invoicing;
 pub mod tracking_service;
 pub mod user_service;
@@ -39,6 +41,8 @@ pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput}
 pub use bulk_order::{BulkOrderParser, BulkOrderRow, WebhookPayload};
 pub use courier_leaderboard::{CourierLeaderboardEngine, CourierLeaderboardEntry};
 pub use field_service::{FieldServiceScheduler, FieldServiceAppointment, TimeSlotWindow};
+pub use parcel_sizing::{ParcelSizingEngine, ParcelDimensions};
+pub use promo_coupon::{PromoCouponEngine, PromoCoupon};
 pub use tax_invoicing::{TaxInvoicingEngine, ElectronicInvoiceDraft};
 pub use notification_hub::{NotificationHubManager, NotificationMessage, ChannelType};
 pub use courier_service::{CourierService, RegisterCourierInput};

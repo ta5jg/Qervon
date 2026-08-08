@@ -19,6 +19,7 @@
 
 pub mod billing;
 pub mod courier;
+pub mod courier_shift;
 pub mod courier_wallet;
 pub mod customer;
 pub mod customer_feedback;
@@ -38,6 +39,7 @@ pub mod warehouse_hub;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use courier::{Courier, CourierStatus, VehicleType};
+pub use courier_shift::{CourierShiftAssignment, ShiftType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
 pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
 pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
