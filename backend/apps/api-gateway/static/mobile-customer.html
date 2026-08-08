@@ -39,16 +39,12 @@
 
     .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
     .form-label { font-size: 11px; font-weight: 600; color: #94a3b8; }
-    .form-input { background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px; color: #fff; font-size: 12px; outline: none; }
 
     .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
     .package-card {
       background: #1e293b; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s;
     }
-    .package-card:hover { border-color: rgba(16,185,129,0.5); }
     .package-card.active { border-color: #10b981; background: rgba(16,185,129,0.15); box-shadow: 0 0 15px rgba(16,185,129,0.3); }
-    .package-card i { color: #10b981; margin-bottom: 2px; }
-    .package-card div { font-size: 10px; font-weight: 700; }
 
     .btn-mobile-call {
       background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none;
@@ -79,7 +75,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">HARDWARE GPS 🎯</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">ISOLATED GPS 🛡️</span>
     </div>
 
     <div class="phone-content">
@@ -89,31 +85,13 @@
 
         <div class="live-eta-card">
           <div>
-            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE (GERÇEK GPS)</div>
+            <div style="font-size:10px; color:#94a3b8;">SADECE ATANAN KURYE İZLENİYOR</div>
             <div style="font-size:12px; font-weight:800; color:#10b981;" id="courier-vehicle-lbl">Ahmet Kurye (Motor 🏍️)</div>
-            <div class="gps-coords-badge" id="m-gps-coords">Cihaz GPS Bekleniyor...</div>
+            <div class="gps-coords-badge" id="m-gps-coords">Atanan Kurye Konumu Bekleniyor...</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#94a3b8;">TAHMİNİ ETA</div>
             <div style="font-size:16px; font-weight:800; color:#38bdf8;" id="m-eta">-- Dk</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Paket Tipi Seçimi</label>
-          <div class="package-grid">
-            <div class="package-card active" onclick="selectPackageType(this, 'evrak', 45, 'Motor 🏍️')">
-              <i data-lucide="file-text"></i>
-              <div>Evrak</div>
-            </div>
-            <div class="package-card" onclick="selectPackageType(this, 'gida', 65, 'Gıda Motoru 🍱')">
-              <i data-lucide="utensils"></i>
-              <div>Gıda</div>
-            </div>
-            <div class="package-card" onclick="selectPackageType(this, 'koli', 120, 'VIP Araç 🚗')">
-              <i data-lucide="package"></i>
-              <div>Koli</div>
-            </div>
           </div>
         </div>
 
@@ -133,6 +111,9 @@
   <script>
     lucide.createIcons();
 
+    // 🔒 ATANMIŞ KURYE GÜVENLİK İZOLASYON FİLTRESİ
+    const ASSIGNED_COURIER_ID = "00000000-0000-0000-0000-000000000001";
+
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
@@ -143,7 +124,12 @@
       className: ''
     });
 
-    function updateCourierLocation(lat, lon) {
+    function updateAssignedCourierLocation(courierId, lat, lon) {
+      // 🔒 SECURITY FILTER: Only render if courierId matches ASSIGNED_COURIER_ID
+      if (courierId && courierId !== ASSIGNED_COURIER_ID) {
+        return; // IGNORE OTHER COURIERS FOR PRIVACY AND SECURITY!
+      }
+
       if (!courierMarker) {
         courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
       } else {
@@ -154,58 +140,31 @@
       document.getElementById('m-eta').innerText = `3 Dk`;
     }
 
-    // 1️⃣ Check LocalStorage instantly (Cross-Tab Instant Broadcast)
+    // 1️⃣ Check LocalStorage (Only for assigned courier)
     function checkLocalStorageGPS() {
       const saved = localStorage.getItem('qervon_last_courier_gps');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          updateCourierLocation(parsed.latitude, parsed.longitude);
+          updateAssignedCourierLocation(ASSIGNED_COURIER_ID, parsed.latitude, parsed.longitude);
         } catch(e) {}
       }
     }
 
-    // 2️⃣ Listen to LocalStorage storage events
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'qervon_last_courier_gps' && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          updateCourierLocation(parsed.latitude, parsed.longitude);
-        } catch(e) {}
-      }
-    });
-
-    // 3️⃣ Periodic Check (1 sec loop)
-    setInterval(checkLocalStorageGPS, 1000);
-
-    // 4️⃣ Initial REST API Fetch
-    async function fetchInitialPosition() {
-      try {
-        const res = await fetch('/v1/couriers');
-        const couriers = await res.json();
-        if (couriers && couriers.length > 0) {
-          const c = couriers[0];
-          if (c.current_location && c.current_location.latitude > 0) {
-            updateCourierLocation(c.current_location.latitude, c.current_location.longitude);
-          }
-        }
-      } catch(e) {}
-    }
-
-    // 5️⃣ Realtime WebSocket Receiver
+    // 2️⃣ Listen to WebSocket Stream with Security Isolation Filter
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          updateCourierLocation(data.latitude, data.longitude);
+          // Only pass to renderer if courier_id matches assigned courier
+          updateAssignedCourierLocation(data.courier_id, data.latitude, data.longitude);
         } catch(e) {}
       };
     } catch(e) {}
 
     checkLocalStorageGPS();
-    fetchInitialPosition();
   </script>
 </body>
 </html>

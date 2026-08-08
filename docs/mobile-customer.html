@@ -59,7 +59,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">HARDWARE GPS 🎯</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">ISOLATED GPS 🛡️</span>
     </div>
 
     <div class="phone-content">
@@ -68,9 +68,9 @@
 
         <div class="live-eta-card">
           <div>
-            <div style="font-size:10px; color:#94a3b8;">ATANAN KURYE (GERÇEK GPS)</div>
+            <div style="font-size:10px; color:#94a3b8;">SADECE ATANAN KURYE İZLENİYOR</div>
             <div style="font-size:12px; font-weight:800; color:#10b981;">Ahmet Kurye (Motor 🏍️)</div>
-            <div class="gps-coords-badge" id="m-gps-coords">Cihaz GPS Bekleniyor...</div>
+            <div class="gps-coords-badge" id="m-gps-coords">Atanan Kurye Konumu Bekleniyor...</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:#94a3b8;">TAHMİNİ ETA</div>
@@ -78,13 +78,17 @@
           </div>
         </div>
 
-        <button class="btn-mobile-call" onclick="callMobileCourier()">⚡ KURYEYİ ÇAĞIR (₺45.00)</button>
+        <button class="btn-mobile-call">⚡ KURYEYİ ÇAĞIR (₺45.00)</button>
       </div>
     </div>
   </div>
 
   <script>
     lucide.createIcons();
+
+    // 🔒 SECURITY FILTER: ASSIGNED COURIER ONLY
+    const ASSIGNED_COURIER_ID = "00000000-0000-0000-0000-000000000001";
+
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
@@ -95,7 +99,8 @@
       className: ''
     });
 
-    function updateCourierLocation(lat, lon) {
+    function updateAssignedCourierLocation(courierId, lat, lon) {
+      if (courierId && courierId !== ASSIGNED_COURIER_ID) return; // SECURITY FILTER
       if (!courierMarker) {
         courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
       } else {
@@ -105,29 +110,16 @@
       document.getElementById('m-gps-coords').innerText = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
     }
 
-    async function fetchInitialPosition() {
-      try {
-        const res = await fetch('/v1/couriers');
-        const couriers = await res.json();
-        if (couriers && couriers.length > 0) {
-          const c = couriers[0];
-          updateCourierLocation(c.current_location.latitude, c.current_location.longitude);
-        }
-      } catch(e) {}
-    }
-
     try {
       const wsUrl = `ws://${window.location.host}/ws/tracking`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          updateCourierLocation(data.latitude, data.longitude);
+          updateAssignedCourierLocation(data.courier_id, data.latitude, data.longitude);
         } catch(e) {}
       };
     } catch(e) {}
-
-    fetchInitialPosition();
   </script>
 </body>
 </html>
