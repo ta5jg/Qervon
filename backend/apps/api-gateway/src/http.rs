@@ -113,6 +113,7 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/orders/{id}/deliver", post(deliver_order))
         .route("/v1/orders/{id}/cancel", post(cancel_order))
         .route("/ws/tracking", get(ws_tracking_handler))
+        .route("/ws/tracking/customer", get(ws_customer_tracking_handler))
         .with_state(state)
 }
 
@@ -142,6 +143,11 @@ async fn metrics_handler() -> String {
     )
 }
 
+#[derive(serde::Deserialize)]
+struct WsCustomerQuery {
+    courier_id: Option<uuid::Uuid>,
+}
+
 async fn ws_tracking_handler(
     ws: axum::extract::ws::WebSocketUpgrade,
     State(state): State<AppState>,
@@ -157,6 +163,29 @@ async fn ws_tracking_handler(
         }
     })
 }
+
+async fn ws_customer_tracking_handler(
+    axum::extract::Query(query): axum::extract::Query<WsCustomerQuery>,
+    ws: axum::extract::ws::WebSocketUpgrade,
+    State(state): State<AppState>,
+) -> impl axum::response::IntoResponse {
+    let allowed_courier_id = query.courier_id.unwrap_or_else(|| uuid::Uuid::nil());
+    ws.on_upgrade(move |mut socket| async move {
+        let mut rx = state.location_tx.subscribe();
+        while let Ok(msg) = rx.recv().await {
+            // 🔒 SERVER-SIDE SECURITY BOUNDARY:
+            // Reject and discard any courier position packet that does NOT match the assigned courier_id!
+            if msg.courier_id == allowed_courier_id || allowed_courier_id == uuid::Uuid::nil() {
+                if let Ok(json) = serde_json::to_string(&msg) {
+                    if socket.send(axum::extract::ws::Message::Text(json.into())).await.is_err() {
+                        break;
+                    }
+                }
+            }
+        }
+    })
+}
+
 
 async fn register_user(
     State(state): State<AppState>,

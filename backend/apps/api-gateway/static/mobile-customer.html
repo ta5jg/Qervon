@@ -37,9 +37,6 @@
 
     #map { width: 100%; height: 240px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
 
-    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
-    .form-label { font-size: 11px; font-weight: 600; color: #94a3b8; }
-
     .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
     .package-card {
       background: #1e293b; border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s;
@@ -75,7 +72,7 @@
       <div class="brand-title">
         <i data-lucide="truck" style="width:20px;"></i> QERVON MÜŞTERİ
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">ISOLATED GPS 🛡️</span>
+      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">SERVER ISOLATED 🛡️</span>
     </div>
 
     <div class="phone-content">
@@ -85,7 +82,7 @@
 
         <div class="live-eta-card">
           <div>
-            <div style="font-size:10px; color:#94a3b8;">SADECE ATANAN KURYE İZLENİYOR</div>
+            <div style="font-size:10px; color:#94a3b8;">SUNUCU KORUMALI ATANAN KURYE</div>
             <div style="font-size:12px; font-weight:800; color:#10b981;" id="courier-vehicle-lbl">Ahmet Kurye (Motor 🏍️)</div>
             <div class="gps-coords-badge" id="m-gps-coords">Atanan Kurye Konumu Bekleniyor...</div>
           </div>
@@ -111,7 +108,7 @@
   <script>
     lucide.createIcons();
 
-    // 🔒 ATANMIŞ KURYE GÜVENLİK İZOLASYON FİLTRESİ
+    // 🔒 SUNUCU TARAFLI KORUMALI ATANMIŞ KURYE ID'Sİ
     const ASSIGNED_COURIER_ID = "00000000-0000-0000-0000-000000000001";
 
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
@@ -124,12 +121,7 @@
       className: ''
     });
 
-    function updateAssignedCourierLocation(courierId, lat, lon) {
-      // 🔒 SECURITY FILTER: Only render if courierId matches ASSIGNED_COURIER_ID
-      if (courierId && courierId !== ASSIGNED_COURIER_ID) {
-        return; // IGNORE OTHER COURIERS FOR PRIVACY AND SECURITY!
-      }
-
+    function updateCourierLocation(lat, lon) {
       if (!courierMarker) {
         courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
       } else {
@@ -140,26 +132,27 @@
       document.getElementById('m-eta').innerText = `3 Dk`;
     }
 
-    // 1️⃣ Check LocalStorage (Only for assigned courier)
+    // 1️⃣ Check LocalStorage
     function checkLocalStorageGPS() {
       const saved = localStorage.getItem('qervon_last_courier_gps');
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          updateAssignedCourierLocation(ASSIGNED_COURIER_ID, parsed.latitude, parsed.longitude);
+          updateCourierLocation(parsed.latitude, parsed.longitude);
         } catch(e) {}
       }
     }
 
-    // 2️⃣ Listen to WebSocket Stream with Security Isolation Filter
+    // 2️⃣ SERVER-ENFORCED PROTECTED WEBSOCKET CHANNEL:
+    // Connecting to /ws/tracking/customer?courier_id=XXX
+    // The Rust Server strictly filters out all unassigned fleet location data before sending!
     try {
-      const wsUrl = `ws://${window.location.host}/ws/tracking`;
+      const wsUrl = `ws://${window.location.host}/ws/tracking/customer?courier_id=${ASSIGNED_COURIER_ID}`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          // Only pass to renderer if courier_id matches assigned courier
-          updateAssignedCourierLocation(data.courier_id, data.latitude, data.longitude);
+          updateCourierLocation(data.latitude, data.longitude);
         } catch(e) {}
       };
     } catch(e) {}
