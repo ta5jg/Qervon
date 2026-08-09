@@ -3,140 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon — Kurye Mobil Terminali (Live GPS)</title>
-  
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Qervon — Kurye Mobil Terminali (Live Hardware Simulator)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: #060913; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+    :root {
+      --bg-base: #040711;
+      --bg-card: rgba(15, 23, 42, 0.9);
+      --border-color: rgba(255, 255, 255, 0.1);
+      --accent-green: #10b981;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: #000; color: var(--text-main); height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 
     .phone-frame {
-      width: 380px; height: 780px; background: #0f172a; border-radius: 48px;
-      border: 12px solid #1e293b; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(56,189,248,0.2);
-      display: flex; flex-direction: column; overflow: hidden; position: relative;
+      width: 390px;
+      height: 780px;
+      background: var(--bg-base);
+      border-radius: 48px;
+      border: 10px solid #1e293b;
+      box-shadow: 0 0 50px rgba(16, 185, 129, 0.25);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
     }
 
-    .phone-notch {
-      width: 140px; height: 26px; background: #1e293b; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
-      position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 2000;
+    .notch {
+      width: 140px; height: 26px; background: #1e293b; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 1000;
     }
 
-    .phone-header {
-      padding: 40px 20px 12px 20px; background: #0f172a; border-bottom: 1px solid rgba(255,255,255,0.08);
-      display: flex; justify-content: space-between; align-items: center; z-index: 100;
+    .mobile-header {
+      padding: 38px 20px 12px 20px;
+      background: rgba(9, 13, 26, 0.9);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
-    .brand-title { font-size: 16px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
 
-    .phone-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; padding: 16px; gap: 12px; }
+    .view-content { flex: 1; overflow-y: auto; display: none; padding: 16px; }
+    .view-content.active { display: block; }
 
-    #map { width: 100%; height: 320px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); }
-
-    .gps-status-card {
-      background: #1e293b; border: 1px solid #10b981; border-radius: 14px; padding: 12px 16px;
-      display: flex; justify-content: space-between; align-items: center;
+    .bottom-nav {
+      height: 65px;
+      background: #090d1a;
+      border-top: 1px solid var(--border-color);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: center;
+      padding: 0 8px;
     }
-    .gps-badge { font-family: monospace; font-size: 11px; color: #10b981; font-weight: 700; }
 
-    .btn-action-main {
-      background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none;
-      border-radius: 12px; padding: 14px; font-size: 13px; font-weight: 800; cursor: pointer;
-      box-shadow: 0 0 20px rgba(16,185,129,0.4); text-align: center;
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 3px; color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer;
     }
+    .nav-tab.active { color: var(--accent-green); }
+
+    .card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+
+    .btn-main {
+      width: 100%; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, var(--accent-green), #047857); color: white; font-size: 13px; font-weight: 800; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    #map { width: 100%; height: 240px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 12px; }
+
+    .toggle-online {
+      padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; cursor: pointer; border: none;
+    }
+    .is-online { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
   </style>
 </head>
 <body>
 
   <div class="phone-frame">
-    <div class="phone-notch"></div>
+    <div class="notch"></div>
 
-    <div class="phone-header">
-      <div class="brand-title">
-        <i data-lucide="smartphone" style="width:20px;"></i> KURYE TERMINALİ
+    <!-- Header -->
+    <div class="mobile-header">
+      <div>
+        <div style="font-size:14px; font-weight:800; color:white;">KURYE TERMINALİ</div>
+        <div style="font-size:9px; color:var(--accent-cyan); font-weight:700;">HARDWARE GPS BROADCASTER</div>
       </div>
-      <span style="font-size:10px; background:rgba(16,185,129,0.2); color:#10b981; padding:2px 8px; border-radius:10px; font-weight:700;">GPS CANLI BROADCAST 🛰️</span>
+      <button class="toggle-online is-online" id="btn-status" onclick="toggleStatus()">ONLINE 🟢</button>
     </div>
 
-    <div class="phone-content">
-      <div class="gps-status-card">
-        <div>
-          <div style="font-size:10px; color:#94a3b8; font-weight:700;">FİZİKSEL CİHAZ GPS KONUMU</div>
-          <div class="gps-badge" id="gps-coords-display">Donanım GPS Bağlanıyor...</div>
-        </div>
-        <div style="text-align:right;">
-          <span style="font-size:9px; background:rgba(56,189,248,0.2); color:#38bdf8; padding:2px 6px; border-radius:6px; font-weight:700;">Broadcast Aktif</span>
-        </div>
-      </div>
-
-      <div style="background:rgba(56,189,248,0.1); border:1px solid rgba(56,189,248,0.3); border-radius:14px; padding:12px;">
-        <div style="font-size:10px; color:#94a3b8;">YENİ İŞ BİLDİRİMİ (AI DISPATCH)</div>
-        <div style="font-size:13px; font-weight:800; margin-top:2px;">Sultanahmet Restoran ➔ Maslak Plaza</div>
-        <div style="font-size:11px; color:#38bdf8; font-weight:700; margin-top:4px;">Kazanç: ₺45.00</div>
-      </div>
-
+    <!-- TAB 1: GÖREV & HARİTA -->
+    <div id="tab-courier-home" class="view-content active">
       <div id="map"></div>
 
-      <button class="btn-action-main">KABUL ET & NAVİGASYON</button>
+      <div class="card">
+        <div style="font-size:10px; color:var(--text-muted); font-weight:700;">DONANIM FİZİKSEL GPS CANLI</div>
+        <div style="font-size:13px; font-weight:800; color:var(--accent-green); margin-top:2px;" id="gps-text">Konum Alınıyor...</div>
+      </div>
+
+      <div class="card" style="border-color:rgba(56,189,248,0.4);">
+        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">YENİ GÖREV ATAMASI (AI DISPATCH)</div>
+        <div style="font-size:14px; font-weight:800;">Sultanahmet ➔ Maslak Plaza</div>
+        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; font-weight:700;">
+          <span style="color:var(--accent-green);">Kazanç: ₺45.00</span>
+          <span style="color:var(--text-muted);">Mesafe: 4.2 km</span>
+        </div>
+      </div>
+
+      <button class="btn-main">✅ GÖREVİ KABUL ET & NAVİGASYON</button>
+    </div>
+
+    <!-- TAB 2: POD & DİJİTAL İMZA -->
+    <div id="tab-pod" class="view-content">
+      <div class="card">
+        <div style="font-size:14px; font-weight:800; margin-bottom:10px;">Teslimat İspatı (POD)</div>
+        <button class="btn-main" style="background:#0284c7; margin-bottom:8px;"><i data-lucide="qr-code"></i> QR / Barkod Tara</button>
+        <button class="btn-main" style="background:#8b5cf6; margin-bottom:8px;"><i data-lucide="camera"></i> Fotoğraf Kanıtı Çek</button>
+        <div style="padding:16px; border:1px dashed var(--border-color); border-radius:12px; text-align:center; font-size:11px; color:var(--text-muted); margin-bottom:10px;">
+          Müşteri Dijital İmzası Alanı
+        </div>
+        <button class="btn-main">🏁 TESLİMATI TAMAMLA</button>
+      </div>
+    </div>
+
+    <!-- TAB 3: KAZANÇ & CÜZDAN -->
+    <div id="tab-wallet" class="view-content">
+      <div class="card">
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted);">Bugünkü Kazanç</div>
+        <div style="font-size:26px; font-weight:800; color:var(--accent-green); margin:4px 0;">₺850.00</div>
+        <div style="font-size:11px; color:var(--accent-cyan); font-weight:700;">Haftalık Toplam: ₺5,200.00 💰</div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Performans Skor Kartı</div>
+        <div style="font-size:16px; font-weight:800; color:var(--accent-purple);">⭐ 4.9 / 5.0 Rating</div>
+        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Zamanında Teslimat: %98.5</div>
+      </div>
+    </div>
+
+    <!-- TAB 4: PROFİL -->
+    <div id="tab-profile" class="view-content">
+      <div class="card">
+        <div style="font-size:14px; font-weight:800;">Ahmet Kurye</div>
+        <div style="font-size:11px; color:var(--text-muted);">Motosiklet • Plaka: 34 KRY 882</div>
+        <div style="font-size:11px; color:var(--accent-green); font-weight:700; margin-top:6px;">Ehliyet & Sigorta: Doğrulandı ✅</div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+      <div class="nav-tab active" onclick="switchCourierTab('courier-home', this)"><i data-lucide="navigation"></i> Navigasyon</div>
+      <div class="nav-tab" onclick="switchCourierTab('pod', this)"><i data-lucide="check-square"></i> POD / İmza</div>
+      <div class="nav-tab" onclick="switchCourierTab('wallet', this)"><i data-lucide="wallet"></i> Kazançlar</div>
+      <div class="nav-tab" onclick="switchCourierTab('profile', this)"><i data-lucide="user"></i> Profil</div>
     </div>
   </div>
 
   <script>
     lucide.createIcons();
 
-    const courierUuid = "00000000-0000-0000-0000-000000000001";
-    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 16);
+    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
+      html: `<div style="background:#10b981; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
       className: ''
     });
+    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
 
-    const courierMarker = L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
-
-    let ws = null;
-    function initWebSocket() {
-      try {
-        ws = new WebSocket(`ws://${window.location.host}/ws/tracking`);
-      } catch(e) {}
+    let isOnline = true;
+    function toggleStatus() {
+      isOnline = !isOnline;
+      const btn = document.getElementById('btn-status');
+      if (isOnline) {
+        btn.innerText = "ONLINE 🟢";
+        btn.className = "toggle-online is-online";
+      } else {
+        btn.innerText = "OFFLINE 🔴";
+        btn.className = "toggle-online";
+      }
     }
-    initWebSocket();
 
-    // 🎯 BROADCAST HARDWARE GPS TO LOCALSTORAGE & SERVER & WEBSOCKET
-    if ("geolocation" in navigator) {
-      navigator.geolocation.watchPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+    function switchCourierTab(tabId, el) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view-content').forEach(c => c.classList.remove('active'));
 
-          // 1. Local Courier Map Update
-          courierMarker.setLatLng([lat, lon]);
-          map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
-          document.getElementById('gps-coords-display').innerText = `Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}`;
-
-          // 2. Save to LocalStorage for cross-tab instant sync
-          localStorage.setItem('qervon_last_courier_gps', JSON.stringify({ latitude: lat, longitude: lon, timestamp: Date.now() }));
-
-          // 3. Broadcast to REST API
-          try {
-            await fetch(`/v1/couriers/${courierUuid}/location`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ latitude: lat, longitude: lon })
-            });
-          } catch(e) {}
-
-          // 4. Broadcast via WebSocket Stream
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ courier_id: courierUuid, latitude: lat, longitude: lon }));
-          }
-        },
-        (error) => { console.warn(error); },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
-      );
+      el.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if (tabId === 'courier-home') {
+        setTimeout(() => map.invalidateSize(), 100);
+      }
     }
   </script>
 </body>
