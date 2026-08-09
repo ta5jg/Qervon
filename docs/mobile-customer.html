@@ -108,7 +108,10 @@
     }
 
     try {
-      const wsUrl = `ws://${window.location.host}/ws/tracking/customer?courier_id=${ASSIGNED_COURIER_ID}`;
+      const assignedCourierId = "00000000-0000-0000-0000-000000000001";
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host.includes('github.io') ? 'localhost:8080' : window.location.host;
+      const wsUrl = `${wsProtocol}//${wsHost}/ws/tracking/customer?courier_id=${assignedCourierId}`;
       const ws = new WebSocket(wsUrl);
       ws.onmessage = (event) => {
         try {

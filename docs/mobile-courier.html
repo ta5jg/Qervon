@@ -82,6 +82,8 @@
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
+    const apiHost = window.location.host.includes('github.io') ? 'http://localhost:8080' : '';
+    const apiUrl = `${apiHost}/v1/couriers/${courierId}/location`;
     const courierIcon = L.divIcon({
       html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
       className: ''

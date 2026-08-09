@@ -180,7 +180,11 @@
   <script>
     lucide.createIcons();
 
-    const ASSIGNED_COURIER_ID = "00000000-0000-0000-0000-000000000001";
+    const assignedCourierId = "00000000-0000-0000-0000-000000000001";
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsHost = window.location.host.includes('github.io') ? 'localhost:8080' : window.location.host;
+    const wsUrl = `${wsProtocol}//${wsHost}/ws/tracking/customer?courier_id=${assignedCourierId}`;
+
     const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
