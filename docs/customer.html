@@ -1,222 +1,234 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon — Müşteri Web Portalı</title>
-  
+  <title>Qervon LOS — Müşteri Kurumsal Portalı</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
 
   <style>
     :root {
-      --bg-main: #060913;
+      --bg-base: #060913;
       --bg-card: rgba(15, 23, 42, 0.75);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(16, 185, 129, 0.3);
-      --primary: #10b981;
-      --primary-glow: rgba(16, 185, 129, 0.25);
-      --accent-blue: #38bdf8;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #8b5cf6;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
 
-    .glass {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
+    .glass { background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); }
+
+    sidebar {
+      width: 260px;
+      background: #090d1a;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
     }
 
-    .sidebar {
-      width: 260px; padding: 20px 16px; display: flex; flex-direction: column;
-      border-right: 1px solid var(--border); height: 100vh; overflow-y: auto;
-    }
-
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
-    .brand-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: linear-gradient(135deg, #059669, #10b981);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
-    }
-    .brand-text { font-size: 18px; font-weight: 800; }
-    .brand-tag { font-size: 9px; font-weight: 700; background: rgba(16, 185, 129, 0.15); color: var(--primary); padding: 2px 6px; border-radius: 12px; border: 1px solid var(--border-accent); }
-
-    .nav-group { margin-bottom: 20px; }
-    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.8px; margin-bottom: 8px; padding-left: 8px; }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; padding-left: 8px; }
+    .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-cyan), #0284c7); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 
     .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px; border-radius: 10px;
-      color: var(--text-muted); font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: all 0.2s ease; margin-bottom: 4px;
+      display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
     }
+    .nav-item:hover, .nav-item.active { background: rgba(56, 189, 248, 0.12); color: var(--accent-cyan); border-left: 3px solid var(--accent-cyan); }
 
-    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
 
-    .header-bar {
-      padding: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-      border-bottom: 1px solid var(--border);
+    header { height: 70px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: rgba(9, 13, 26, 0.8); }
+
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px 28px; }
+    .metric-card { padding: 16px; border-radius: 16px; display: flex; flex-direction: column; gap: 6px; }
+
+    .view-section { display: none; padding: 0 28px 28px 28px; }
+    .view-section.active { display: block; }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--accent-green), #047857);
+      color: white; border: none; padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; transition: all 0.2s ease;
     }
+    .btn-action:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
 
-    .metric-card { padding: 14px 18px; border-radius: 14px; position: relative; overflow: hidden; }
-    .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent-blue)); }
-    .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .metric-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-    .metric-value { font-size: 18px; font-weight: 800; color: var(--primary); }
-
-    .view-content { flex: 1; padding: 20px; display: flex; gap: 16px; overflow: hidden; }
-
-    .form-panel { width: 440px; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-    .map-panel { flex: 1; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; position: relative; }
-    #map { width: 100%; height: 100%; }
-
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
-    .form-input {
-      background: rgba(30, 41, 59, 0.7); border: 1px solid var(--border);
-      border-radius: 10px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none;
+    .package-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+    .package-card {
+      padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); cursor: pointer; text-align: center; display: flex; flex-direction: column; gap: 4px; transition: all 0.2s ease;
     }
-
-    .btn-submit {
-      background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none;
-      border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; cursor: pointer;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); margin-top: auto;
-    }
-
-    .map-overlay {
-      position: absolute; top: 16px; left: 16px; z-index: 1000;
-      background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
-      border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
-    }
+    .package-card.selected { border-color: var(--accent-green); background: rgba(16,185,129,0.1); }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar glass">
-    <div>
-      <div class="brand">
-        <div class="brand-icon"><i data-lucide="user-check" style="color:#fff;"></i></div>
-        <div>
-          <div class="brand-text">QERVON</div>
-          <div class="brand-tag">MÜŞTERİ PORTALI</div>
-        </div>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-label">Hızlı İşlemler</div>
-        <div class="nav-item active"><i data-lucide="navigation"></i> Kurye Çağır & Canlı GPS</div>
+  <sidebar>
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="user-check" style="color:white"></i></div>
+      <div class="brand-text">
+        <h1 style="font-size:16px; font-weight:800;">QERVON</h1>
+        <span style="font-size:10px; font-weight:700; color:var(--accent-cyan);">MÜŞTERİ PORTALI</span>
       </div>
     </div>
-  </aside>
 
-  <main class="main-container">
-    <header class="header-bar">
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Size Atanan Kurye</span>
-          <i data-lucide="navigation" style="color:var(--primary);"></i>
-        </div>
-        <div class="metric-value">Ahmet Kurye (Motor 🏍️)</div>
-      </div>
+    <div style="display:flex; flex-direction:column; gap:6px;">
+      <div class="nav-item active" onclick="switchTab('new-order')"><i data-lucide="plus-circle"></i> Yeni Kurye Çağır & Canlı Takip</div>
+      <div class="nav-item" onclick="switchTab('addresses')"><i data-lucide="book-open"></i> Adres Defteri</div>
+      <div class="nav-item" onclick="switchTab('bulk')"><i data-lucide="file-spreadsheet"></i> Toplu Excel Sipariş Yükle</div>
+      <div class="nav-item" onclick="switchTab('history')"><i data-lucide="history"></i> Geçmiş Siparişler & Faturalar</div>
+    </div>
+  </sidebar>
 
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Tahmini Varış (ETA)</span>
-          <i data-lucide="clock" style="color:var(--accent-blue);"></i>
-        </div>
-        <div class="metric-value">3 Dk</div>
-      </div>
-
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Kurye Canlı GPS Konumu</span>
-          <i data-lucide="map-pin" style="color:var(--primary);"></i>
-        </div>
-        <div class="metric-value" id="lbl-courier-coords" style="font-family:monospace; font-size:15px;">GPS Bağlanıyor...</div>
-      </div>
-
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Sipariş Durumu</span>
-          <i data-lucide="package-check" style="color:var(--primary);"></i>
-        </div>
-        <div class="metric-value" style="color:#10b981;">Yolda (In Transit)</div>
+  <main>
+    <header>
+      <h2 style="font-size:18px; font-weight:800;">Müşteri Kontrol Paneli</h2>
+      <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--accent-green); font-weight:700;">
+        <i data-lucide="shield-check"></i> SUNUCU KORUMALI İZOLE GPS CANLI
       </div>
     </header>
 
-    <div class="view-content">
-      <div class="form-panel glass">
-        <div style="font-size:16px; font-weight:800; display:flex; align-items:center; justify-content:space-between;">
-          <span>Yeni Kurye Çağır</span>
-          <i data-lucide="truck" style="color:var(--primary);"></i>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Alım Adresi (Nereden?)</label>
-          <input type="text" class="form-input" value="Mevcut Konum (GPS)">
-        </div>
-
-        <button class="btn-submit">Kuryeyi Çağır & Takip Et</button>
+    <div class="metrics-grid">
+      <div class="metric-card glass">
+        <span style="font-size:11px; color:var(--text-muted); font-weight:700;">SİZE ATANAN KURYE</span>
+        <span style="font-size:16px; font-weight:800; color:var(--accent-green);">Ahmet Kurye (Motor 🏍️)</span>
       </div>
-
-      <div class="map-panel glass">
-        <div class="map-overlay">
-          <div style="font-size:12px; font-weight:700;">Atanan Kurye: Ahmet Kurye</div>
-        </div>
-        <div id="map"></div>
+      <div class="metric-card glass">
+        <span style="font-size:11px; color:var(--text-muted); font-weight:700;">TAHMİNİ VARIŞ (ETA)</span>
+        <span style="font-size:18px; font-weight:800; color:var(--accent-cyan);">3 Dakika</span>
+      </div>
+      <div class="metric-card glass">
+        <span style="font-size:11px; color:var(--text-muted); font-weight:700;">CANLI GPS DURUMU</span>
+        <span style="font-size:14px; font-weight:700; color:var(--accent-green);">Bağlandı (Hardware GPS 🟢)</span>
+      </div>
+      <div class="metric-card glass">
+        <span style="font-size:11px; color:var(--text-muted); font-weight:700;">SİPARİŞ DURUMU</span>
+        <span style="font-size:14px; font-weight:700; color:var(--accent-green);">Yolda (In Transit)</span>
       </div>
     </div>
+
+    <div id="tab-new-order" class="view-section active">
+      <div style="display:grid; grid-template-columns: 380px 1fr; gap:16px; height:520px;">
+        
+        <div class="glass" style="border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:14px;">
+          <h3 style="font-size:15px; font-weight:800;">Yeni Kurye Talebi</h3>
+          
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Alım Adresi (Nereden?)</label>
+            <input type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslimat Adresi (Nereye?)</label>
+            <input type="text" value="Maslak Plaza No:14, Sarıyer" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Paket Tipi Seçimi</label>
+            <div class="package-grid">
+              <div class="package-card selected" onclick="selectPkg(this, 45)"><i data-lucide="file-text"></i> <span style="font-size:12px; font-weight:700;">Evrak</span> <span style="font-size:10px; color:var(--text-muted);">₺45</span></div>
+              <div class="package-card" onclick="selectPkg(this, 65)"><i data-lucide="utensils"></i> <span style="font-size:12px; font-weight:700;">Gıda</span> <span style="font-size:10px; color:var(--text-muted);">₺65</span></div>
+              <div class="package-card" onclick="selectPkg(this, 120)"><i data-lucide="box"></i> <span style="font-size:12px; font-weight:700;">Koli</span> <span style="font-size:10px; color:var(--text-muted);">₺120</span></div>
+            </div>
+          </div>
+
+          <button class="btn-action" id="btn-call">⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺45.00)</button>
+        </div>
+
+        <div id="map" style="border-radius:20px; border:1px solid var(--border-color);"></div>
+
+      </div>
+    </div>
+
+    <div id="tab-addresses" class="view-section">
+      <div class="glass" style="border-radius:20px; padding:20px;">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Kayıtlı Adres Defteri</h3>
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
+          <div style="padding:16px; border-radius:14px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);">
+            <div style="font-size:14px; font-weight:700; color:var(--accent-cyan);">🏢 Merkez Ofis</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Maslak Plaza Kat 12, Sarıyer / İstanbul</div>
+          </div>
+          <div style="padding:16px; border-radius:14px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);">
+            <div style="font-size:14px; font-weight:700; color:var(--accent-green);">🏭 Ana Depo (Hub)</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Yıldıztabya Caddesi No:45, Gaziosmanpaşa</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-bulk" class="view-section">
+      <div class="glass" style="border-radius:20px; padding:30px; text-align:center;">
+        <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-cyan);"></i>
+        <h3 style="font-size:18px; font-weight:800; margin-top:12px;">Toplu Excel / CSV Sipariş Dosyası Yükle</h3>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Binlerce teslimatı tek tıkla sisteme aktarmak için .xlsx veya .csv dosyanızı buraya sürükleyin.</p>
+        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto;"><i data-lucide="file-plus"></i> Excel Dosyası Seç</button>
+      </div>
+    </div>
+
+    <div id="tab-history" class="view-section">
+      <div class="glass" style="border-radius:20px; padding:20px;">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Geçmiş Teslimat & e-Faturalar</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left; font-size:11px; color:var(--text-muted);">
+              <th style="padding:10px;">Teslimat ID</th>
+              <th style="padding:10px;">Tarih</th>
+              <th style="padding:10px;">Kurye</th>
+              <th style="padding:10px;">Tutar</th>
+              <th style="padding:10px;">e-Fatura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04);">
+              <td style="padding:12px; font-family:'JetBrains Mono'; font-weight:700;">#ORD-8810</td>
+              <td style="padding:12px;">08.08.2026</td>
+              <td style="padding:12px;">Ahmet Kurye</td>
+              <td style="padding:12px;">₺45.00</td>
+              <td style="padding:12px;"><a href="#" style="color:var(--accent-cyan); text-decoration:none; font-weight:700;">PDF İndir 📄</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 
   <script>
     lucide.createIcons();
 
-    const assignedCourierId = "00000000-0000-0000-0000-000000000001";
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsHost = window.location.host.includes('github.io') ? 'localhost:8080' : window.location.host;
-    const wsUrl = `${wsProtocol}//${wsHost}/ws/tracking/customer?courier_id=${assignedCourierId}`;
-
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 16);
+    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let courierMarker = null;
-
     const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:28px; height:28px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
+      html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
       className: ''
     });
 
-    function updateCourierLocation(lat, lon) {
-      if (!courierMarker) {
-        courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map);
-      } else {
-        courierMarker.setLatLng([lat, lon]);
-      }
-      map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
-      document.getElementById('lbl-courier-coords').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+
+    function selectPkg(card, price) {
+      document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      document.getElementById('btn-call').innerText = `⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺${price}.00)`;
     }
 
-    function checkLocalStorageGPS() {
-      const saved = localStorage.getItem('qervon_last_courier_gps');
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          updateCourierLocation(parsed.latitude, parsed.longitude);
-        } catch(e) {}
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+      if (tabId === 'new-order') {
+        setTimeout(() => map.invalidateSize(), 100);
       }
     }
-
-    setInterval(checkLocalStorageGPS, 1000);
-    checkLocalStorageGPS();
   </script>
 </body>
 </html>

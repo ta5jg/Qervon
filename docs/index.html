@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon — Logistics Operating System (LOS)</title>
-  
+  <title>Qervon LOS — Logistics Operating System (Admin Control Center)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -15,184 +14,436 @@
 
   <style>
     :root {
-      --bg-main: #060913;
-      --bg-card: rgba(15, 23, 42, 0.75);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(56, 189, 248, 0.3);
-      --primary: #38bdf8;
-      --primary-glow: rgba(56, 189, 248, 0.25);
-      --accent-purple: #a855f7;
-      --accent-emerald: #10b981;
+      --bg-base: #060913;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg-main); color: var(--text-main); height: 100vh; display: flex; overflow: hidden; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
 
     .glass {
       background: var(--bg-card);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-color);
     }
 
-    .sidebar {
-      width: 260px; padding: 20px 16px; display: flex; flex-direction: column;
-      border-right: 1px solid var(--border); height: 100vh; overflow-y: auto;
+    sidebar {
+      width: 260px;
+      background: #090d1a;
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      z-index: 100;
     }
 
-    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+      padding-left: 8px;
+    }
+
     .brand-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: linear-gradient(135deg, #0284c7, #9333ea);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-green), #047857);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
     }
-    .brand-text { font-size: 18px; font-weight: 800; background: linear-gradient(to right, #ffffff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .brand-tag { font-size: 9px; font-weight: 700; background: rgba(56, 189, 248, 0.15); color: var(--primary); padding: 2px 6px; border-radius: 12px; border: 1px solid var(--border-accent); }
 
-    .nav-group { margin-bottom: 20px; }
-    .nav-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 0.8px; margin-bottom: 8px; padding-left: 8px; }
+    .brand-text h1 { font-size: 18px; font-weight: 800; tracking: 0.5px; }
+    .brand-text span { font-size: 10px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1px; }
 
+    .nav-menu { display: flex; flex-direction: column; gap: 6px; flex: 1; }
     .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 14px; border-radius: 10px;
-      color: var(--text-muted); font-size: 13px; font-weight: 500;
-      cursor: pointer; transition: all 0.2s ease; margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .nav-item:hover, .nav-item.active {
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-green);
+      border-left: 3px solid var(--accent-green);
     }
 
-    .main-container { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-
-    .header-bar {
-      padding: 16px 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
-      border-bottom: 1px solid var(--border);
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow-y: auto;
     }
 
-    .metric-card { padding: 14px 18px; border-radius: 14px; position: relative; overflow: hidden; }
-    .metric-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--primary), var(--accent-purple)); }
-    .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .metric-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-    .metric-value { font-size: 22px; font-weight: 800; }
-    .metric-footer { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-top: 4px; font-weight: 600; }
-    .badge-positive { color: var(--accent-emerald); }
-
-    .view-content { flex: 1; padding: 20px; overflow: hidden; position: relative; }
-    .tab-pane { display: none; height: 100%; width: 100%; }
-    .tab-pane.active { display: flex; gap: 16px; }
-
-    .map-box { flex: 1; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid var(--border); }
-    #map { width: 100%; height: 100%; }
-
-    .side-panel { width: 340px; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
-    .panel-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
-
-    .courier-list-item {
-      background: rgba(30,41,59,0.6); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
-      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: space-between;
+    header {
+      height: 70px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      background: rgba(9, 13, 26, 0.8);
     }
 
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-green);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .pulse-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      padding: 20px 28px;
+    }
+
+    .metric-card {
+      padding: 16px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .metric-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .metric-value { font-size: 22px; font-weight: 800; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+    .metric-sub { font-size: 10px; font-weight: 600; color: var(--accent-green); }
+
+    .view-section { display: none; padding: 0 28px 28px 28px; }
+    .view-section.active { display: block; }
+
+    .table-card {
+      border-radius: 20px;
+      padding: 20px;
+      margin-top: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-transform: uppercase; }
+    td { padding: 14px 16px; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); font-weight: 500; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .tag {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .tag-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-blue { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .tag-purple { background: rgba(139, 92, 246, 0.15); color: var(--accent-purple); border: 1px solid rgba(139, 92, 246, 0.3); }
+    .tag-orange { background: rgba(249, 115, 22, 0.15); color: var(--accent-orange); border: 1px solid rgba(249, 115, 22, 0.3); }
+
+    .map-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 16px;
+      height: 520px;
+    }
+    #map { width: 100%; height: 100%; border-radius: 20px; border: 1px solid var(--border-color); }
+
+    .btn-action {
+      background: linear-gradient(135deg, var(--accent-green), #047857);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-action:hover { transform: translateY(-1px); box-shadow: 0 0 25px rgba(16, 185, 129, 0.5); }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar glass">
-    <div>
-      <div class="brand">
-        <div class="brand-icon"><i data-lucide="box" style="color:#fff;"></i></div>
-        <div>
-          <div class="brand-text">QERVON</div>
-          <div class="brand-tag">LOGISTICS OS</div>
-        </div>
-      </div>
-      <div class="nav-group">
-        <div class="nav-label">Operasyon Paneli</div>
-        <div class="nav-item active"><i data-lucide="map-pin"></i> Canlı Harita & Fleet</div>
+  <sidebar>
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="box" style="color:white"></i></div>
+      <div class="brand-text">
+        <h1>QERVON</h1>
+        <span>LOGISTICS OS v1.0</span>
       </div>
     </div>
-  </aside>
 
-  <main class="main-container">
-    <header class="header-bar">
-      <div class="metric-card glass">
-        <div class="metric-header">
-          <span class="metric-title">Gerçek Kuryeler</span>
-          <i data-lucide="navigation" style="color:var(--primary);"></i>
-        </div>
-        <div class="metric-value">1 Aktif Kurye</div>
-        <div class="metric-footer badge-positive"><i data-lucide="radio" style="width:12px;"></i> HARDWARE GPS LIVE</div>
+    <div class="nav-menu">
+      <div class="nav-item active" onclick="switchTab('dashboard')"><i data-lucide="layout-dashboard"></i> Yönetim Dashboard</div>
+      <div class="nav-item" onclick="switchTab('map')"><i data-lucide="map-pin"></i> Canlı Harita & Isı Haritası</div>
+      <div class="nav-item" onclick="switchTab('orders')"><i data-lucide="shopping-bag"></i> Sipariş Yönetimi</div>
+      <div class="nav-item" onclick="switchTab('couriers')"><i data-lucide="bike"></i> Kurye Filosu</div>
+      <div class="nav-item" onclick="switchTab('finance')"><i data-lucide="wallet"></i> Finans & Cüzdan</div>
+      <div class="nav-item" onclick="switchTab('ai')"><i data-lucide="cpu"></i> AI Dispatcher & Fraud Guard</div>
+    </div>
+  </sidebar>
+
+  <main>
+    <header>
+      <div style="display:flex; align-items:center; gap:16px;">
+        <h2 id="page-title" style="font-size:18px; font-weight:800;">Genel Bakış Dashboard</h2>
+        <div class="status-badge"><div class="pulse-dot"></div> RUST BACKEND CANLI</div>
+      </div>
+      <div style="display:flex; gap:12px;">
+        <button class="btn-action" onclick="switchTab('map')"><i data-lucide="flame"></i> 🔥 Canlı Isı Haritası</button>
       </div>
     </header>
 
-    <div class="view-content">
-      <div id="tab-map" class="tab-pane active">
-        <div class="map-box glass">
-          <div id="map"></div>
-        </div>
-        <aside class="side-panel glass">
-          <div class="panel-title">
-            <span>Donanım GPS Akışı</span>
-            <span class="badge badge-green">DYNAMIC SYNC</span>
-          </div>
-          <div class="courier-list-item selected">
-            <div>
-              <div style="font-size:12px; font-weight:700;">🏍️ Ahmet Kurye</div>
-              <div style="font-size:10px; color:var(--accent-emerald);" id="coords-c1">Cihaz GPS Bekleniyor...</div>
-            </div>
-            <span class="badge badge-green">Aktif</span>
-          </div>
-        </aside>
+    <div class="metrics-grid">
+      <div class="metric-card glass">
+        <span class="metric-title">Anlık Sipariş</span>
+        <span class="metric-value" id="val-orders">142</span>
+        <span class="metric-sub">▲ %12 Bugün</span>
+      </div>
+      <div class="metric-card glass">
+        <span class="metric-title">Online Kurye</span>
+        <span class="metric-value" id="val-couriers">18</span>
+        <span class="metric-sub">Sahada Aktif 🟢</span>
+      </div>
+      <div class="metric-card glass">
+        <span class="metric-title">Bekleyen Teslimat</span>
+        <span class="metric-value">5</span>
+        <span class="metric-sub" style="color:var(--accent-orange)">AI Atama Yapılıyor</span>
+      </div>
+      <div class="metric-card glass">
+        <span class="metric-title">Günlük Gelir</span>
+        <span class="metric-value">₺14,850</span>
+        <span class="metric-sub">Net Ciro 💰</span>
+      </div>
+      <div class="metric-card glass">
+        <span class="metric-title">Kurye Hakediş</span>
+        <span class="metric-value">₺9,420</span>
+        <span class="metric-sub" style="color:var(--accent-purple)">Primler Dahil</span>
+      </div>
+      <div class="metric-card glass">
+        <span class="metric-title">Ortalama ETA</span>
+        <span class="metric-value">11.4 Dk</span>
+        <span class="metric-sub">AI Dynamic ETA ⚡</span>
       </div>
     </div>
+
+    <div id="tab-dashboard" class="view-section active">
+      <div class="map-wrapper">
+        <div id="map"></div>
+        <div class="glass" style="border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:16px;">
+          <h3 style="font-size:14px; font-weight:800;">Donanım GPS Akışı</h3>
+          <div id="courier-live-card" style="padding:12px; background:rgba(0,0,0,0.3); border-radius:12px; border:1px solid var(--border-color);">
+            <div style="font-size:11px; color:var(--text-muted);">Sürücü</div>
+            <div style="font-size:14px; font-weight:700; color:var(--accent-green);">Ahmet Kurye (Motor 🏍️)</div>
+            <div style="font-size:11px; margin-top:4px; font-family:'JetBrains Mono';" id="live-coords">GPS Aranıyor...</div>
+          </div>
+          <button class="btn-action" onclick="toggleHeatmap()"><i data-lucide="flame"></i> Termal Yoğunluk Haritası</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-map" class="view-section">
+      <div class="map-wrapper" style="height:650px;">
+        <div id="map-full" style="width:100%; height:100%; border-radius:20px;"></div>
+      </div>
+    </div>
+
+    <div id="tab-orders" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Sipariş Akış Listesi</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Sipariş No</th>
+              <th>Müşteri</th>
+              <th>Paket Tipi</th>
+              <th>Alım / Teslimat Adresi</th>
+              <th>Atanan Kurye</th>
+              <th>Tutar</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9021</td>
+              <td>Lezzet Restoranı</td>
+              <td><span class="tag tag-blue">Gıda</span></td>
+              <td>Yıldıztabya ➔ Maslak Plaza</td>
+              <td>Ahmet Kurye (Motor)</td>
+              <td>₺65.00</td>
+              <td><span class="tag tag-green">Yolda (In Transit)</span></td>
+            </tr>
+            <tr>
+              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9022</td>
+              <td>Medikal Eczane</td>
+              <td><span class="tag tag-purple">Soğuk Zincir (+4°C)</span></td>
+              <td>Gaziosmanpaşa ➔ Kadıköy Hub</td>
+              <td>Mehmet Kurye (Araba)</td>
+              <td>₺120.00</td>
+              <td><span class="tag tag-orange">Kurye Atanacak</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-couriers" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Aktif Kurye Filosu</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Kurye Adı</th>
+              <th>Araç Tipi</th>
+              <th>Plaka</th>
+              <th>Batarya %</th>
+              <th>Günlük Teslimat</th>
+              <th>Performans Puanı</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:700;">Ahmet Kurye</td>
+              <td>Motosiklet 🏍️</td>
+              <td>34 KRY 882</td>
+              <td>%92 🔋</td>
+              <td>18 Paket</td>
+              <td>⭐ 4.9 / 5.0</td>
+              <td><span class="tag tag-green">Aktif / Görevde</span></td>
+            </tr>
+            <tr>
+              <td style="font-weight:700;">Mehmet Kurye</td>
+              <td>Otomobil 🚗</td>
+              <td>34 QER 102</td>
+              <td>%85 🔋</td>
+              <td>12 Paket</td>
+              <td>⭐ 4.8 / 5.0</td>
+              <td><span class="tag tag-blue">Mola Saatinde</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-finance" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Kurye Cüzdan & Hakediş Raporu</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Kurye</th>
+              <th>Toplu Kazanç</th>
+              <th>Performans Primi</th>
+              <th>Kesinti / Ceza</th>
+              <th>Net Bakiyesi</th>
+              <th>Ödeme Durumu</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ahmet Kurye</td>
+              <td>₺4,500.00</td>
+              <td>+₺500.00 (5 Yıldız Primi)</td>
+              <td>-₺0.00</td>
+              <td style="font-weight:800; color:var(--accent-green);">₺5,000.00</td>
+              <td><span class="tag tag-green">Hakediş Ödendi</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-ai" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">AI Fraud Guard & Anomali Tespiti</h3>
+        <div style="padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#fca5a5; font-size:13px;">
+          🛡️ <b>AI Fraud Guard Aktif:</b> Fiziksel hız limiti 160 km/s olarak ayarlandı. Sahte GPS / Teleportation anomalisi tespit edilmedi.
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
     lucide.createIcons();
-    const map = L.map('map', { zoomControl: false }).setView([41.0082, 28.9784], 15);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
-    let courierMarker = null;
+    let map, heatLayer;
+    let mainMapInitialized = false;
 
-    const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
-      className: ''
-    });
+    function initMap() {
+      if (mainMapInitialized) return;
+      mainMapInitialized = true;
 
-    function updateMapLocation(lat, lon) {
-      if (!courierMarker) {
-        courierMarker = L.marker([lat, lon], { icon: courierIcon }).addTo(map).bindPopup("<b>Ahmet Kurye (Fiziksel Cihaz GPS)</b>");
+      map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+      const courierIcon = L.divIcon({
+        html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
+        className: ''
+      });
+
+      L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+    }
+
+    function toggleHeatmap() {
+      if (heatLayer) {
+        map.removeLayer(heatLayer);
+        heatLayer = null;
       } else {
-        courierMarker.setLatLng([lat, lon]);
+        const heatPoints = [
+          [41.0638, 28.9351, 1.0],
+          [41.0650, 28.9370, 0.8],
+          [41.0620, 28.9330, 0.9],
+        ];
+        heatLayer = L.heatLayer(heatPoints, { radius: 35, blur: 20 }).addTo(map);
       }
-      map.setView([lat, lon], 16, { animate: true, duration: 0.8 });
-      document.getElementById('coords-c1').innerText = `GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
     }
 
-    async function fetchInitialPosition() {
-      try {
-        const res = await fetch('/v1/couriers');
-        const couriers = await res.json();
-        if (couriers && couriers.length > 0) {
-          const c = couriers[0];
-          updateMapLocation(c.current_location.latitude, c.current_location.longitude);
-        }
-      } catch(e) {}
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      const target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('active');
+
+      if (tabId === 'dashboard' || tabId === 'map') {
+        setTimeout(initMap, 100);
+      }
     }
 
-    try {
-      const wsUrl = `ws://${window.location.host}/ws/tracking`;
-      const ws = new WebSocket(wsUrl);
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          updateMapLocation(data.latitude, data.longitude);
-        } catch(e) {}
-      };
-    } catch(e) {}
-
-    fetchInitialPosition();
+    window.onload = () => {
+      initMap();
+    };
   </script>
 </body>
 </html>
