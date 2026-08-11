@@ -18,6 +18,7 @@
 // =============================================================================
 
 pub mod ai_dispatcher;
+pub mod auth_service;
 pub mod billing_service;
 pub mod bulk_order;
 pub mod courier_leaderboard;
@@ -37,23 +38,23 @@ pub mod tax_invoicing;
 pub mod tracking_service;
 pub mod user_service;
 
-pub use ai_dispatcher::{AiDispatcher, DispatchScore, WeatherCondition, TrafficContext};
+pub use ai_dispatcher::{AiDispatcher, DispatchScore, TrafficContext, WeatherCondition};
+pub use auth_service::AuthService;
 pub use billing_service::{BillingService, CreateInvoiceInput, CreatePayoutInput};
 pub use bulk_order::{BulkOrderParser, BulkOrderRow, WebhookPayload};
 pub use courier_leaderboard::{CourierLeaderboardEngine, CourierLeaderboardEntry};
-pub use currency_exchange::CurrencyExchangeEngine;
-pub use field_service::{FieldServiceScheduler, FieldServiceAppointment, TimeSlotWindow};
-pub use parcel_sizing::{ParcelSizingEngine, ParcelDimensions};
-pub use promo_coupon::{PromoCouponEngine, PromoCoupon};
-pub use tax_invoicing::{TaxInvoicingEngine, ElectronicInvoiceDraft};
-pub use notification_hub::{NotificationHubManager, NotificationMessage, ChannelType};
 pub use courier_service::{CourierService, RegisterCourierInput};
+pub use currency_exchange::CurrencyExchangeEngine;
 pub use customer_service::CustomerService;
 pub use dispatch_service::DispatchService;
 pub use error::ApplicationError;
+pub use field_service::{FieldServiceAppointment, FieldServiceScheduler, TimeSlotWindow};
 pub use fleet_service::{FleetService, RegisterVehicleInput};
+pub use notification_hub::{ChannelType, NotificationHubManager, NotificationMessage};
 pub use notification_service::{NotificationService, SendNotificationInput};
 pub use order_service::{CreateOrderInput, OrderService};
+pub use parcel_sizing::{ParcelDimensions, ParcelSizingEngine};
+pub use promo_coupon::{PromoCoupon, PromoCouponEngine};
+pub use tax_invoicing::{ElectronicInvoiceDraft, TaxInvoicingEngine};
 pub use tracking_service::TrackingService;
 pub use user_service::{CreateUserInput, UserService};
-

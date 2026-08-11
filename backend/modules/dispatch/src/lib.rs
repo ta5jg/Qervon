@@ -18,7 +18,7 @@
 
 use qervon_application::DispatchService;
 use qervon_domain::{
-    Assignment, AssignmentRepository, CourierRepository, Order, OrderId, OrderRepository,
+    Assignment, AssignmentRepository, Courier, CourierRepository, Order, OrderId, OrderRepository,
 };
 use uuid::Uuid;
 
@@ -56,6 +56,16 @@ where
         order_id: OrderId,
     ) -> Result<Assignment, qervon_application::ApplicationError> {
         self.service.auto_assign(order_id).await
+    }
+
+    pub async fn auto_assign_from_candidates(
+        &self,
+        order_id: OrderId,
+        candidates: &[Courier],
+    ) -> Result<Assignment, qervon_application::ApplicationError> {
+        self.service
+            .auto_assign_from_candidates(order_id, candidates)
+            .await
     }
 
     pub async fn start_transit(

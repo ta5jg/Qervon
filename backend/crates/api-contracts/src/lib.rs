@@ -36,6 +36,14 @@ pub struct CreateOrderRequest {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct CreateCustomerOrderRequest {
+    pub pickup: AddressDto,
+    pub dropoff: AddressDto,
+    pub fare_amount_minor: i64,
+    pub fare_currency: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct AssignCourierRequest {
     /// When omitted, the closest available courier is selected automatically.
     pub courier_id: Option<Uuid>,
@@ -52,6 +60,13 @@ pub struct RegisterCourierRequest {
 pub struct UpdateLocationRequest {
     pub latitude: f64,
     pub longitude: f64,
+    pub speed_kmh: Option<f64>,
+    pub battery_pct: Option<u8>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SetCourierAvailabilityRequest {
+    pub online: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -108,6 +123,17 @@ pub struct AssignmentResponse {
     pub courier_id: Uuid,
     pub status: AssignmentStatus,
     pub assigned_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct OperationsOverviewResponse {
+    pub active_orders: usize,
+    pub pending_orders: usize,
+    pub in_transit_orders: usize,
+    pub available_couriers: usize,
+    pub busy_couriers: usize,
+    pub offline_couriers: usize,
+    pub delivered_revenue_by_currency: Vec<MoneyDto>,
 }
 
 #[derive(Debug, Clone, Serialize)]

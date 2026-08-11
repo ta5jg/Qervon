@@ -57,11 +57,25 @@ where
         self.service.list_available().await
     }
 
+    pub async fn list_all_couriers(
+        &self,
+    ) -> Result<Vec<Courier>, qervon_application::ApplicationError> {
+        self.service.list_all().await
+    }
+
     pub async fn update_courier_location(
         &self,
         id: Uuid,
         location: Location,
     ) -> Result<Courier, qervon_application::ApplicationError> {
         self.service.update_location(id, location).await
+    }
+
+    pub async fn set_courier_online_status(
+        &self,
+        id: Uuid,
+        online: bool,
+    ) -> Result<Courier, qervon_application::ApplicationError> {
+        self.service.set_online_status(id, online).await
     }
 }

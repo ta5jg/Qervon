@@ -20,7 +20,9 @@
 resolver = "2"
 members = [
     "apps/api-gateway",
+    "apps/bootstrap-admin",
     "apps/migration-runner",
+    "apps/worker",
     "crates/api-contracts",
     "crates/application",
     "crates/domain",
@@ -59,3 +61,10 @@ tower-http = { version = "0.6", features = ["trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 uuid = { version = "1", features = ["v7", "serde"] }
+base64 = "0.22"
+aes-gcm = "0.10"
+hmac = "0.12"
+sha2 = "0.10"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+web-push = { version = "0.10", default-features = false }
+openssl = { version = "0.10", features = ["vendored"] }

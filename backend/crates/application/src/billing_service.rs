@@ -82,6 +82,13 @@ where
             .ok_or(ApplicationError::NotFound)
     }
 
+    pub async fn find_invoice_for_order(
+        &self,
+        order_id: OrderId,
+    ) -> Result<Option<Invoice>, ApplicationError> {
+        Ok(self.invoices.find_by_order(order_id).await?)
+    }
+
     pub async fn issue_invoice(&self, id: InvoiceId) -> Result<Invoice, ApplicationError> {
         let mut invoice = self.get_invoice(id).await?;
         invoice.issue(Utc::now())?;

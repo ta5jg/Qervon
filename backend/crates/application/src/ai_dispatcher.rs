@@ -95,12 +95,19 @@ impl AiDispatcher {
         let current_location = courier.current_location?;
         let distance_km = current_location.distance_km(pickup_location);
 
-        let estimated_eta_minutes = Self::calculate_dynamic_eta(distance_km, courier.vehicle, context);
+        let estimated_eta_minutes =
+            Self::calculate_dynamic_eta(distance_km, courier.vehicle, context);
 
         let vehicle_weight = match courier.vehicle {
             VehicleType::Motorcycle => 1.0,
             VehicleType::Car => 1.2,
-            VehicleType::Bicycle => if distance_km < 3.0 { 0.9 } else { 2.0 },
+            VehicleType::Bicycle => {
+                if distance_km < 3.0 {
+                    0.9
+                } else {
+                    2.0
+                }
+            }
         };
 
         let score = (estimated_eta_minutes * 0.7 + distance_km * 0.3) * vehicle_weight;
@@ -115,10 +122,7 @@ impl AiDispatcher {
     }
 
     /// Rank candidates by AI dispatch score in ascending order (best candidate first).
-    pub fn rank_candidates(
-        couriers: &[Courier],
-        pickup_location: &Location,
-    ) -> Vec<DispatchScore> {
+    pub fn rank_candidates(couriers: &[Courier], pickup_location: &Location) -> Vec<DispatchScore> {
         let mut scores: Vec<DispatchScore> = couriers
             .iter()
             .filter_map(|c| Self::calculate_score(c, pickup_location, None))
@@ -139,10 +143,22 @@ mod tests {
         let loc_pickup = Location::new(41.0, 29.0).unwrap();
         let loc_courier = Location::new(41.02, 29.02).unwrap();
 
-        let mut c1 = Courier::create(uuid::Uuid::now_v7(), "Courier 1", VehicleType::Car, Utc::now()).unwrap();
+        let mut c1 = Courier::create(
+            uuid::Uuid::now_v7(),
+            "Courier 1",
+            VehicleType::Car,
+            Utc::now(),
+        )
+        .unwrap();
         c1.set_location(loc_courier);
 
-        let mut c2 = Courier::create(uuid::Uuid::now_v7(), "Courier 2", VehicleType::Motorcycle, Utc::now()).unwrap();
+        let mut c2 = Courier::create(
+            uuid::Uuid::now_v7(),
+            "Courier 2",
+            VehicleType::Motorcycle,
+            Utc::now(),
+        )
+        .unwrap();
         c2.set_location(loc_courier);
 
         let candidates = vec![c1, c2.clone()];

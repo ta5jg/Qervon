@@ -71,7 +71,7 @@ mod tests {
         let inv = TaxInvoicingEngine::generate_e_invoice(order_id, cust_id, 10000, "TRY"); // Net: ₺100.00
 
         assert_eq!(inv.net_amount_minor, 10000);
-        assert_eq!(inv.vat_amount_minor, 2000);  // KDV %20: ₺20.00
+        assert_eq!(inv.vat_amount_minor, 2000); // KDV %20: ₺20.00
         assert_eq!(inv.total_amount_minor, 12000); // Toplam: ₺120.00
         assert!(inv.invoice_number.starts_with("QER2026"));
     }

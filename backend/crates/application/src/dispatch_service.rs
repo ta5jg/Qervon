@@ -68,15 +68,31 @@ where
     }
 
     pub async fn auto_assign(&self, order_id: OrderId) -> Result<Assignment, ApplicationError> {
-        let order = self.require_order(order_id).await?;
         let candidates = self.couriers.list_available().await?;
-        let ranked = crate::AiDispatcher::rank_candidates(&candidates, &order.pickup.location);
-        let best = ranked
-            .first()
-            .map(|score| score.courier_id)
-            .ok_or(ApplicationError::Conflict(
-                "no available courier with a known location".to_string(),
-            ))?;
+        self.auto_assign_from_candidates(order_id, &candidates)
+            .await
+    }
+
+    /// Assign the best available courier from a caller-scoped candidate set.
+    ///
+    /// The delivery domain itself has no tenant field, so the HTTP layer uses
+    /// this entry point after applying tenant ownership filtering. Keeping the
+    /// ranking here preserves one dispatch algorithm for both global system
+    /// jobs and tenant-scoped interactive dispatch.
+    pub async fn auto_assign_from_candidates(
+        &self,
+        order_id: OrderId,
+        candidates: &[qervon_domain::Courier],
+    ) -> Result<Assignment, ApplicationError> {
+        let order = self.require_order(order_id).await?;
+        let ranked = crate::AiDispatcher::rank_candidates(candidates, &order.pickup.location);
+        let best =
+            ranked
+                .first()
+                .map(|score| score.courier_id)
+                .ok_or(ApplicationError::Conflict(
+                    "no available courier with a known location".to_string(),
+                ))?;
 
         self.assign(order_id, best).await
     }

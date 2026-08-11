@@ -43,10 +43,7 @@ where
         self.service.register(input).await
     }
 
-    pub async fn get_user(
-        &self,
-        id: UserId,
-    ) -> Result<User, qervon_application::ApplicationError> {
+    pub async fn get_user(&self, id: UserId) -> Result<User, qervon_application::ApplicationError> {
         self.service.get(id).await
     }
 

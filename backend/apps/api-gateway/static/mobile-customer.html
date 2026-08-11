@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qervon — Müşteri Mobil Uygulaması (iOS & Android Simulator)</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#10b981">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -133,21 +135,22 @@
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="font-size:10px; color:var(--text-muted); font-weight:700;">ATANAN SÜRÜCÜ</div>
-            <div style="font-size:14px; font-weight:800; color:var(--accent-green);">Ahmet Kurye (Motor 🏍️)</div>
+            <div id="driver-name" style="font-size:14px; font-weight:800; color:var(--accent-green);">Aktif sipariş bekleniyor</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:10px; color:var(--text-muted); font-weight:700;">TAHMİNİ ETA</div>
             <div style="font-size:16px; font-weight:800; color:var(--accent-cyan);">3 Dk</div>
           </div>
         </div>
-        <div style="font-size:10px; color:var(--text-muted); margin-top:8px; font-family:'JetBrains Mono';" id="live-status">Atanan Kurye Konumu Takip Ediliyor...</div>
+        <div style="font-size:10px; color:var(--text-muted); margin-top:8px; font-family:'JetBrains Mono';" id="live-status" role="status" aria-live="polite">Atanan Kurye Konumu Takip Ediliyor...</div>
+        <button class="btn-main" style="margin-top:10px; padding:10px; font-size:11px; background:#7c3aed;" type="button" onclick="enablePushNotifications()">BİLDİRİMLERİ AÇ</button>
       </div>
 
       <div class="card">
         <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Hızlı Kurye Çağır</div>
         <div style="display:flex; gap:8px;">
-          <input type="text" value="Yıldıztabya ➔ Maslak Plaza" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
-          <button style="padding:10px 14px; background:var(--accent-green); color:white; border:none; border-radius:10px; font-weight:700; font-size:11px;">₺45 Çağır</button>
+          <input id="quick-route" type="text" value="Yıldıztabya ➔ Maslak Plaza" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
+          <button onclick="createQuickOrder()" style="padding:10px 14px; background:var(--accent-green); color:white; border:none; border-radius:10px; font-weight:700; font-size:11px;">₺45 Çağır</button>
         </div>
       </div>
     </div>
@@ -157,10 +160,10 @@
       <div class="card">
         <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Yeni Teslimat Talebi</div>
         <label style="font-size:10px; color:var(--text-muted);">Alım Adresi</label>
-        <input type="text" value="Yıldıztabya Mahallesi, No:12" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <input id="pickup-label" type="text" value="Yıldıztabya Mahallesi, No:12" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
         
         <label style="font-size:10px; color:var(--text-muted);">Teslimat Adresi</label>
-        <input type="text" value="Maslak Plaza Kat 8, Sarıyer" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <input id="dropoff-label" type="text" value="Maslak Plaza Kat 8, Sarıyer" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
         
         <label style="font-size:10px; color:var(--text-muted);">Teslimat Notu & Alıcı Telefon</label>
         <input type="text" value="Zil çalınmasın, güvenliğe bırakılsın (0532 000 00 00)" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:12px;">
@@ -172,7 +175,8 @@
           <div style="padding:8px; border:1px solid var(--border-color); border-radius:8px; text-align:center; font-size:10px;">Koli (₺120)</div>
         </div>
 
-        <button class="btn-main">💳 KART İLE ÖDE & KURYEYİ ÇAĞIR</button>
+        <button class="btn-main" onclick="createCustomerOrder()">💳 KART İLE ÖDE & KURYEYİ ÇAĞIR</button>
+        <div id="order-message" role="status" aria-live="polite" style="font-size:10px; color:var(--text-muted); margin-top:8px;"></div>
       </div>
     </div>
 
@@ -180,13 +184,7 @@
     <div id="tab-history" class="view-content">
       <div class="card">
         <div style="font-size:14px; font-weight:800; margin-bottom:10px;">Geçmiş Teslimatlar</div>
-        <div style="padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:12px; font-weight:700;">#ORD-9021 • Evrak</div>
-            <div style="font-size:10px; color:var(--text-muted);">08.08.2026 • ₺45.00</div>
-          </div>
-          <span style="font-size:9px; background:rgba(16,185,129,0.2); color:var(--accent-green); padding:4px 6px; border-radius:6px; font-weight:700;">Teslim Edildi</span>
-        </div>
+        <div id="order-history" style="font-size:11px; color:var(--text-muted);">Siparişler yükleniyor…</div>
       </div>
     </div>
 
@@ -223,7 +221,92 @@
       html: `<div style="background:#10b981; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
       className: ''
     });
-    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+    let courierMarker;
+    let trackedOrder;
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      return response.status === 204 ? null : response.json();
+    }
+
+    function renderOrders(orders) {
+      const history = document.getElementById('order-history');
+      if (!orders.length) {
+        history.textContent = 'Henüz siparişiniz yok.';
+        trackedOrder = null;
+        return;
+      }
+      history.innerHTML = orders.map(order => `<div style="padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:12px; font-weight:700;">#${order.id.slice(0, 8)} • Teslimat</div><div style="font-size:10px; color:var(--text-muted);">${order.pickup.label || 'Alım'} ➔ ${order.dropoff.label || 'Teslim'} • ${(order.fare.amount_minor / 100).toFixed(2)} ${order.fare.currency}</div></div><span style="font-size:9px; background:rgba(16,185,129,0.2); color:var(--accent-green); padding:4px 6px; border-radius:6px; font-weight:700;">${order.status.replaceAll('_', ' ')}</span></div>`).join('');
+      trackedOrder = orders.find(order => !['delivered', 'cancelled'].includes(order.status)) || null;
+      document.getElementById('driver-name').textContent = trackedOrder?.assigned_courier_id ? 'Atanan kurye canlı takipte' : 'Kurye ataması bekleniyor';
+    }
+
+    async function loadCustomerOrders() {
+      try { renderOrders(await api('/v1/customer/orders', { method: 'GET' })); }
+      catch (_) { document.getElementById('order-history').textContent = 'Siparişler için müşteri oturumu gerekli.'; }
+    }
+
+    async function submitCustomerOrder(pickupLabel, dropoffLabel) {
+      const message = document.getElementById('order-message');
+      try {
+        const order = await api('/v1/customer/orders', { method: 'POST', body: JSON.stringify({ pickup: { latitude: 41.0638, longitude: 28.9351, label: pickupLabel }, dropoff: { latitude: 41.1120, longitude: 29.0210, label: dropoffLabel }, fare_amount_minor: 4500, fare_currency: 'TRY' }) });
+        message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)}`;
+        await loadCustomerOrders();
+      } catch (_) { message.textContent = 'Sipariş oluşturulamadı. Müşteri oturumunuzu kontrol edin.'; }
+    }
+
+    function createCustomerOrder() {
+      submitCustomerOrder(document.getElementById('pickup-label').value, document.getElementById('dropoff-label').value);
+    }
+
+    function createQuickOrder() {
+      const [pickup = 'Alım noktası', dropoff = 'Teslim noktası'] = document.getElementById('quick-route').value.split('➔').map(value => value.trim());
+      submitCustomerOrder(pickup, dropoff);
+    }
+
+    async function refreshOrderTracking() {
+      const status = document.getElementById('live-status');
+      if (!trackedOrder || !trackedOrder.assigned_courier_id) {
+        status.textContent = 'Kurye ataması bekleniyor';
+        return;
+      }
+      try {
+        const response = await fetch(`/v1/orders/${trackedOrder.id}/tracking`, { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('tracking unavailable');
+        const location = await response.json();
+        const point = [location.latitude, location.longitude];
+        if (!courierMarker) courierMarker = L.marker(point, { icon: courierIcon }).addTo(map);
+        else courierMarker.setLatLng(point);
+        map.panTo(point, { animate: true });
+        status.textContent = `Kurye konumu güncellendi • ${new Date(location.timestamp).toLocaleTimeString('tr-TR')}`;
+      } catch (_) { status.textContent = 'Kurye konumu henüz kullanılamıyor'; }
+    }
+
+    function vapidKeyBytes(value) {
+      const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+      const raw = atob(padded);
+      return Uint8Array.from(raw, char => char.charCodeAt(0));
+    }
+
+    async function enablePushNotifications() {
+      const status = document.getElementById('live-status');
+      try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('unsupported');
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') throw new Error('permission');
+        const config = await api('/v1/push/config', { method: 'GET' });
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKeyBytes(config.vapid_public_key) });
+        await api('/v1/push/subscriptions', { method: 'POST', body: JSON.stringify(subscription) });
+        status.textContent = 'Push bildirimleri etkinleştirildi';
+      } catch (_) { status.textContent = 'Push bildirimi etkinleştirilemedi'; }
+    }
 
     function switchMobileTab(tabId, el) {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -235,6 +318,9 @@
         setTimeout(() => map.invalidateSize(), 100);
       }
     }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+    loadCustomerOrders().then(refreshOrderTracking);
+    setInterval(refreshOrderTracking, 5000);
   </script>
 </body>
 </html>

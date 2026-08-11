@@ -44,10 +44,7 @@ where
         Self { vehicles }
     }
 
-    pub async fn register(
-        &self,
-        input: RegisterVehicleInput,
-    ) -> Result<Vehicle, ApplicationError> {
+    pub async fn register(&self, input: RegisterVehicleInput) -> Result<Vehicle, ApplicationError> {
         // Check for duplicate plate.
         if self
             .vehicles
@@ -103,20 +100,14 @@ where
         Ok(vehicle)
     }
 
-    pub async fn activate(
-        &self,
-        vehicle_id: VehicleId,
-    ) -> Result<Vehicle, ApplicationError> {
+    pub async fn activate(&self, vehicle_id: VehicleId) -> Result<Vehicle, ApplicationError> {
         let mut vehicle = self.get(vehicle_id).await?;
         vehicle.activate()?;
         self.vehicles.update(&vehicle).await?;
         Ok(vehicle)
     }
 
-    pub async fn decommission(
-        &self,
-        vehicle_id: VehicleId,
-    ) -> Result<Vehicle, ApplicationError> {
+    pub async fn decommission(&self, vehicle_id: VehicleId) -> Result<Vehicle, ApplicationError> {
         let mut vehicle = self.get(vehicle_id).await?;
         vehicle.decommission()?;
         self.vehicles.update(&vehicle).await?;

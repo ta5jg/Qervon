@@ -22,6 +22,7 @@ pub mod cold_chain;
 pub mod courier;
 pub mod courier_shift;
 pub mod courier_wallet;
+pub mod credential;
 pub mod customer;
 pub mod customer_feedback;
 pub mod dispatch;
@@ -38,18 +39,16 @@ pub mod tenant;
 pub mod tracking;
 pub mod user;
 pub mod warehouse_hub;
+pub mod webhook;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use cold_chain::ColdChainTelemetry;
 pub use courier::{Courier, CourierStatus, VehicleType};
 pub use courier_shift::{CourierShiftAssignment, ShiftType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
-pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
-pub use proof_of_delivery::ProofOfDeliveryRecord;
-pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
-pub use tenant::{TenantCompany, TenantId, BranchId, TenantBranch};
-pub use warehouse_hub::{WarehouseHub, HubManifestAssignment};
+pub use credential::{Credential, RefreshSession};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
+pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
 pub use dispatch::{Assignment, AssignmentStatus};
 pub use error::DomainError;
 pub use fleet::{Vehicle, VehicleId, VehicleStatus};
@@ -57,11 +56,18 @@ pub use location::Location;
 pub use money::Money;
 pub use notification::{Notification, NotificationChannel, NotificationId, NotificationStatus};
 pub use order::{Address, Order, OrderId, OrderStatus};
+pub use proof_of_delivery::ProofOfDeliveryRecord;
 pub use repository::{
-    AssignmentRepository, CourierPayoutRepository, CourierRepository, CustomerRepository,
-    InvoiceRepository, NotificationRepository, OrderRepository, TrackingRepository,
-    UserRepository, VehicleRepository,
+    AssignmentRepository, CourierPayoutRepository, CourierRepository, CredentialRepository,
+    CustomerRepository, InvoiceRepository, NotificationRepository, OrderRepository,
+    ProofOfDeliveryRepository, TenantRepository, TrackingRepository, UserRepository,
+    VehicleRepository, WebhookRepository,
+};
+pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
+pub use tenant::{
+    BranchId, TenantBranch, TenantCompany, TenantId, TenantMemberRole, TenantMembership,
 };
 pub use tracking::{TrackingPoint, TrackingSession, TrackingSessionStatus};
 pub use user::{User, UserId, UserRole, UserStatus};
-
+pub use warehouse_hub::{HubManifestAssignment, WarehouseHub};
+pub use webhook::WebhookSubscription;

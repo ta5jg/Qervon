@@ -43,14 +43,20 @@ qervon-notifications-module = { path = "../../modules/notifications" }
 qervon-orders-module = { path = "../../modules/orders" }
 qervon-tracking-module = { path = "../../modules/tracking" }
 serde_json = { workspace = true }
+sqlx = { workspace = true }
 serde = { workspace = true }
 chrono = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
+base64 = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
 utoipa = { version = "4.2", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-swagger-ui = { version = "6.0", features = ["axum"] }
+argon2 = "0.5"
+aes-gcm = { workspace = true }
 
 [dev-dependencies]
 http-body-util = { workspace = true }

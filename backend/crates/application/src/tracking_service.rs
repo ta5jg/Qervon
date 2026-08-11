@@ -17,9 +17,7 @@
 // =============================================================================
 
 use chrono::Utc;
-use qervon_domain::{
-    Location, TrackingPoint, TrackingRepository, TrackingSession,
-};
+use qervon_domain::{Location, TrackingPoint, TrackingRepository, TrackingSession};
 use uuid::Uuid;
 
 use crate::error::ApplicationError;
@@ -61,10 +59,7 @@ where
     }
 
     /// End the active tracking session for a courier going offline.
-    pub async fn end_session(
-        &self,
-        courier_id: Uuid,
-    ) -> Result<TrackingSession, ApplicationError> {
+    pub async fn end_session(&self, courier_id: Uuid) -> Result<TrackingSession, ApplicationError> {
         let mut session = self
             .tracking
             .find_active_session_for_courier(courier_id)

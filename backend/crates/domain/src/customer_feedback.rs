@@ -45,7 +45,9 @@ impl CustomerRating {
         comment: Option<String>,
     ) -> Result<Self, DomainError> {
         if !(1..=5).contains(&rating_stars) {
-            return Err(DomainError::Validation("Rating stars must be between 1 and 5".into()));
+            return Err(DomainError::Validation(
+                "Rating stars must be between 1 and 5".into(),
+            ));
         }
 
         Ok(Self {

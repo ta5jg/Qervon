@@ -32,7 +32,8 @@ impl PromoCouponEngine {
             return Err("Coupon is expired or inactive".into());
         }
 
-        let calculated_discount = ((original_fare_minor as f64) * (coupon.discount_percent / 100.0)) as i64;
+        let calculated_discount =
+            ((original_fare_minor as f64) * (coupon.discount_percent / 100.0)) as i64;
         let final_discount = calculated_discount.min(coupon.max_discount_minor);
         let final_fare = (original_fare_minor - final_discount).max(0);
 
@@ -48,7 +49,7 @@ mod tests {
     fn applies_promo_coupon_with_discount_cap() {
         let coupon = PromoCoupon {
             code: "QERVON20".into(),
-            discount_percent: 20.0, // 20% discount
+            discount_percent: 20.0,   // 20% discount
             max_discount_minor: 1000, // Max ₺10.00 discount
             is_active: true,
         };

@@ -21,11 +21,15 @@ pub mod memory;
 pub mod postgres;
 
 pub use memory::{
-    InMemoryAssignmentRepository, InMemoryCourierRepository, InMemoryCustomerRepository,
-    InMemoryInvoiceRepository, InMemoryNotificationRepository, InMemoryOrderRepository,
-    InMemoryPayoutRepository, InMemoryStore, InMemoryTrackingRepository, InMemoryUserRepository,
-    InMemoryVehicleRepository,
+    InMemoryAssignmentRepository, InMemoryCourierRepository, InMemoryCredentialRepository,
+    InMemoryCustomerRepository, InMemoryInvoiceRepository, InMemoryNotificationRepository,
+    InMemoryOrderRepository, InMemoryPayoutRepository, InMemoryProofOfDeliveryRepository,
+    InMemoryStore, InMemoryTenantRepository, InMemoryTrackingRepository, InMemoryUserRepository,
+    InMemoryVehicleRepository, InMemoryWebhookRepository,
 };
 pub use postgres::{
-    PgAssignmentRepository, PgCourierRepository, PgOrderRepository, PgUserRepository,
+    PgAssignmentRepository, PgCourierPayoutRepository, PgCourierRepository, PgCredentialRepository,
+    PgCustomerRepository, PgInvoiceRepository, PgNotificationRepository, PgOrderRepository,
+    PgProofOfDeliveryRepository, PgTenantRepository, PgTrackingRepository, PgUserRepository,
+    PgVehicleRepository, PgWebhookRepository,
 };

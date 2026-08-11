@@ -327,6 +327,17 @@ This standard aligns deployment architecture with the Qervon source PDFs.
 - Keep CI/CD aligned with the standards.
 - Make rollout and rollback paths explicit.
 
+# Runtime Decision
+
+Qervon'un varsayılan çalışma modeli container tabanlı değildir.
+
+- Geliştirme: API ve web araçları geliştiricinin bilgisayarında doğrudan çalışır.
+- VPS: doğrulanmış Rust release binary'si `systemd` tarafından yönetilir.
+- PostgreSQL ve Redis: VPS'te yerel/managed servis olarak çalışır; API ile private ağ veya loopback üzerinden konuşur.
+- Docker Compose: yalnızca isteğe bağlı yerel bağımlılık ortamıdır; API dağıtım mekanizması değildir.
+
+Bu karar mobil GPS, WebSocket ve Rust hata ayıklama döngüsünü hızlı tutarken; VPS'te açık servis yönetimi, günlükler, yeniden başlatma ve geri alma sağlar.
+
 # References
 
 - [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
@@ -339,3 +350,4 @@ This standard aligns deployment architecture with the Qervon source PDFs.
 | Version | Date | Description |
 |---------|------|-------------|
 | 0.1.0 | 2026-08-05 | Aligned deployment architecture to the source PDFs. |
+| 0.2.0 | 2026-08-10 | Established direct local execution and systemd VPS runtime as the default. |

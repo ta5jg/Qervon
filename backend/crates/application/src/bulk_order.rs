@@ -42,7 +42,9 @@ impl BulkOrderParser {
             if parts.len() >= 9 {
                 let customer_id = uuid::Uuid::parse_str(parts[0].trim())
                     .map_err(|e| format!("Line {}: Invalid UUID {}", idx + 1, e))?;
-                let fare_amount_minor = parts[7].trim().parse::<i64>()
+                let fare_amount_minor = parts[7]
+                    .trim()
+                    .parse::<i64>()
                     .map_err(|e| format!("Line {}: Invalid Fare {}", idx + 1, e))?;
 
                 rows.push(BulkOrderRow {

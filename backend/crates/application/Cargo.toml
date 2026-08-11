@@ -24,6 +24,7 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+argon2 = "0.5"
 chrono = { workspace = true }
 qervon-domain = { path = "../domain" }
 serde = { workspace = true }

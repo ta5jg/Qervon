@@ -237,33 +237,33 @@
     <div class="metrics-grid">
       <div class="metric-card glass">
         <span class="metric-title">Anlık Sipariş</span>
-        <span class="metric-value" id="val-orders">142</span>
-        <span class="metric-sub">▲ %12 Bugün</span>
+        <span class="metric-value" id="val-orders">—</span>
+        <span class="metric-sub">Aktif iş</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Online Kurye</span>
-        <span class="metric-value" id="val-couriers">18</span>
-        <span class="metric-sub">Sahada Aktif 🟢</span>
+        <span class="metric-value" id="val-couriers">—</span>
+        <span class="metric-sub">Müsait 🟢</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Bekleyen Teslimat</span>
-        <span class="metric-value">5</span>
-        <span class="metric-sub" style="color:var(--accent-orange)">AI Atama Yapılıyor</span>
+        <span class="metric-value" id="val-pending">—</span>
+        <span class="metric-sub" style="color:var(--accent-orange)">Atama bekliyor</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Günlük Gelir</span>
-        <span class="metric-value">₺14,850</span>
-        <span class="metric-sub">Net Ciro 💰</span>
+        <span class="metric-value" id="val-revenue">—</span>
+        <span class="metric-sub">Teslim edilmiş ciro</span>
       </div>
       <div class="metric-card glass">
-        <span class="metric-title">Kurye Hakediş</span>
-        <span class="metric-value">₺9,420</span>
-        <span class="metric-sub" style="color:var(--accent-purple)">Primler Dahil</span>
+        <span class="metric-title">Görevde Kurye</span>
+        <span class="metric-value" id="val-busy">—</span>
+        <span class="metric-sub" style="color:var(--accent-purple)">Aktif teslimat</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Ortalama ETA</span>
-        <span class="metric-value">11.4 Dk</span>
-        <span class="metric-sub">AI Dynamic ETA ⚡</span>
+        <span class="metric-value" id="val-transit">—</span>
+        <span class="metric-sub">Yoldaki sipariş</span>
       </div>
     </div>
 
@@ -306,26 +306,7 @@
               <th>Durum</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9021</td>
-              <td>Lezzet Restoranı</td>
-              <td><span class="tag tag-blue">Gıda</span></td>
-              <td>Yıldıztabya ➔ Maslak Plaza</td>
-              <td>Ahmet Kurye (Motor)</td>
-              <td>₺65.00</td>
-              <td><span class="tag tag-green">Yolda (In Transit)</span></td>
-            </tr>
-            <tr>
-              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9022</td>
-              <td>Medikal Eczane</td>
-              <td><span class="tag tag-purple">Soğuk Zincir (+4°C)</span></td>
-              <td>Gaziosmanpaşa ➔ Kadıköy Hub</td>
-              <td>Mehmet Kurye (Araba)</td>
-              <td>₺120.00</td>
-              <td><span class="tag tag-orange">Kurye Atanacak</span></td>
-            </tr>
-          </tbody>
+          <tbody id="orders-body"><tr><td colspan="7">Siparişler yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -346,26 +327,7 @@
               <th>Durum</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:700;">Ahmet Kurye</td>
-              <td>Motosiklet 🏍️</td>
-              <td>34 KRY 882</td>
-              <td>%92 🔋</td>
-              <td>18 Paket</td>
-              <td>⭐ 4.9 / 5.0</td>
-              <td><span class="tag tag-green">Aktif / Görevde</span></td>
-            </tr>
-            <tr>
-              <td style="font-weight:700;">Mehmet Kurye</td>
-              <td>Otomobil 🚗</td>
-              <td>34 QER 102</td>
-              <td>%85 🔋</td>
-              <td>12 Paket</td>
-              <td>⭐ 4.8 / 5.0</td>
-              <td><span class="tag tag-blue">Mola Saatinde</span></td>
-            </tr>
-          </tbody>
+          <tbody id="couriers-body"><tr><td colspan="7">Kuryeler yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -415,7 +377,84 @@
     lucide.createIcons();
 
     let map, heatLayer;
+    const liveMarkers = new Map();
     let mainMapInitialized = false;
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function adminApi(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: { ...csrfHeaders(), ...(options.headers || {}) }
+      });
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      return response.status === 204 ? null : response.json();
+    }
+
+    function formatMoney(amountMinor, currency) {
+      return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amountMinor / 100);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+    }
+
+    function renderOrders(orders, couriers) {
+      const body = document.getElementById('orders-body');
+      const availableCourier = couriers.find(courier => courier.status === 'available');
+      body.innerHTML = orders.length ? orders.map(order => {
+        let action = '—';
+        if (order.status === 'pending') {
+          action = availableCourier
+            ? `<button class="btn-action" onclick="assignCourier('${order.id}', '${availableCourier.id}')">Kurye ata</button>`
+            : '<span class="tag tag-orange">Uygun kurye yok</span>';
+        } else if (order.status === 'courier_assigned') {
+          action = `<button class="btn-action" onclick="startTransit('${order.id}')">Teslimata başlat</button>`;
+        }
+        return `<tr><td style="font-family:'JetBrains Mono'; font-weight:700;">#${order.id.slice(0, 8)}</td><td>${order.customer_id.slice(0, 8)}</td><td><span class="tag tag-blue">Teslimat</span></td><td>${escapeHtml(order.pickup.label || 'Alım')} ➔ ${escapeHtml(order.dropoff.label || 'Teslim')}</td><td>${order.assigned_courier_id ? order.assigned_courier_id.slice(0, 8) : 'Atanmadı'}</td><td>${formatMoney(order.fare.amount_minor, order.fare.currency)}</td><td><span class="tag tag-green">${order.status.replaceAll('_', ' ')}</span> ${action}</td></tr>`;
+      }).join('') : '<tr><td colspan="7">Bu tenant için sipariş yok.</td></tr>';
+    }
+
+    function renderCouriers(couriers) {
+      const body = document.getElementById('couriers-body');
+      body.innerHTML = couriers.length ? couriers.map(courier => `<tr><td style="font-weight:700;">${courier.name}</td><td>${courier.vehicle}</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-green">${courier.status}</span></td></tr>`).join('') : '<tr><td colspan="7">Bu tenant için kurye yok.</td></tr>';
+    }
+
+    async function refreshOperations() {
+      try {
+        const [overview, orders, couriers] = await Promise.all([adminApi('/v1/operations/overview'), adminApi('/v1/orders'), adminApi('/v1/couriers')]);
+        document.getElementById('val-orders').textContent = overview.active_orders;
+        document.getElementById('val-couriers').textContent = overview.available_couriers;
+        document.getElementById('val-pending').textContent = overview.pending_orders;
+        document.getElementById('val-busy').textContent = overview.busy_couriers;
+        document.getElementById('val-transit').textContent = overview.in_transit_orders;
+        const revenue = overview.delivered_revenue_by_currency[0];
+        document.getElementById('val-revenue').textContent = revenue ? formatMoney(revenue.amount_minor, revenue.currency) : '—';
+        renderOrders(orders, couriers);
+        renderCouriers(couriers);
+      } catch (_) {
+        document.getElementById('orders-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
+        document.getElementById('couriers-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
+      }
+    }
+
+    async function assignCourier(orderId, courierId) {
+      try {
+        await adminApi(`/v1/orders/${orderId}/assign`, { method: 'POST', body: JSON.stringify({ courier_id: courierId }) });
+        await refreshOperations();
+      } catch (_) { alert('Kurye ataması tamamlanamadı.'); }
+    }
+
+    async function startTransit(orderId) {
+      try {
+        await adminApi(`/v1/orders/${orderId}/transit`, { method: 'POST', body: JSON.stringify({}) });
+        await refreshOperations();
+      } catch (_) { alert('Teslimat başlatılamadı.'); }
+    }
 
     function initMap() {
       if (mainMapInitialized) return;
@@ -429,7 +468,27 @@
         className: ''
       });
 
-      L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+      window.qervonCourierIcon = courierIcon;
+    }
+
+    async function refreshLiveLocations() {
+      const coords = document.getElementById('live-coords');
+      try {
+        const response = await fetch('/v1/tracking/live', { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('tracking unavailable');
+        const locations = await response.json();
+        locations.forEach(location => {
+          let marker = liveMarkers.get(location.courier_id);
+          if (!marker) {
+            marker = L.marker([location.latitude, location.longitude], { icon: window.qervonCourierIcon }).addTo(map);
+            liveMarkers.set(location.courier_id, marker);
+          } else marker.setLatLng([location.latitude, location.longitude]);
+        });
+        const latest = locations[0];
+        coords.textContent = latest
+          ? `${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)} • ${new Date(latest.timestamp).toLocaleTimeString('tr-TR')}`
+          : 'Bu tenant için aktif konum yok';
+      } catch (_) { coords.textContent = 'Canlı konum bağlantısı kurulamadı'; }
     }
 
     function toggleHeatmap() {
@@ -461,6 +520,10 @@
 
     window.onload = () => {
       initMap();
+      refreshOperations();
+      refreshLiveLocations();
+      setInterval(refreshOperations, 10000);
+      setInterval(refreshLiveLocations, 5000);
     };
   </script>
 </body>

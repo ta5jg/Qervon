@@ -14,7 +14,7 @@
 //   QAS-000004, QES-000006.
 // =============================================================================
 
-use crate::{DomainError, Money};
+use crate::DomainError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -63,7 +63,9 @@ impl CourierWallet {
     /// Add delivery earning to courier wallet
     pub fn add_earning(&mut self, amount_minor: i64, order_ref: &str) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Earning amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Earning amount must be positive".into(),
+            ));
         }
 
         self.balance_minor += amount_minor;
@@ -84,7 +86,9 @@ impl CourierWallet {
     /// Add performance bonus (e.g. 100+ delivery milestone or 5-star rating bonus)
     pub fn add_bonus(&mut self, amount_minor: i64, bonus_reason: &str) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Bonus amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Bonus amount must be positive".into(),
+            ));
         }
 
         self.balance_minor += amount_minor;
@@ -103,9 +107,15 @@ impl CourierWallet {
     }
 
     /// Apply penalty deduction (e.g. late delivery penalty or package damage)
-    pub fn apply_penalty(&mut self, amount_minor: i64, penalty_reason: &str) -> Result<(), DomainError> {
+    pub fn apply_penalty(
+        &mut self,
+        amount_minor: i64,
+        penalty_reason: &str,
+    ) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Penalty amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Penalty amount must be positive".into(),
+            ));
         }
 
         self.balance_minor -= amount_minor;

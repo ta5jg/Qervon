@@ -21,7 +21,7 @@
 
 set -eu
 
-PIDS="$(pgrep -f 'qervon-(api-gateway|migration-runner)' || true)"
+PIDS="$(pgrep -f 'qervon-(api-gateway|migration-runner|worker)' || true)"
 
 if [ -z "$PIDS" ]; then
     echo "no Qervon development processes are running"
@@ -32,7 +32,7 @@ echo "stopping Qervon development processes: $PIDS"
 kill $PIDS 2>/dev/null || true
 sleep 1
 
-REMAINING="$(pgrep -f 'qervon-(api-gateway|migration-runner)' || true)"
+REMAINING="$(pgrep -f 'qervon-(api-gateway|migration-runner|worker)' || true)"
 if [ -n "$REMAINING" ]; then
     echo "forcing stop: $REMAINING" >&2
     kill -9 $REMAINING 2>/dev/null || true

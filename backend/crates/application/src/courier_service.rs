@@ -61,6 +61,10 @@ where
         Ok(self.couriers.list_available().await?)
     }
 
+    pub async fn list_all(&self) -> Result<Vec<Courier>, ApplicationError> {
+        Ok(self.couriers.list_all().await?)
+    }
+
     pub async fn update_location(
         &self,
         id: Uuid,
@@ -68,6 +72,21 @@ where
     ) -> Result<Courier, ApplicationError> {
         let mut courier = self.get(id).await?;
         courier.set_location(location);
+        self.couriers.update(&courier).await?;
+        Ok(courier)
+    }
+
+    pub async fn set_online_status(
+        &self,
+        id: Uuid,
+        online: bool,
+    ) -> Result<Courier, ApplicationError> {
+        let mut courier = self.get(id).await?;
+        if online {
+            courier.go_online()?;
+        } else {
+            courier.go_offline()?;
+        }
         self.couriers.update(&courier).await?;
         Ok(courier)
     }

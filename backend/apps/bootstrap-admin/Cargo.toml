@@ -1,0 +1,18 @@
+[package]
+name = "qervon-bootstrap-admin"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "qervon-bootstrap-admin"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { workspace = true }
+qervon-application = { path = "../../crates/application" }
+qervon-domain = { path = "../../crates/domain" }
+qervon-infrastructure = { path = "../../crates/infrastructure" }
+sqlx = { workspace = true }
+tokio = { workspace = true }

@@ -36,7 +36,12 @@ pub struct HubManifestAssignment {
 }
 
 impl WarehouseHub {
-    pub fn new(hub_code: impl Into<String>, hub_name: impl Into<String>, location: Location, capacity: u32) -> Self {
+    pub fn new(
+        hub_code: impl Into<String>,
+        hub_name: impl Into<String>,
+        location: Location,
+        capacity: u32,
+    ) -> Self {
         Self {
             id: uuid::Uuid::now_v7(),
             hub_code: hub_code.into(),
@@ -55,7 +60,11 @@ impl WarehouseHub {
         Ok(())
     }
 
-    pub fn dispatch_manifest(&mut self, courier_id: uuid::Uuid, order_ids: Vec<uuid::Uuid>) -> Result<HubManifestAssignment, String> {
+    pub fn dispatch_manifest(
+        &mut self,
+        courier_id: uuid::Uuid,
+        order_ids: Vec<uuid::Uuid>,
+    ) -> Result<HubManifestAssignment, String> {
         let count = order_ids.len() as u32;
         if self.active_parcels < count {
             return Err("Not enough parcels in hub".into());

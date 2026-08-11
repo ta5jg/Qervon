@@ -45,12 +45,19 @@ Backend sunucusu çalıştığında (`http://localhost:8080`):
 
 ## ⚡ Hızlı Başlatma (Quick Start)
 
-### 1. Backend Sunucusunu Çalıştırma (Rust API Gateway)
+### 1. Yerelde doğrudan çalıştırma (varsayılan)
 ```bash
-cd backend
-cargo run -p qervon-api-gateway
+make api
 ```
-Sunucu varsayılan olarak `0.0.0.0:8080` portunda dinlemeye başlayacaktır.
+API doğrudan bilgisayarınızda çalışır. Varsayılan adres `127.0.0.1:8080`, varsayılan depolama ise hızlı geliştirme için bellektir.
+
+PostgreSQL ile çalışmak için `.env.example` dosyasını `.env.local` olarak kopyalayın, kendi yerel veritabanı bağlantınızı girin ve `QERVON_STORAGE=postgres` yapın. Ardından migration'ları çalıştırın:
+
+```bash
+set -a && source .env.local && set +a
+make migrate
+make api
+```
 
 ### 2. Testleri Çalıştırma
 ```bash
@@ -58,15 +65,26 @@ cd backend
 cargo test
 ```
 
-### 3. Docker Compose ile Kaldırma
+### 3. İsteğe bağlı yerel servisler
 ```bash
-docker-compose up -d
+cp .env.example .env.local
+# .env.local içinde QERVON_POSTGRES_PASSWORD değerini ayarlayın.
+make dev-services-up
 ```
+
+Docker, Qervon API'sini çalıştırmaz ve VPS dağıtım yolu değildir. Yalnızca yerel PostgreSQL ve Redis ihtiyacı olduğunda kullanılır.
+
+### 4. VPS dağıtımı
+
+VPS'te API doğrudan release binary olarak `systemd` altında çalışır; PostgreSQL ve Redis yerel servis veya yönetilen servis olabilir. Kurulum, geri alma ve sağlık kontrolü adımları için [Deployment Runbook](docs/operations/deployment-runbook.md) belgesini izleyin.
 
 ---
 
-## 🔒 Güvenlik & Sunucu Taraflı İzolasyon (Server-Side Isolation)
-Müşterilerin diğer kuryelerin GPS koordinatlarına erişmesini önlemek amacıyla `/ws/tracking/customer?courier_id=...` WebSocket rotasında sunucu katmanında (Rust backend) müşteri-kurye eşleşme güvenlik filtresi uygulanmıştır.
+## 🔒 Kimlik, tenant ve canlı konum güvenliği
+
+Kullanıcı oturumu, tenant slug'ını tek başına yetki olarak kabul etmez: girişte kullanıcı-tenant üyeliği doğrulanır. Erişim belirteçleri 15 dakika ömürlü ve imzalıdır; yenileme belirteçleri veritabanında yalnızca özetlenmiş biçimde tutulur, her yenilemede döndürülür ve çıkışta geçersizleştirilir. İlk tenant sahibi, public API üzerinden değil VPS'te tek kullanımlık bootstrap komutuyla oluşturulur; ayrıntılar [Deployment Runbook](docs/operations/deployment-runbook.md) içindedir.
+
+Kurye ve sipariş kaynakları tenant sahipliğiyle bağlanır. Kurye konumu yalnız kendi tenant’ına ait kayıt için yayımlanabilir; admin kendi tenant’ının son konumlarını, müşteri ise yalnız kendi siparişine atanmış kuryeyi görebilir. Kurye ekranı tarayıcı GPS izniyle konumu yollar; ekranlar oturum sonrası `qervon_access_token`, kurye ekranı ayrıca `qervon_courier_id`, müşteri ekranı `qervon_tracking_order_id` yerel oturum değerlerini kullanır. Bu değerler kullanıcıya gösterilmez veya URL’ye yazılmaz.
 
 ---
 © 2026 USDTG GROUP TECHNOLOGY LLC / Irfan Gedik. All rights reserved.

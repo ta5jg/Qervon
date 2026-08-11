@@ -57,9 +57,7 @@ impl TrackingPoint {
         }
         if let Some(battery) = battery_pct {
             if battery > 100 {
-                return Err(DomainError::validation(
-                    "battery percentage must be 0–100",
-                ));
+                return Err(DomainError::validation("battery percentage must be 0–100"));
             }
         }
         Ok(Self {
@@ -202,7 +200,8 @@ mod tests {
 
     #[test]
     fn session_can_be_ended() {
-        let mut session = TrackingSession::start(Uuid::now_v7(), Utc::now()).expect("valid session");
+        let mut session =
+            TrackingSession::start(Uuid::now_v7(), Utc::now()).expect("valid session");
         session.end(Utc::now()).expect("end session");
         assert!(!session.is_active());
         assert!(session.ended_at.is_some());
@@ -210,7 +209,8 @@ mod tests {
 
     #[test]
     fn ended_session_cannot_be_ended_again() {
-        let mut session = TrackingSession::start(Uuid::now_v7(), Utc::now()).expect("valid session");
+        let mut session =
+            TrackingSession::start(Uuid::now_v7(), Utc::now()).expect("valid session");
         session.end(Utc::now()).expect("end once");
         let err = session.end(Utc::now()).unwrap_err();
         assert!(matches!(err, DomainError::InvalidTransition(_)));

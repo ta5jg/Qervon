@@ -75,7 +75,7 @@ impl OrderStatus {
     }
 
     pub fn can_deliver(&self) -> bool {
-        matches!(self, Self::CourierAssigned | Self::InTransit)
+        matches!(self, Self::InTransit)
     }
 
     pub fn can_cancel(&self) -> bool {
@@ -245,6 +245,16 @@ mod tests {
         order.deliver(Utc::now()).expect("deliver");
         assert_eq!(order.status, OrderStatus::Delivered);
         assert!(order.delivered_at.is_some());
+    }
+
+    #[test]
+    fn cannot_deliver_before_pickup() {
+        let mut order = sample_order();
+        order.assign_courier(Uuid::now_v7()).expect("assign");
+        let err = order
+            .deliver(Utc::now())
+            .expect_err("direct delivery must fail");
+        assert!(matches!(err, DomainError::InvalidTransition(_)));
     }
 
     #[test]
