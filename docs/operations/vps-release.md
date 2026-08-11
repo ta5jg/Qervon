@@ -27,6 +27,7 @@ QERVON_STORAGE=postgres
 DATABASE_URL=postgres://...
 QERVON_TOKEN_SIGNING_SECRET=<at-least-32-character-secret>
 QERVON_API_ACCESS_TOKEN=<separate-service-secret>
+QERVON_WEBHOOK_ENCRYPTION_KEY=<base64-encoded-32-byte-key>
 QERVON_LISTEN=127.0.0.1:8080
 ```
 
@@ -42,16 +43,16 @@ sudo -u qervon QERVON_BINARY_DIR=/opt/qervon/bin /opt/qervon/scripts/build-relea
 sudo /opt/qervon/scripts/deploy-vps.sh
 ```
 
-`deploy-vps.sh` refuses unsafe configuration, applies migrations before the
-service restart, verifies the local health endpoint, and checks that systemd
-kept the service active. Take and verify a database backup before every
-migration-bearing release; use `docs/operations/backup-restore-runbook.md`.
+`deploy-vps.sh` refuses unsafe configuration, takes and validates a PostgreSQL
+backup, applies migrations, restarts both API and webhook worker, then runs
+readiness and concurrent load-smoke checks. It exits non-zero on any failed
+acceptance gate.
 
 On the first installation, enable the service after copying the unit:
 
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl enable --now qervon-api
+sudo systemctl enable --now qervon-api qervon-worker
 ```
 
 ## Verification and recovery
@@ -60,6 +61,7 @@ After a release, inspect service status and recent logs:
 
 ```sh
 sudo systemctl status qervon-api
+sudo systemctl status qervon-worker
 sudo journalctl -u qervon-api -n 100 --no-pager
 curl --fail http://127.0.0.1:8080/health
 ```

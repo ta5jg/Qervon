@@ -39,12 +39,13 @@ use qervon_application::{
     CreateInvoiceInput, CreateOrderInput, RegisterCourierInput, SendNotificationInput,
 };
 use qervon_domain::{
-    Address, Location, Money, NotificationChannel, OrderId, RefreshSession, TenantId, UserId,
-    UserRole, VehicleType,
+    Address, Location, Money, NotificationChannel, OrderId, RefreshSession, TenantId,
+    TenantMemberRole, TenantMembership, UserId, UserRole, VehicleType,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
+use sqlx::FromRow;
 use std::collections::BTreeMap;
 use std::time::Instant;
 
@@ -169,6 +170,14 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/orders/{id}/transit", post(start_transit))
         .route("/v1/orders/{id}/deliver", post(deliver_order))
         .route("/v1/orders/{id}/cancel", post(cancel_order))
+        .route("/v1/reports/operations", get(operations_report))
+        .route("/v1/finance/summary", get(finance_summary))
+        .route("/v1/finance/invoices", get(list_finance_invoices))
+        .route("/v1/company", get(company_profile))
+        .route(
+            "/v1/company/members",
+            get(list_company_members).post(add_company_member),
+        )
         .route_layer(middleware::from_fn(require_operational_access));
     let customer_operations = Router::new()
         .route("/v1/customer/profile", get(get_customer_profile))
@@ -1399,6 +1408,187 @@ async fn operations_overview(
             })
             .collect(),
     }))
+}
+
+#[derive(Serialize, FromRow)]
+struct FinanceMoneyRow {
+    currency: String,
+    amount_minor: i64,
+}
+
+#[derive(Serialize, FromRow)]
+struct FinanceInvoiceRow {
+    id: uuid::Uuid,
+    order_id: uuid::Uuid,
+    customer_id: uuid::Uuid,
+    amount_minor: i64,
+    currency: String,
+    status: String,
+    created_at: chrono::DateTime<Utc>,
+    issued_at: Option<chrono::DateTime<Utc>>,
+    paid_at: Option<chrono::DateTime<Utc>>,
+}
+
+#[derive(Serialize, FromRow)]
+struct CompanyMemberRow {
+    user_id: uuid::Uuid,
+    email: String,
+    display_name: String,
+    role: String,
+    joined_at: chrono::DateTime<Utc>,
+}
+
+#[derive(Deserialize)]
+struct AddCompanyMemberRequest {
+    user_id: uuid::Uuid,
+    role: String,
+}
+
+fn postgres_pool(state: &AppState) -> Result<&sqlx::PgPool, ApiError> {
+    state.postgres_pool.as_ref().ok_or_else(|| {
+        ApiError::unprocessable("this operational report requires PostgreSQL storage")
+    })
+}
+
+async fn operations_report(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Value>, ApiError> {
+    let overview = operations_overview(State(state.clone()), Some(Extension(claims.clone())))
+        .await?
+        .0;
+    let mut status_counts = BTreeMap::<String, usize>::new();
+    let mut courier_workload = BTreeMap::<String, usize>::new();
+    for order in state.orders.list_all().await? {
+        if state.tenants.find_order_tenant(order.id).await? != Some(TenantId(claims.tenant_id)) {
+            continue;
+        }
+        *status_counts
+            .entry(order.status.as_str().to_string())
+            .or_default() += 1;
+        if let Some(courier_id) = order.assigned_courier_id {
+            *courier_workload.entry(courier_id.to_string()).or_default() += 1;
+        }
+    }
+    Ok(Json(json!({
+        "overview": overview,
+        "orders_by_status": status_counts,
+        "courier_workload": courier_workload,
+        "generated_at": Utc::now(),
+    })))
+}
+
+async fn finance_summary(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Value>, ApiError> {
+    let pool = postgres_pool(&state)?;
+    let invoices: Vec<FinanceMoneyRow> = sqlx::query_as(
+        "SELECT i.currency::text AS currency, COALESCE(SUM(i.amount_minor), 0) AS amount_minor
+         FROM billing.delivery_invoices i
+         JOIN tenancy.order_tenants ot ON ot.order_id = i.order_id
+         WHERE ot.tenant_id = $1 AND i.status IN ('issued', 'paid') GROUP BY i.currency",
+    )
+    .bind(claims.tenant_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not load invoice totals: {error}")))?;
+    let payouts: Vec<FinanceMoneyRow> = sqlx::query_as(
+        "SELECT p.currency::text AS currency, COALESCE(SUM(p.net_amount_minor), 0) AS amount_minor
+         FROM billing.courier_payouts p
+         JOIN tenancy.courier_tenants ct ON ct.courier_id = p.courier_id
+         WHERE ct.tenant_id = $1 AND p.status IN ('approved', 'paid') GROUP BY p.currency",
+    )
+    .bind(claims.tenant_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not load payout totals: {error}")))?;
+    Ok(Json(json!({
+        "invoiced_by_currency": invoices,
+        "approved_payouts_by_currency": payouts,
+        "generated_at": Utc::now(),
+    })))
+}
+
+async fn list_finance_invoices(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<FinanceInvoiceRow>>, ApiError> {
+    let pool = postgres_pool(&state)?;
+    let invoices = sqlx::query_as(
+        "SELECT i.id, i.order_id, i.customer_id, i.amount_minor, i.currency::text AS currency,
+                i.status, i.created_at, i.issued_at, i.paid_at
+         FROM billing.delivery_invoices i
+         JOIN tenancy.order_tenants ot ON ot.order_id = i.order_id
+         WHERE ot.tenant_id = $1 ORDER BY i.created_at DESC LIMIT 200",
+    )
+    .bind(claims.tenant_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not list invoices: {error}")))?;
+    Ok(Json(invoices))
+}
+
+async fn company_profile(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Value>, ApiError> {
+    let pool = postgres_pool(&state)?;
+    let profile = sqlx::query_as::<_, (String, String, chrono::DateTime<Utc>)>(
+        "SELECT name, status, created_at FROM tenancy.tenants WHERE id = $1",
+    )
+    .bind(claims.tenant_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not load company profile: {error}")))?
+    .ok_or_else(|| ApiError::unprocessable("tenant no longer exists"))?;
+    Ok(Json(
+        json!({ "name": profile.0, "status": profile.1, "created_at": profile.2 }),
+    ))
+}
+
+async fn list_company_members(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<CompanyMemberRow>>, ApiError> {
+    let pool = postgres_pool(&state)?;
+    let members = sqlx::query_as(
+        "SELECT m.user_id, u.email, u.display_name, m.role, m.joined_at
+         FROM tenancy.tenant_members m JOIN identity.users u ON u.id = m.user_id
+         WHERE m.tenant_id = $1 ORDER BY m.joined_at ASC",
+    )
+    .bind(claims.tenant_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not list company members: {error}")))?;
+    Ok(Json(members))
+}
+
+async fn add_company_member(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<AddCompanyMemberRequest>,
+) -> Result<StatusCode, ApiError> {
+    if !matches!(claims.role, UserRole::SuperAdmin | UserRole::Admin) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only tenant administrators can change company membership".to_string(),
+        });
+    }
+    let role = request
+        .role
+        .parse::<TenantMemberRole>()
+        .map_err(|_| ApiError::unprocessable("invalid company member role"))?;
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id: TenantId(claims.tenant_id),
+            user_id: UserId(request.user_id),
+            role,
+            joined_at: Utc::now(),
+        })
+        .await?;
+    Ok(StatusCode::CREATED)
 }
 
 async fn create_customer_order(

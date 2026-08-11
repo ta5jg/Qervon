@@ -1233,6 +1233,69 @@ async fn customer_orders_are_owned_by_session_and_admin_overview_is_tenant_scope
 }
 
 #[tokio::test]
+async fn operational_reports_preserve_tenant_scope_and_company_writes_require_admin() {
+    let secret = b"test-signing-secret-must-be-at-least-32-characters";
+    let tenant = TenantCompany {
+        id: TenantId::new(),
+        company_name: "Reporting Tenant".into(),
+        category: "Logistics".into(),
+        created_at: Utc::now(),
+    };
+    let mut state = AppState::memory();
+    state.token_signing_secret = Some(String::from_utf8_lossy(secret).into_owned().into());
+    state
+        .tenants
+        .create_tenant(&tenant, "reporting-tenant")
+        .await
+        .expect("tenant");
+    let operator_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        tenant.id.0,
+        UserRole::Operator,
+        Duration::minutes(5),
+    )
+    .expect("operator token");
+    let app = router(state);
+
+    let (status, report) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/reports/operations",
+        json!({}),
+        &operator_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(report["overview"]["active_orders"], 0);
+    assert_eq!(report["orders_by_status"], json!({}));
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/company/members",
+        json!({ "user_id": Uuid::now_v7(), "role": "operator" }),
+        &operator_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::FORBIDDEN);
+
+    let (status, body) = authorized_request(
+        app,
+        "GET",
+        "/v1/finance/summary",
+        json!({}),
+        &operator_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(body["detail"]
+        .as_str()
+        .unwrap_or_default()
+        .contains("PostgreSQL"));
+}
+
+#[tokio::test]
 async fn runtime_endpoints_expose_safe_observability_contracts() {
     let app = app();
     let response = app
