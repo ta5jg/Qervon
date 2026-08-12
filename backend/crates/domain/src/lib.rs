@@ -19,12 +19,15 @@
 
 pub mod billing;
 pub mod cold_chain;
+pub mod coupon;
 pub mod courier;
 pub mod courier_shift;
 pub mod courier_wallet;
 pub mod credential;
 pub mod customer;
 pub mod customer_feedback;
+pub mod delivery_pricing;
+pub mod device_push_token;
 pub mod dispatch;
 pub mod error;
 pub mod fleet;
@@ -32,6 +35,7 @@ pub mod location;
 pub mod money;
 pub mod notification;
 pub mod order;
+pub mod otp_challenge;
 pub mod proof_of_delivery;
 pub mod repository;
 pub mod route_history;
@@ -43,24 +47,33 @@ pub mod webhook;
 
 pub use billing::{CourierPayout, Invoice, InvoiceId, InvoiceStatus, PayoutStatus};
 pub use cold_chain::ColdChainTelemetry;
+pub use coupon::Coupon;
 pub use courier::{Courier, CourierStatus, VehicleType};
 pub use courier_shift::{CourierShiftAssignment, ShiftType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
 pub use credential::{Credential, RefreshSession};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
 pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
-pub use dispatch::{Assignment, AssignmentStatus};
+pub use delivery_pricing::{
+    DeliveryPricing, DEFAULT_BASE_FARE_MINOR, DEFAULT_CURRENCY, DEFAULT_MINIMUM_FARE_MINOR,
+    DEFAULT_PER_KM_RATE_MINOR,
+};
+pub use device_push_token::{DevicePushToken, PushPlatform};
+pub use dispatch::{Assignment, AssignmentStatus, OFFER_TTL};
 pub use error::DomainError;
 pub use fleet::{Vehicle, VehicleId, VehicleStatus};
 pub use location::Location;
 pub use money::Money;
 pub use notification::{Notification, NotificationChannel, NotificationId, NotificationStatus};
-pub use order::{Address, Order, OrderId, OrderStatus};
+pub use order::{Address, Order, OrderId, OrderStatus, PaymentMethod};
+pub use otp_challenge::OtpChallenge;
 pub use proof_of_delivery::ProofOfDeliveryRecord;
 pub use repository::{
-    AssignmentRepository, CourierPayoutRepository, CourierRepository, CredentialRepository,
-    CustomerRepository, InvoiceRepository, NotificationRepository, OrderRepository,
-    ProofOfDeliveryRepository, TenantRepository, TrackingRepository, UserRepository,
+    AssignmentRepository, CouponRepository, CourierPayoutRepository, CourierRepository,
+    CourierWalletRepository, CredentialRepository, CustomerRatingRepository, CustomerRepository,
+    DeliveryPricingRepository, DevicePushTokenRepository, InvoiceRepository,
+    NotificationRepository, OrderRepository, OtpChallengeRepository, ProofOfDeliveryRepository,
+    SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
     VehicleRepository, WebhookRepository,
 };
 pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};

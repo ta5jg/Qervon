@@ -18,12 +18,48 @@ use crate::DomainError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum WalletTransactionType {
     DeliveryEarning,
     PerformanceBonus,
     Tip,
     PenaltyDeduction,
     PayoutWithdrawal,
+}
+
+impl WalletTransactionType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::DeliveryEarning => "delivery_earning",
+            Self::PerformanceBonus => "performance_bonus",
+            Self::Tip => "tip",
+            Self::PenaltyDeduction => "penalty_deduction",
+            Self::PayoutWithdrawal => "payout_withdrawal",
+        }
+    }
+}
+
+impl std::str::FromStr for WalletTransactionType {
+    type Err = DomainError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "delivery_earning" => Ok(Self::DeliveryEarning),
+            "performance_bonus" => Ok(Self::PerformanceBonus),
+            "tip" => Ok(Self::Tip),
+            "penalty_deduction" => Ok(Self::PenaltyDeduction),
+            "payout_withdrawal" => Ok(Self::PayoutWithdrawal),
+            other => Err(DomainError::validation(format!(
+                "unknown wallet transaction type: {other}"
+            ))),
+        }
+    }
+}
+
+impl std::fmt::Display for WalletTransactionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -152,5 +188,21 @@ mod tests {
         assert_eq!(wallet.total_bonus_minor, 500);
         assert_eq!(wallet.total_penalties_minor, 200);
         assert_eq!(wallet.transactions.len(), 3);
+    }
+
+    #[test]
+    fn transaction_type_string_round_trip() {
+        for variant in [
+            WalletTransactionType::DeliveryEarning,
+            WalletTransactionType::PerformanceBonus,
+            WalletTransactionType::Tip,
+            WalletTransactionType::PenaltyDeduction,
+            WalletTransactionType::PayoutWithdrawal,
+        ] {
+            assert_eq!(
+                variant.as_str().parse::<WalletTransactionType>(),
+                Ok(variant)
+            );
+        }
     }
 }

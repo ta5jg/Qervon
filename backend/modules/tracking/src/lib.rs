@@ -17,7 +17,7 @@
 // =============================================================================
 
 use qervon_application::TrackingService;
-use qervon_domain::{Location, TrackingRepository, TrackingSession};
+use qervon_domain::{Location, TrackingPoint, TrackingRepository, TrackingSession};
 use uuid::Uuid;
 
 pub struct TrackingModule<R>
@@ -57,10 +57,9 @@ where
         location: Location,
         speed_kmh: Option<f64>,
         battery_pct: Option<u8>,
-    ) -> Result<(), qervon_application::ApplicationError> {
+    ) -> Result<TrackingPoint, qervon_application::ApplicationError> {
         self.service
             .record_location(courier_id, location, speed_kmh, battery_pct)
             .await
-            .map(|_| ())
     }
 }

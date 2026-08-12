@@ -35,6 +35,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = router(state);
     let listener = tokio::net::TcpListener::bind(&listen).await?;
     tracing::info!(address = %listen, "Qervon API gateway listening");
-    axum::serve(listener, app).await?;
+    // Exposes the transport-level peer address as a `ConnectInfo` extension
+    // so the rate limiter can key on it when no reverse-proxy forwarding
+    // headers (`X-Forwarded-For`/`X-Real-IP`) are present.
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<std::net::SocketAddr>(),
+    )
+    .await?;
     Ok(())
 }

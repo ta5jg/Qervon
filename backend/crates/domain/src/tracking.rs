@@ -35,6 +35,12 @@ pub struct TrackingPoint {
     pub speed_kmh: Option<f64>,
     pub battery_pct: Option<u8>,
     pub recorded_at: DateTime<Utc>,
+    /// Set by the AI Fraud Guard when this point implies a physically
+    /// impossible speed from the courier's previous point. The point is
+    /// still recorded (flag-and-accept), never rejected outright.
+    pub fraud_flagged: bool,
+    /// Normalized 0.0–1.0 anomaly score backing `fraud_flagged`.
+    pub fraud_risk_score: f64,
 }
 
 impl TrackingPoint {
@@ -67,7 +73,16 @@ impl TrackingPoint {
             speed_kmh,
             battery_pct,
             recorded_at,
+            fraud_flagged: false,
+            fraud_risk_score: 0.0,
         })
+    }
+
+    /// Marks this point as suspicious per the AI Fraud Guard's speed-anomaly
+    /// check. Recording still proceeds; this only annotates the sample.
+    pub fn flag_fraud_risk(&mut self, risk_score: f64) {
+        self.fraud_flagged = true;
+        self.fraud_risk_score = risk_score;
     }
 }
 
@@ -189,6 +204,17 @@ mod tests {
                 .expect("valid point");
         assert_eq!(point.speed_kmh, Some(30.0));
         assert_eq!(point.battery_pct, Some(85));
+        assert!(!point.fraud_flagged);
+        assert_eq!(point.fraud_risk_score, 0.0);
+    }
+
+    #[test]
+    fn flagging_fraud_risk_marks_the_point_without_rejecting_it() {
+        let mut point = TrackingPoint::new(Uuid::now_v7(), istanbul(), None, None, Utc::now())
+            .expect("valid point");
+        point.flag_fraud_risk(0.95);
+        assert!(point.fraud_flagged);
+        assert_eq!(point.fraud_risk_score, 0.95);
     }
 
     #[test]

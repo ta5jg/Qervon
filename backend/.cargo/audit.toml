@@ -1,0 +1,17 @@
+# cargo-audit configuration (read automatically by `cargo audit` and by
+# .github/workflows/security.yml's `rustsec/audit-check` step when run with
+# `working-directory: backend`).
+#
+# RUSTSEC-2023-0071 ("Marvin Attack" timing side-channel in the `rsa`
+# crate) has no fixed upgrade available from its maintainers as of this
+# writing, and is pulled in transitively via
+# web-push -> jwt-simple -> rsa (backend/apps/worker's real VAPID Web Push
+# sender). Qervon's own tokens are signed with a custom HMAC scheme (see
+# backend/apps/api-gateway/src/auth.rs), not this crate's RSA signing —
+# the exposed surface is jwt-simple's optional RSA JWT support, which
+# Qervon does not use. Ignored here (rather than left to silently fail
+# every CI run) so a genuinely new advisory is never masked by this
+# already-triaged one. Revisit if jwt-simple/web-push ship a fix, or if
+# Qervon starts using RSA-signed tokens itself.
+[advisories]
+ignore = ["RUSTSEC-2023-0071"]

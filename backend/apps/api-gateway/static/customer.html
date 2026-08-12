@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
 
   <style>
     :root {
@@ -123,24 +123,30 @@
           
           <div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Alım Adresi (Nereden?)</label>
-            <input id="customer-pickup" aria-label="Alım adresi" type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-pickup" aria-label="Alım adresi" type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
           </div>
 
           <div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslimat Adresi (Nereye?)</label>
-            <input id="customer-dropoff" aria-label="Teslimat adresi" type="text" value="Maslak Plaza No:14, Sarıyer" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-dropoff" aria-label="Teslimat adresi" type="text" value="Maslak Plaza No:14, Sarıyer" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
           </div>
 
           <div>
-            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Paket Tipi Seçimi</label>
-            <div class="package-grid">
-              <div class="package-card selected" onclick="selectPkg(this, 45)"><i data-lucide="file-text"></i> <span style="font-size:12px; font-weight:700;">Evrak</span> <span style="font-size:10px; color:var(--text-muted);">₺45</span></div>
-              <div class="package-card" onclick="selectPkg(this, 65)"><i data-lucide="utensils"></i> <span style="font-size:12px; font-weight:700;">Gıda</span> <span style="font-size:10px; color:var(--text-muted);">₺65</span></div>
-              <div class="package-card" onclick="selectPkg(this, 120)"><i data-lucide="box"></i> <span style="font-size:12px; font-weight:700;">Koli</span> <span style="font-size:10px; color:var(--text-muted);">₺120</span></div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Ödeme Yöntemi</label>
+            <div class="package-grid" id="payment-method-grid">
+              <div class="package-card selected" data-method="cash" onclick="selectPaymentMethod(this)"><i data-lucide="banknote"></i> <span style="font-size:12px; font-weight:700;">Nakit</span></div>
+              <div class="package-card" data-method="card" onclick="selectPaymentMethod(this)"><i data-lucide="credit-card"></i> <span style="font-size:12px; font-weight:700;">Kart</span></div>
+              <div class="package-card" data-method="qr" onclick="selectPaymentMethod(this)"><i data-lucide="qr-code"></i> <span style="font-size:12px; font-weight:700;">QR</span></div>
             </div>
           </div>
 
-          <button class="btn-action" id="btn-call" onclick="createCustomerOrder()">⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺45.00)</button>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Kupon Kodu (opsiyonel)</label>
+            <input id="customer-coupon" aria-label="Kupon kodu" type="text" placeholder="Kupon kodu" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+          </div>
+
+          <div id="fare-quote-preview" style="font-size:11px; color:var(--text-muted);">Ücret, adresler girildikten sonra sunucudan gerçek mesafeye göre hesaplanır.</div>
+          <button class="btn-action" id="btn-call" onclick="createCustomerOrder()">⚡ KURYEYİ ÇAĞIR & TAKİP ET</button>
           <div id="customer-message" role="status" aria-live="polite" style="min-height:18px; font-size:12px; color:var(--text-muted);"></div>
         </div>
 
@@ -167,8 +173,8 @@
       <div class="glass" style="border-radius:20px; padding:30px; text-align:center;">
         <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-cyan);"></i>
         <h3 style="font-size:18px; font-weight:800; margin-top:12px;">Toplu Excel / CSV Sipariş Dosyası Yükle</h3>
-        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Binlerce teslimatı tek tıkla sisteme aktarmak için .xlsx veya .csv dosyanızı buraya sürükleyin.</p>
-        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto;"><i data-lucide="file-plus"></i> Excel Dosyası Seç</button>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Bu özellik henüz uygulanmadı — backend'de toplu sipariş içe aktarma endpoint'i yok. Bkz. BACKEND_BACKLOG.md. Şimdilik siparişleri "Yeni Kurye Çağır" sekmesinden tek tek oluşturun.</p>
+        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto; opacity:0.5; cursor:not-allowed;" disabled title="Henüz uygulanmadı"><i data-lucide="file-plus"></i> Yakında</button>
       </div>
     </div>
 
@@ -204,7 +210,31 @@
     }) : null;
     let courierMarker;
     let trackedOrder;
-    let selectedPrice = 45;
+    let selectedPaymentMethod = 'cash';
+
+    function selectPaymentMethod(card) {
+      document.querySelectorAll('#payment-method-grid .package-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedPaymentMethod = card.dataset.method;
+    }
+
+    // Demo coordinates only — this portal has no real geocoding, unlike the
+    // native iOS/Android apps' osmdroid/MapKit address pickers.
+    function demoPickupAddress(label) { return { latitude: 41.0638, longitude: 28.9351, label }; }
+    function demoDropoffAddress(label) { return { latitude: 41.1120, longitude: 29.0210, label }; }
+
+    async function refreshFareQuotePreview() {
+      const preview = document.getElementById('fare-quote-preview');
+      const pickupLabel = document.getElementById('customer-pickup')?.value.trim();
+      const dropoffLabel = document.getElementById('customer-dropoff')?.value.trim();
+      if (!pickupLabel || !dropoffLabel || !preview) return;
+      const pickup = demoPickupAddress(pickupLabel);
+      const dropoff = demoDropoffAddress(dropoffLabel);
+      try {
+        const quote = await api(`/v1/customer/fare-quote?pickup_latitude=${pickup.latitude}&pickup_longitude=${pickup.longitude}&dropoff_latitude=${dropoff.latitude}&dropoff_longitude=${dropoff.longitude}`, { method: 'GET' });
+        preview.textContent = `Tahmini ücret: ${formatMoney(quote.fare_amount_minor, quote.currency)} (${quote.distance_km.toFixed(1)} km) — bağlayıcı değildir, kesin ücret sipariş oluşturulduğunda sunucuda hesaplanır.`;
+      } catch (_) { preview.textContent = 'Ücret hesaplanamadı — giriş yapmış olduğunuzdan emin olun.'; }
+    }
 
     function csrfHeaders() {
       const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
@@ -213,8 +243,21 @@
 
     async function api(path, options = {}) {
       const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
-      if (!response.ok) throw new Error(`API ${response.status}`);
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        const error = new Error(problem.detail || `API ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
       return response.status === 204 ? null : response.json();
+    }
+
+    function showCustomerError(target, error) {
+      if ([401, 403].includes(error?.status)) {
+        target.innerHTML = 'Müşteri oturumu gerekli. <a href="/login?return_to=/customer" style="color:var(--accent-cyan);font-weight:800;">Giriş yap</a>';
+      } else {
+        target.textContent = `İşlem tamamlanamadı: ${error?.message || 'bilinmeyen hata'}`;
+      }
     }
 
     function escapeHtml(value) {
@@ -249,21 +292,31 @@
         const [orders, profile] = await Promise.all([api('/v1/customer/orders'), api('/v1/customer/profile')]);
         renderOrders(orders);
         renderAddresses(profile);
-      } catch (_) {
-        document.getElementById('customer-message').textContent = 'Müşteri oturumu gerekli.';
+      } catch (error) {
+        showCustomerError(document.getElementById('customer-message'), error);
       }
     }
 
     async function createCustomerOrder() {
       const message = document.getElementById('customer-message');
-      const pickup = document.getElementById('customer-pickup').value.trim();
-      const dropoff = document.getElementById('customer-dropoff').value.trim();
-      if (!pickup || !dropoff) { message.textContent = 'Alım ve teslimat adresleri zorunludur.'; return; }
+      const pickupLabel = document.getElementById('customer-pickup').value.trim();
+      const dropoffLabel = document.getElementById('customer-dropoff').value.trim();
+      if (!pickupLabel || !dropoffLabel) { message.textContent = 'Alım ve teslimat adresleri zorunludur.'; return; }
       try {
-        const order = await api('/v1/customer/orders', { method: 'POST', body: JSON.stringify({ pickup: { latitude: 41.0638, longitude: 28.9351, label: pickup }, dropoff: { latitude: 41.1120, longitude: 29.0210, label: dropoff }, fare_amount_minor: selectedPrice * 100, fare_currency: 'TRY' }) });
-        message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)}`;
+        const order = await api('/v1/customer/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            pickup: demoPickupAddress(pickupLabel),
+            dropoff: demoDropoffAddress(dropoffLabel),
+            coupon_code: document.getElementById('customer-coupon')?.value.trim() || null,
+            payment_method: selectedPaymentMethod,
+            delivery_note: null,
+            contact_phone: null,
+          }),
+        });
+        message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)} • ${formatMoney(order.fare.amount_minor, order.fare.currency)}`;
         await loadCustomerWorkspace();
-      } catch (_) { message.textContent = 'Sipariş oluşturulamadı.'; }
+      } catch (error) { showCustomerError(message, error); }
     }
 
     async function saveAddress() {
@@ -275,7 +328,7 @@
         renderAddresses(profile);
         document.getElementById('address-label').value = '';
         document.getElementById('address-full').value = '';
-      } catch (_) { document.getElementById('customer-message').textContent = 'Adres kaydedilemedi.'; }
+      } catch (error) { showCustomerError(document.getElementById('customer-message'), error); }
     }
 
     async function showInvoice(orderId) {
@@ -303,13 +356,6 @@
         }
         document.getElementById('customer-gps').textContent = `Konum güncellendi • ${new Date(location.timestamp).toLocaleTimeString('tr-TR')}`;
       } catch (_) { document.getElementById('customer-gps').textContent = 'Kurye konumu bekleniyor'; }
-    }
-
-    function selectPkg(card, price) {
-      document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedPrice = price;
-      document.getElementById('btn-call').innerText = `⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺${price}.00)`;
     }
 
     function switchTab(tabId) {

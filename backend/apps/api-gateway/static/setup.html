@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Qervon İlk Kurulum</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; background:radial-gradient(circle at top,#133c46,#090d1a 55%); color:#f8fafc; }
+    main { width:min(720px,calc(100% - 40px)); margin:28px; padding:32px; border:1px solid #334155; border-radius:20px; background:#101827; box-shadow:0 24px 70px #0009; }
+    h1 { margin:0; color:#34d399; letter-spacing:.05em; } p { color:#a8b4c8; line-height:1.5; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; } .full { grid-column:1/-1; }
+    label { display:block; font-size:14px; color:#dbeafe; } input,button { box-sizing:border-box; width:100%; padding:12px; margin-top:6px; border-radius:9px; font:inherit; }
+    input { background:#0b1220; color:#fff; border:1px solid #334155; } button { border:0; background:#34d399; color:#062b20; font-weight:800; cursor:pointer; }
+    button:disabled { opacity:.55; cursor:not-allowed; } #message { min-height:24px; margin-top:16px; color:#fca5a5; } .note { font-size:13px; }
+    @media (max-width:600px) { .grid { grid-template-columns:1fr; } .full { grid-column:auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>QERVON İLK KURULUM</h1>
+    <p>İlk platform yöneticisini ve ilk firma tenant’ını birlikte oluşturur. Bu işlem yalnız henüz tenant yokken bir kez çalışır.</p>
+    <form id="form">
+      <div class="grid">
+        <label class="full">Firma / tenant adı<input id="tenant-name" required maxlength="160" placeholder="Örn. Qervon Lojistik"></label>
+        <label>Tenant kodu<input id="tenant-slug" required pattern="[a-z0-9-]{3,63}" placeholder="qervon-lojistik"></label>
+        <label>Yönetici adı<input id="admin-name" required placeholder="Ad Soyad"></label>
+        <label>Yönetici e-posta<input id="admin-email" type="email" required placeholder="yonetici@firma.com"></label>
+        <label>İlk yönetici parolası<input id="admin-password" type="password" minlength="12" autocomplete="new-password" required placeholder="En az 12 karakter"></label>
+        <label id="setup-token-field" hidden>VPS ilk kurulum anahtarı<input id="setup-token" type="password" autocomplete="off"></label>
+      </div>
+      <button id="submit" type="submit">Platform yöneticisi ve tenant oluştur</button>
+    </form>
+    <div id="message" role="alert" aria-live="polite"></div>
+    <p class="note">Kurulumdan sonra bu hesap platform yöneticisidir. Yönetim ekranından yeni tenant yöneticileri ve kuryeler oluşturabilirsiniz.</p>
+  </main>
+  <script>
+    const form = document.getElementById('form');
+    const message = document.getElementById('message');
+    const submit = document.getElementById('submit');
+    const tokenField = document.getElementById('setup-token-field');
+    let setupTokenRequired = false;
+    async function checkSetup() {
+      const response = await fetch('/v1/setup/status');
+      const status = await response.json();
+      setupTokenRequired = Boolean(status.setup_token_required);
+      tokenField.hidden = !setupTokenRequired;
+      if (!status.initial_setup_required) {
+        submit.disabled = true;
+        message.textContent = 'İlk kurulum zaten tamamlanmış. Yönetici hesabınızla giriş yapın.';
+      }
+    }
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      message.textContent = '';
+      const response = await fetch('/v1/setup/initialize', {
+        method:'POST', headers:{'content-type':'application/json'},
+        body:JSON.stringify({
+          tenant_name:document.getElementById('tenant-name').value.trim(),
+          tenant_slug:document.getElementById('tenant-slug').value.trim(),
+          admin_name:document.getElementById('admin-name').value.trim(),
+          admin_email:document.getElementById('admin-email').value.trim(),
+          admin_password:document.getElementById('admin-password').value,
+          setup_token:setupTokenRequired ? document.getElementById('setup-token').value : null
+        })
+      });
+      if (!response.ok) { const error = await response.json().catch(() => ({})); message.textContent = error.detail || 'Kurulum tamamlanamadı.'; return; }
+      const created = await response.json();
+      const login = await fetch('/v1/browser/auth/login', {
+        method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin',
+        body:JSON.stringify({
+          tenant_slug: created.tenant_slug,
+          email: document.getElementById('admin-email').value.trim(),
+          password: document.getElementById('admin-password').value
+        })
+      });
+      if (!login.ok) { message.textContent = 'Kurulum tamamlandı ancak ilk oturum açılamadı. Aynı bilgilerle giriş sayfasını kullanın.'; return; }
+      location.assign('/');
+    });
+    checkSetup().catch(() => { message.textContent = 'Kurulum durumu alınamadı.'; });
+  </script>
+</body>
+</html>

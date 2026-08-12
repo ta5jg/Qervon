@@ -21,7 +21,7 @@ use aes_gcm::{
     AeadCore, Aes256Gcm, KeyInit,
 };
 use axum::{
-    extract::{DefaultBodyLimit, Extension, Path, Request, State},
+    extract::{DefaultBodyLimit, Extension, Path, Query, Request, State},
     http::{header, HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     middleware::{self, Next},
     response::{IntoResponse, Response},
@@ -30,6 +30,7 @@ use axum::{
 };
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use chrono::{Duration, Utc};
+use governor::middleware::NoOpMiddleware;
 use qervon_api_contracts::{
     AddressDto, AssignCourierRequest, CourierResponse, CreateCustomerOrderRequest,
     CreateOrderRequest, OperationsOverviewResponse, OrderResponse, RegisterCourierRequest,
@@ -39,21 +40,76 @@ use qervon_application::{
     CreateInvoiceInput, CreateOrderInput, RegisterCourierInput, SendNotificationInput,
 };
 use qervon_domain::{
-    Address, Location, Money, NotificationChannel, OrderId, RefreshSession, TenantId,
-    TenantMemberRole, TenantMembership, UserId, UserRole, VehicleType,
+    Address, Location, Money, NotificationChannel, OrderId, RefreshSession, TenantCompany,
+    TenantId, TenantMemberRole, TenantMembership, UserId, UserRole, VehicleId, VehicleType,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use sqlx::FromRow;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::time::Instant;
+use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
+use tower_http::cors::{AllowOrigin, CorsLayer};
 
 use crate::api_error::ApiError;
 use crate::auth::{
     hash_refresh_token, issue_access_token, new_refresh_token, verify_access_token, AccessClaims,
 };
+use crate::rate_limit::ClientIpKeyExtractor;
 use crate::state::AppState;
+
+/// Builds the CORS policy from `QERVON_CORS_ALLOWED_ORIGINS` (comma-separated
+/// origins, e.g. `http://localhost:5173,https://app.example.com`). With no
+/// origins configured, cross-origin browser requests are rejected while
+/// same-origin requests (the shipped admin/customer HTML, served from this
+/// same process) are unaffected.
+fn cors_layer() -> CorsLayer {
+    let allowed_origins =
+        parse_allowed_origins(std::env::var("QERVON_CORS_ALLOWED_ORIGINS").ok().as_deref());
+
+    CorsLayer::new()
+        .allow_origin(AllowOrigin::list(allowed_origins))
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::PATCH,
+            Method::DELETE,
+        ])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION])
+        .allow_credentials(true)
+}
+
+/// Parses the `QERVON_CORS_ALLOWED_ORIGINS` environment value (comma-separated
+/// origins) into a list of valid `HeaderValue`s, silently dropping malformed
+/// entries. Extracted as a pure function so its parsing behavior is unit
+/// testable without mutating process-global environment state.
+fn parse_allowed_origins(raw: Option<&str>) -> Vec<HeaderValue> {
+    raw.map(|value| {
+        value
+            .split(',')
+            .filter_map(|origin| origin.trim().parse::<HeaderValue>().ok())
+            .collect()
+    })
+    .unwrap_or_default()
+}
+
+/// Builds a `GovernorLayer` rate limiter keyed by client IP. Shared by both
+/// the global ceiling and the stricter auth-endpoint ceiling.
+fn rate_limit_layer(
+    burst_size: u32,
+    period: std::time::Duration,
+) -> GovernorLayer<ClientIpKeyExtractor, NoOpMiddleware, axum::body::Body> {
+    let mut builder = GovernorConfigBuilder::default();
+    let mut builder = builder.key_extractor(ClientIpKeyExtractor);
+    let config = builder
+        .period(period)
+        .burst_size(burst_size)
+        .finish()
+        .expect("rate limit configuration must be valid (non-zero burst and period)");
+    GovernorLayer::new(config)
+}
 
 async fn serve_swagger_ui() -> axum::response::Html<&'static str> {
     axum::response::Html(
@@ -139,10 +195,17 @@ async fn serve_mobile_courier() -> axum::response::Html<&'static str> {
 pub fn router(state: AppState) -> Router {
     let public = Router::new()
         .route("/", get(serve_dashboard))
+        .route("/index.html", get(serve_dashboard))
         .route("/customer", get(serve_customer_portal))
+        .route("/customer.html", get(serve_customer_portal))
         .route("/login", get(serve_login))
+        .route("/login.html", get(serve_login))
+        .route("/setup", get(serve_setup))
+        .route("/setup.html", get(serve_setup))
         .route("/mobile-customer", get(serve_mobile_customer))
+        .route("/mobile-customer.html", get(serve_mobile_customer))
         .route("/mobile-courier", get(serve_mobile_courier))
+        .route("/mobile-courier.html", get(serve_mobile_courier))
         .route("/manifest.webmanifest", get(serve_web_manifest))
         .route("/sw.js", get(serve_service_worker))
         .route("/swagger-ui", get(serve_swagger_ui))
@@ -151,25 +214,58 @@ pub fn router(state: AppState) -> Router {
         .route("/ready", get(readiness))
         .route("/metrics", get(metrics_handler));
     let public = public
-        .route("/v1/auth/register", post(auth_register))
-        .route("/v1/auth/login", post(auth_login))
+        .route("/v1/setup/status", get(initial_setup_status))
+        .route("/v1/setup/initialize", post(initialize_platform))
         .route("/v1/auth/refresh", post(auth_refresh))
-        .route("/v1/auth/logout", post(auth_logout));
-    let public = public
-        .route("/v1/browser/auth/login", post(browser_login))
+        .route("/v1/auth/logout", post(auth_logout))
         .route("/v1/browser/auth/refresh", post(browser_refresh))
         .route("/v1/browser/auth/logout", post(browser_logout));
+    // Credential-bearing endpoints get a tighter rate ceiling than the rest
+    // of the API to slow down brute-force/credential-stuffing attempts.
+    let auth_sensitive = Router::new()
+        .route("/v1/auth/register", post(auth_register))
+        .route("/v1/auth/login", post(auth_login))
+        .route("/v1/browser/auth/login", post(browser_login))
+        .route("/v1/auth/otp/request", post(auth_otp_request))
+        .route("/v1/auth/otp/verify", post(auth_otp_verify))
+        .route_layer(rate_limit_layer(10, std::time::Duration::from_secs(3)));
 
     let operations = Router::new()
         .route("/v1/operations/overview", get(operations_overview))
         .route("/v1/users", post(register_user))
+        .route("/v1/tenants/provision", post(provision_tenant))
+        .route(
+            "/v1/company/admins/provision",
+            post(provision_company_admin),
+        )
+        .route("/v1/customers/provision", post(provision_customer))
+        .route("/v1/couriers/provision", post(provision_courier))
         .route("/v1/couriers", post(register_courier).get(list_couriers))
+        .route("/v1/couriers/{id}/wallet", get(get_courier_wallet))
+        .route("/v1/couriers/{id}/ratings", get(list_courier_ratings))
+        .route("/v1/coupons", post(create_coupon).get(list_coupons))
+        .route(
+            "/v1/fleet/vehicles",
+            post(register_vehicle).get(list_vehicles),
+        )
+        .route("/v1/fleet/vehicles/{id}", get(get_vehicle))
+        .route("/v1/fleet/vehicles/{id}/assign", post(assign_vehicle))
+        .route(
+            "/v1/fleet/vehicles/{id}/maintenance",
+            post(send_vehicle_to_maintenance),
+        )
+        .route("/v1/fleet/vehicles/{id}/activate", post(activate_vehicle))
+        .route(
+            "/v1/fleet/vehicles/{id}/decommission",
+            post(decommission_vehicle),
+        )
         .route("/v1/orders", post(create_order).get(list_orders))
         .route("/v1/orders/{id}", get(get_order))
         .route("/v1/orders/{id}/assign", post(assign_courier))
         .route("/v1/orders/{id}/transit", post(start_transit))
         .route("/v1/orders/{id}/deliver", post(deliver_order))
         .route("/v1/orders/{id}/cancel", post(cancel_order))
+        .route("/v1/orders/{id}/return", post(return_order))
         .route("/v1/reports/operations", get(operations_report))
         .route("/v1/finance/summary", get(finance_summary))
         .route("/v1/finance/invoices", get(list_finance_invoices))
@@ -178,6 +274,7 @@ pub fn router(state: AppState) -> Router {
             "/v1/company/members",
             get(list_company_members).post(add_company_member),
         )
+        .route("/v1/pricing", get(get_pricing).put(update_pricing))
         .route_layer(middleware::from_fn(require_operational_access));
     let customer_operations = Router::new()
         .route("/v1/customer/profile", get(get_customer_profile))
@@ -190,6 +287,7 @@ pub fn router(state: AppState) -> Router {
             "/v1/customer/orders",
             post(create_customer_order).get(list_customer_orders),
         )
+        .route("/v1/customer/fare-quote", get(get_customer_fare_quote))
         .route(
             "/v1/customer/orders/{id}/invoice",
             get(get_customer_order_invoice),
@@ -197,6 +295,16 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/v1/customer/orders/{id}/proof-of-delivery",
             get(get_customer_order_proof),
+        )
+        .route("/v1/customer/orders/{id}/rating", post(rate_customer_order))
+        .route(
+            "/v1/customer/orders/{id}/cancel",
+            post(cancel_customer_order),
+        )
+        .route("/v1/customer/orders/{id}/eta", get(get_customer_order_eta))
+        .route(
+            "/v1/customer/support-tickets",
+            post(create_customer_support_ticket).get(list_customer_support_tickets),
         )
         .route(
             "/v1/customer/notifications",
@@ -216,9 +324,14 @@ pub fn router(state: AppState) -> Router {
         .route_layer(middleware::from_fn(require_location_publisher));
     let courier_operations = Router::new()
         .route("/v1/courier/me", get(get_own_courier))
+        .route("/v1/courier/me/wallet", get(get_own_wallet))
+        .route("/v1/courier/me/ratings", get(list_own_ratings))
         .route("/v1/courier/me/status", post(set_own_courier_availability))
         .route("/v1/courier/me/location", post(update_own_courier_location))
+        .route("/v1/courier/me/offer", get(get_own_pending_offer))
         .route("/v1/courier/orders", get(list_courier_orders))
+        .route("/v1/courier/orders/{id}/accept", post(accept_courier_offer))
+        .route("/v1/courier/orders/{id}/reject", post(reject_courier_offer))
         .route(
             "/v1/courier/orders/{id}/pickup",
             post(courier_start_transit),
@@ -228,6 +341,20 @@ pub fn router(state: AppState) -> Router {
             post(courier_deliver_order),
         )
         .route_layer(middleware::from_fn(require_courier_access));
+    // A dedicated sub-router so the larger body-size limit for photo
+    // uploads (MAX_UPLOAD_BYTES) only applies to this one route, not the
+    // global default (`DefaultBodyLimit::max(1_048_576)` below) every
+    // other endpoint uses.
+    let photo_uploads = Router::new()
+        .route(
+            "/v1/courier/orders/{id}/photo-evidence",
+            post(upload_delivery_photo),
+        )
+        .layer(DefaultBodyLimit::max(MAX_UPLOAD_BYTES))
+        .route_layer(middleware::from_fn(require_courier_access));
+    let upload_reads = Router::new()
+        .route("/v1/uploads/{*path}", get(serve_upload))
+        .route_layer(middleware::from_fn(require_signed_user));
     let tracking_consumers = Router::new()
         .route("/v1/tracking/live", get(list_live_locations))
         .route("/v1/orders/{id}/tracking", get(order_tracking))
@@ -240,25 +367,40 @@ pub fn router(state: AppState) -> Router {
             post(upsert_push_subscription).delete(delete_push_subscription),
         )
         .route_layer(middleware::from_fn(require_signed_user));
+    let session_operations = Router::new()
+        .route("/v1/auth/session", get(current_browser_session))
+        .route("/v1/auth/phone", post(set_own_phone))
+        .route(
+            "/v1/push/devices",
+            post(register_push_device).get(list_push_devices),
+        )
+        .route("/v1/push/devices/{id}", delete(delete_push_device))
+        .route_layer(middleware::from_fn(require_signed_user));
     // Location events currently lack a tenant key in the delivery aggregate.
     // Do not expose an all-tenant stream to signed end users until the event
     // and assignment models carry that boundary end-to-end.
     let protected = operations
         .merge(location_publisher)
         .merge(courier_operations)
+        .merge(photo_uploads)
+        .merge(upload_reads)
         .merge(customer_operations)
         .merge(tracking_consumers)
         .merge(push_operations)
+        .merge(session_operations)
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
             require_api_access,
         ));
 
     public
+        .merge(auth_sensitive)
         .merge(protected)
         .with_state(state.clone())
         .layer(DefaultBodyLimit::max(1_048_576))
         .layer(middleware::from_fn_with_state(state, observe_request))
+        .layer(rate_limit_layer(120, std::time::Duration::from_millis(200)))
+        .layer(cors_layer())
 }
 
 async fn observe_request(State(state): State<AppState>, request: Request, next: Next) -> Response {
@@ -464,6 +606,10 @@ struct AuthRegisterRequest {
     email: String,
     display_name: String,
     password: String,
+    /// A customer must belong to the logistics company whose deliveries it
+    /// creates.  Keeping this optional preserves the public API's historic
+    /// account-only behaviour, while browser sign-in uses the tenant value.
+    tenant_slug: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -487,10 +633,82 @@ struct AuthResponse {
 }
 
 #[derive(Deserialize)]
+struct OtpRequestRequest {
+    tenant_slug: String,
+    phone: String,
+}
+
+#[derive(Serialize)]
+struct OtpRequestResponse {
+    status: &'static str,
+    /// Only populated when running on in-memory (local/dev) storage, where
+    /// there is no real SMS provider to deliver the code out-of-band. Always
+    /// `null` on PostgreSQL-backed (production) deployments; see
+    /// BACKEND_BACKLOG.md for the SMS-provider integration gap.
+    dev_code: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct OtpVerifyRequest {
+    tenant_slug: String,
+    phone: String,
+    code: String,
+}
+
+#[derive(Deserialize)]
 struct BrowserLoginRequest {
     email: String,
     password: String,
     tenant_slug: String,
+}
+
+#[derive(Deserialize)]
+struct ProvisionCourierRequest {
+    email: String,
+    display_name: String,
+    password: String,
+    vehicle: String,
+}
+
+#[derive(Deserialize)]
+struct ProvisionCustomerRequest {
+    email: String,
+    display_name: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+struct InitialSetupRequest {
+    setup_token: Option<String>,
+    tenant_name: String,
+    tenant_slug: String,
+    admin_email: String,
+    admin_name: String,
+    admin_password: String,
+}
+
+#[derive(Deserialize)]
+struct ProvisionTenantRequest {
+    tenant_name: String,
+    tenant_slug: String,
+    admin_email: String,
+    admin_name: String,
+    admin_password: String,
+}
+
+#[derive(Deserialize)]
+struct ProvisionCompanyAdminRequest {
+    email: String,
+    display_name: String,
+    password: String,
+}
+
+struct TenantAndAdminInput {
+    tenant_name: String,
+    tenant_slug: String,
+    admin_email: String,
+    admin_name: String,
+    admin_password: String,
 }
 
 #[derive(Deserialize)]
@@ -499,6 +717,10 @@ struct CompleteDeliveryRequest {
     qr_barcode_verified: bool,
     digital_signature_base64: Option<String>,
     photo_evidence_url: Option<String>,
+    /// Set by the courier when the order's chosen payment method is cash
+    /// and the amount was physically collected on drop-off.
+    #[serde(default)]
+    payment_collected: bool,
 }
 
 #[derive(Deserialize)]
@@ -511,6 +733,7 @@ struct CreateCustomerAddressRequest {
 
 async fn browser_login(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(request): Json<BrowserLoginRequest>,
 ) -> Result<(HeaderMap, StatusCode), ApiError> {
     let user = state
@@ -532,7 +755,10 @@ async fn browser_login(
         return Err(invalid_credentials());
     }
     let session = issue_session(&state, user.id, tenant.id, user.role).await?;
-    Ok((browser_session_headers(&session), StatusCode::NO_CONTENT))
+    Ok((
+        browser_session_headers(&session, cookies_require_secure_transport(&headers)),
+        StatusCode::NO_CONTENT,
+    ))
 }
 
 async fn auth_register(
@@ -541,6 +767,16 @@ async fn auth_register(
 ) -> Result<StatusCode, ApiError> {
     // A public caller can only become a customer. Tenant membership and every
     // operational role are provisioned by an authenticated tenant administrator.
+    let tenant = match request.tenant_slug.as_deref() {
+        Some(slug) => Some(
+            state
+                .tenants
+                .find_by_slug(&tenant_slug(slug.to_string())?)
+                .await?
+                .ok_or_else(|| ApiError::unprocessable("tenant was not found"))?,
+        ),
+        None => None,
+    };
     let user = state
         .auth
         .register(
@@ -551,7 +787,207 @@ async fn auth_register(
         )
         .await?;
     state.customers.create_profile(user.id).await?;
+    if let Some(tenant) = tenant {
+        state
+            .tenants
+            .add_member(&TenantMembership {
+                tenant_id: tenant.id,
+                user_id: user.id,
+                role: TenantMemberRole::Member,
+                joined_at: Utc::now(),
+            })
+            .await?;
+    }
     Ok(StatusCode::CREATED)
+}
+
+async fn initial_setup_status(State(state): State<AppState>) -> Result<Json<Value>, ApiError> {
+    let required = !state.tenants.has_any_tenant().await?;
+    Ok(Json(json!({
+        "initial_setup_required": required,
+        "setup_token_required": required && state.storage_backend == crate::state::StorageBackend::Postgres,
+    })))
+}
+
+async fn initialize_platform(
+    State(state): State<AppState>,
+    Json(request): Json<InitialSetupRequest>,
+) -> Result<(StatusCode, Json<Value>), ApiError> {
+    if state.tenants.has_any_tenant().await? {
+        return Err(ApiError {
+            status: StatusCode::CONFLICT,
+            detail: "initial platform setup has already been completed".into(),
+        });
+    }
+    if state.storage_backend == crate::state::StorageBackend::Postgres {
+        let expected = state
+            .initial_setup_token
+            .as_deref()
+            .ok_or_else(|| ApiError {
+                status: StatusCode::SERVICE_UNAVAILABLE,
+                detail: "QERVON_INITIAL_SETUP_TOKEN is required for PostgreSQL initial setup"
+                    .into(),
+            })?;
+        if request.setup_token.as_deref() != Some(expected) {
+            return Err(ApiError {
+                status: StatusCode::FORBIDDEN,
+                detail: "initial setup token is invalid".into(),
+            });
+        }
+    }
+    let (tenant, admin) = create_tenant_with_admin(
+        &state,
+        TenantAndAdminInput {
+            tenant_name: request.tenant_name,
+            tenant_slug: request.tenant_slug,
+            admin_email: request.admin_email,
+            admin_name: request.admin_name,
+            admin_password: request.admin_password,
+        },
+        UserRole::SuperAdmin,
+        TenantMemberRole::Owner,
+    )
+    .await?;
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({
+            "tenant_id": tenant.0.id.0,
+            "tenant_slug": tenant.1,
+            "admin_id": admin.id.0,
+            "admin_role": "super_admin",
+        })),
+    ))
+}
+
+async fn provision_tenant(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<ProvisionTenantRequest>,
+) -> Result<(StatusCode, Json<Value>), ApiError> {
+    if claims.role != UserRole::SuperAdmin {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only platform administrators can create tenants".into(),
+        });
+    }
+    let (tenant, admin) = create_tenant_with_admin(
+        &state,
+        TenantAndAdminInput {
+            tenant_name: request.tenant_name,
+            tenant_slug: request.tenant_slug,
+            admin_email: request.admin_email,
+            admin_name: request.admin_name,
+            admin_password: request.admin_password,
+        },
+        UserRole::Admin,
+        TenantMemberRole::Owner,
+    )
+    .await?;
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({
+            "tenant_id": tenant.0.id.0,
+            "tenant_slug": tenant.1,
+            "admin_id": admin.id.0,
+            "admin_role": "admin",
+        })),
+    ))
+}
+
+async fn provision_company_admin(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<ProvisionCompanyAdminRequest>,
+) -> Result<(StatusCode, Json<qervon_api_contracts::UserResponse>), ApiError> {
+    if !matches!(claims.role, UserRole::SuperAdmin | UserRole::Admin) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only tenant administrators can provision tenant administrators".into(),
+        });
+    }
+    let user = state
+        .auth
+        .register(
+            request.email,
+            request.display_name,
+            request.password,
+            UserRole::Admin,
+        )
+        .await?;
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id: TenantId(claims.tenant_id),
+            user_id: user.id,
+            role: TenantMemberRole::Admin,
+            joined_at: Utc::now(),
+        })
+        .await?;
+    Ok((StatusCode::CREATED, Json((&user).into())))
+}
+
+fn tenant_slug(value: String) -> Result<String, ApiError> {
+    let value = value.trim().to_ascii_lowercase();
+    let valid = (3..=63).contains(&value.len())
+        && !value.starts_with('-')
+        && !value.ends_with('-')
+        && value.bytes().all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == b'-'
+        });
+    if valid {
+        Ok(value)
+    } else {
+        Err(ApiError::unprocessable(
+            "tenant slug must be 3-63 lowercase letters, digits, or hyphens",
+        ))
+    }
+}
+
+async fn create_tenant_with_admin(
+    state: &AppState,
+    input: TenantAndAdminInput,
+    admin_role: UserRole,
+    membership_role: TenantMemberRole,
+) -> Result<((TenantCompany, String), qervon_domain::User), ApiError> {
+    let slug = tenant_slug(input.tenant_slug)?;
+    let tenant_name = input.tenant_name.trim();
+    if !(2..=160).contains(&tenant_name.len()) {
+        return Err(ApiError::unprocessable(
+            "tenant name must be 2-160 characters",
+        ));
+    }
+    if state.tenants.find_by_slug(&slug).await?.is_some() {
+        return Err(ApiError {
+            status: StatusCode::CONFLICT,
+            detail: "tenant slug already exists".into(),
+        });
+    }
+    let tenant = TenantCompany {
+        id: TenantId::new(),
+        company_name: tenant_name.to_string(),
+        category: "Logistics".into(),
+        created_at: Utc::now(),
+    };
+    state.tenants.create_tenant(&tenant, &slug).await?;
+    let admin = state
+        .auth
+        .register(
+            input.admin_email,
+            input.admin_name,
+            input.admin_password,
+            admin_role,
+        )
+        .await?;
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id: tenant.id,
+            user_id: admin.id,
+            role: membership_role,
+            joined_at: Utc::now(),
+        })
+        .await?;
+    Ok(((tenant, slug), admin))
 }
 
 async fn auth_login(
@@ -568,6 +1004,70 @@ async fn auth_login(
         .find_by_slug(&request.tenant_slug)
         .await?
         .ok_or_else(invalid_credentials)?;
+    if state
+        .tenants
+        .find_membership(tenant.id, user.id)
+        .await?
+        .is_none()
+    {
+        return Err(invalid_credentials());
+    }
+    Ok(Json(
+        issue_session(&state, user.id, tenant.id, user.role).await?,
+    ))
+}
+
+async fn auth_otp_request(
+    State(state): State<AppState>,
+    Json(request): Json<OtpRequestRequest>,
+) -> Result<Json<OtpRequestResponse>, ApiError> {
+    let tenant = state
+        .tenants
+        .find_by_slug(&request.tenant_slug)
+        .await?
+        .ok_or_else(invalid_credentials)?;
+    let code = state
+        .otp
+        .request_otp(tenant.id, &request.phone)
+        .await
+        .map_err(|_| invalid_credentials())?;
+    let dev_code = match state.storage_backend {
+        crate::state::StorageBackend::Memory => {
+            tracing::info!(
+                phone = %request.phone,
+                code = %code,
+                "OTP issued (in-memory/local storage; no SMS provider configured)"
+            );
+            Some(code)
+        }
+        crate::state::StorageBackend::Postgres => {
+            tracing::info!(
+                phone = %request.phone,
+                "OTP issued; SMS delivery is not wired to a provider yet (see BACKEND_BACKLOG.md)"
+            );
+            None
+        }
+    };
+    Ok(Json(OtpRequestResponse {
+        status: "sent",
+        dev_code,
+    }))
+}
+
+async fn auth_otp_verify(
+    State(state): State<AppState>,
+    Json(request): Json<OtpVerifyRequest>,
+) -> Result<Json<AuthResponse>, ApiError> {
+    let tenant = state
+        .tenants
+        .find_by_slug(&request.tenant_slug)
+        .await?
+        .ok_or_else(invalid_credentials)?;
+    let user = state
+        .otp
+        .verify_otp(tenant.id, &request.phone, &request.code)
+        .await
+        .map_err(|_| invalid_credentials())?;
     if state
         .tenants
         .find_membership(tenant.id, user.id)
@@ -626,6 +1126,89 @@ async fn auth_logout(
     StatusCode::NO_CONTENT
 }
 
+/// Returns only the identity data the browser needs to render the current
+/// session state. Tokens remain HTTP-only and are never exposed to the page.
+async fn current_browser_session(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Value>, ApiError> {
+    let user = state.identity.get_user(UserId(claims.subject)).await?;
+    Ok(Json(json!({
+        "display_name": user.display_name,
+        "email": user.email,
+        "role": user.role.as_str(),
+        "tenant_id": claims.tenant_id,
+    })))
+}
+
+#[derive(Deserialize)]
+struct SetPhoneRequest {
+    phone: String,
+}
+
+/// Links a phone number to the signed-in account. Required before this
+/// user can request an OTP login challenge, since `OtpService` resolves
+/// accounts strictly by phone number.
+async fn set_own_phone(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<SetPhoneRequest>,
+) -> Result<Json<qervon_api_contracts::UserResponse>, ApiError> {
+    let user = state
+        .identity
+        .set_user_phone(UserId(claims.subject), request.phone)
+        .await?;
+    Ok(Json((&user).into()))
+}
+
+/// Registers this device for native push delivery (iOS/Android). Re-sending
+/// the same token is idempotent. No APNs/FCM sending is wired up yet — see
+/// BACKEND_BACKLOG.md.
+async fn register_push_device(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<qervon_api_contracts::RegisterPushDeviceRequest>,
+) -> Result<
+    (
+        StatusCode,
+        Json<qervon_api_contracts::DevicePushTokenResponse>,
+    ),
+    ApiError,
+> {
+    let platform = request
+        .platform
+        .parse::<qervon_domain::PushPlatform>()
+        .map_err(|_| ApiError::unprocessable("invalid push platform"))?;
+    let token = state
+        .device_push
+        .register(UserId(claims.subject), platform, request.device_token)
+        .await?;
+    Ok((StatusCode::CREATED, Json((&token).into())))
+}
+
+async fn list_push_devices(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<qervon_api_contracts::DevicePushTokenResponse>>, ApiError> {
+    let tokens = state
+        .device_push
+        .list_for_user(UserId(claims.subject))
+        .await?;
+    Ok(Json(tokens.iter().map(Into::into).collect()))
+}
+
+async fn delete_push_device(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Path(id): Path<uuid::Uuid>,
+) -> Result<StatusCode, ApiError> {
+    state
+        .device_push
+        .unregister(UserId(claims.subject), id)
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 async fn browser_refresh(
     State(state): State<AppState>,
     headers: HeaderMap,
@@ -660,7 +1243,10 @@ async fn browser_refresh(
     }
     state.auth.revoke_refresh_session(session.id).await?;
     let next = issue_session(&state, user.id, session.tenant_id, user.role).await?;
-    Ok((browser_session_headers(&next), StatusCode::NO_CONTENT))
+    Ok((
+        browser_session_headers(&next, cookies_require_secure_transport(&headers)),
+        StatusCode::NO_CONTENT,
+    ))
 }
 
 async fn browser_logout(
@@ -682,20 +1268,51 @@ async fn browser_logout(
             let _ = state.auth.revoke_refresh_session(session.id).await;
         }
     }
-    Ok((expired_browser_session_headers(), StatusCode::NO_CONTENT))
+    Ok((
+        expired_browser_session_headers(cookies_require_secure_transport(&headers)),
+        StatusCode::NO_CONTENT,
+    ))
 }
 
-fn browser_session_headers(session: &AuthResponse) -> HeaderMap {
+fn cookies_require_secure_transport(headers: &HeaderMap) -> bool {
+    if headers
+        .get("x-forwarded-proto")
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.eq_ignore_ascii_case("https"))
+    {
+        return true;
+    }
+    !headers
+        .get(header::HOST)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|host| {
+            host.starts_with("localhost:")
+                || host == "localhost"
+                || host.starts_with("127.0.0.1:")
+                || host == "127.0.0.1"
+                || host.starts_with("[::1]:")
+                || host == "[::1]"
+        })
+}
+
+fn browser_session_headers(session: &AuthResponse, secure: bool) -> HeaderMap {
     let csrf = new_refresh_token();
     let mut headers = HeaderMap::new();
+    let secure_attribute = if secure { "; Secure" } else { "" };
     let access = format!(
-        "qervon_access_token={}; Path=/; Max-Age={}; HttpOnly; SameSite=Lax; Secure",
-        session.access_token, session.expires_in_seconds
+        "qervon_access_token={}; Path=/; Max-Age={}; HttpOnly; SameSite=Lax{}",
+        session.access_token, session.expires_in_seconds, secure_attribute
     );
-    let refresh = format!("qervon_refresh_token={}; Path=/v1/browser/auth; Max-Age={}; HttpOnly; SameSite=Strict; Secure", session.refresh_token, 60 * 60 * 24 * 30);
+    let refresh = format!(
+        "qervon_refresh_token={}; Path=/v1/browser/auth; Max-Age={}; HttpOnly; SameSite=Strict{}",
+        session.refresh_token,
+        60 * 60 * 24 * 30,
+        secure_attribute
+    );
     let csrf_cookie = format!(
-        "qervon_csrf_token={csrf}; Path=/; Max-Age={}; SameSite=Strict; Secure",
-        60 * 60 * 24 * 30
+        "qervon_csrf_token={csrf}; Path=/; Max-Age={}; SameSite=Strict{}",
+        60 * 60 * 24 * 30,
+        secure_attribute
     );
     for value in [access, refresh, csrf_cookie] {
         headers.append(
@@ -706,14 +1323,18 @@ fn browser_session_headers(session: &AuthResponse) -> HeaderMap {
     headers
 }
 
-fn expired_browser_session_headers() -> HeaderMap {
+fn expired_browser_session_headers(secure: bool) -> HeaderMap {
     let mut headers = HeaderMap::new();
+    let secure_attribute = if secure { "; Secure" } else { "" };
     for value in [
-        "qervon_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Secure",
-        "qervon_refresh_token=; Path=/v1/browser/auth; Max-Age=0; HttpOnly; SameSite=Strict; Secure",
-        "qervon_csrf_token=; Path=/; Max-Age=0; SameSite=Strict; Secure",
+        format!("qervon_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax{secure_attribute}"),
+        format!("qervon_refresh_token=; Path=/v1/browser/auth; Max-Age=0; HttpOnly; SameSite=Strict{secure_attribute}"),
+        format!("qervon_csrf_token=; Path=/; Max-Age=0; SameSite=Strict{secure_attribute}"),
     ] {
-        headers.append(header::SET_COOKIE, HeaderValue::from_static(value));
+        headers.append(
+            header::SET_COOKIE,
+            HeaderValue::from_str(&value).expect("cookie header is valid"),
+        );
     }
     headers
 }
@@ -799,6 +1420,10 @@ async fn serve_customer_portal() -> axum::response::Html<&'static str> {
 
 async fn serve_login() -> axum::response::Html<&'static str> {
     axum::response::Html(include_str!("../static/login.html"))
+}
+
+async fn serve_setup() -> axum::response::Html<&'static str> {
+    axum::response::Html(include_str!("../static/setup.html"))
 }
 
 async fn health() -> Json<Value> {
@@ -901,6 +1526,88 @@ async fn register_user(
     Ok((StatusCode::CREATED, Json((&user).into())))
 }
 
+async fn provision_courier(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<ProvisionCourierRequest>,
+) -> Result<(StatusCode, Json<CourierResponse>), ApiError> {
+    if !matches!(claims.role, UserRole::SuperAdmin | UserRole::Admin) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only tenant administrators can provision couriers".into(),
+        });
+    }
+    let vehicle = request
+        .vehicle
+        .parse::<VehicleType>()
+        .map_err(|_| ApiError::unprocessable("invalid vehicle type"))?;
+    let user = state
+        .auth
+        .register(
+            request.email,
+            request.display_name.clone(),
+            request.password,
+            UserRole::Courier,
+        )
+        .await?;
+    let tenant_id = TenantId(claims.tenant_id);
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id,
+            user_id: user.id,
+            role: TenantMemberRole::Member,
+            joined_at: Utc::now(),
+        })
+        .await?;
+    let courier = state
+        .couriers
+        .register_courier(RegisterCourierInput {
+            id: user.id.0,
+            name: request.display_name,
+            vehicle,
+        })
+        .await?;
+    state.tenants.bind_courier(tenant_id, courier.id).await?;
+    Ok((StatusCode::CREATED, Json((&courier).into())))
+}
+
+/// Creates a customer account inside the caller's tenant.  Customers get a
+/// profile and a tenant membership in one operation, so the customer portals
+/// can immediately authenticate and create tenant-scoped orders.
+async fn provision_customer(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<ProvisionCustomerRequest>,
+) -> Result<(StatusCode, Json<qervon_api_contracts::UserResponse>), ApiError> {
+    if !matches!(claims.role, UserRole::SuperAdmin | UserRole::Admin) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only tenant administrators can provision customers".into(),
+        });
+    }
+    let user = state
+        .auth
+        .register(
+            request.email,
+            request.display_name,
+            request.password,
+            UserRole::Customer,
+        )
+        .await?;
+    state.customers.create_profile(user.id).await?;
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id: TenantId(claims.tenant_id),
+            user_id: user.id,
+            role: TenantMemberRole::Member,
+            joined_at: Utc::now(),
+        })
+        .await?;
+    Ok((StatusCode::CREATED, Json((&user).into())))
+}
+
 async fn register_courier(
     State(state): State<AppState>,
     claims: Option<Extension<AccessClaims>>,
@@ -946,6 +1653,140 @@ async fn list_couriers(
     Ok(Json(response))
 }
 
+async fn register_vehicle(
+    State(state): State<AppState>,
+    claims: Option<Extension<AccessClaims>>,
+    Json(request): Json<qervon_api_contracts::RegisterVehicleRequest>,
+) -> Result<(StatusCode, Json<qervon_api_contracts::VehicleResponse>), ApiError> {
+    let vehicle_type: VehicleType = request
+        .vehicle_type
+        .parse()
+        .map_err(|_| ApiError::unprocessable("invalid vehicle type"))?;
+    let vehicle = state
+        .fleet
+        .register_vehicle(qervon_application::RegisterVehicleInput {
+            plate_number: request.plate_number,
+            vehicle_type,
+            insurance_expiry: request.insurance_expiry,
+        })
+        .await?;
+    if let Some(Extension(claims)) = claims {
+        state
+            .tenants
+            .bind_vehicle(TenantId(claims.tenant_id), vehicle.id)
+            .await?;
+    }
+    Ok((StatusCode::CREATED, Json((&vehicle).into())))
+}
+
+async fn list_vehicles(
+    State(state): State<AppState>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<Vec<qervon_api_contracts::VehicleResponse>>, ApiError> {
+    let vehicles = state.fleet.list_active_vehicles().await?;
+    let mut response = Vec::new();
+    for vehicle in vehicles {
+        if let Some(Extension(claims)) = &claims {
+            if state.tenants.find_vehicle_tenant(vehicle.id).await?
+                != Some(TenantId(claims.tenant_id))
+            {
+                continue;
+            }
+        }
+        response.push(qervon_api_contracts::VehicleResponse::from(&vehicle));
+    }
+    Ok(Json(response))
+}
+
+async fn require_vehicle_tenant(
+    state: &AppState,
+    vehicle_id: VehicleId,
+    claims: Option<&Extension<AccessClaims>>,
+) -> Result<(), ApiError> {
+    let Some(Extension(claims)) = claims else {
+        return Ok(());
+    };
+    if state.tenants.find_vehicle_tenant(vehicle_id).await? != Some(TenantId(claims.tenant_id)) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "vehicle does not belong to this tenant".into(),
+        });
+    }
+    Ok(())
+}
+
+async fn get_vehicle(
+    State(state): State<AppState>,
+    Path(vehicle_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<qervon_api_contracts::VehicleResponse>, ApiError> {
+    let vehicle_id = VehicleId(vehicle_id);
+    require_vehicle_tenant(&state, vehicle_id, claims.as_ref()).await?;
+    let vehicle = state.fleet.get_vehicle(vehicle_id).await?;
+    Ok(Json((&vehicle).into()))
+}
+
+async fn assign_vehicle(
+    State(state): State<AppState>,
+    Path(vehicle_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+    Json(request): Json<qervon_api_contracts::AssignVehicleRequest>,
+) -> Result<Json<qervon_api_contracts::VehicleResponse>, ApiError> {
+    let vehicle_id = VehicleId(vehicle_id);
+    require_vehicle_tenant(&state, vehicle_id, claims.as_ref()).await?;
+    if let Some(Extension(claims)) = &claims {
+        if state
+            .tenants
+            .find_courier_tenant(request.courier_id)
+            .await?
+            != Some(TenantId(claims.tenant_id))
+        {
+            return Err(ApiError {
+                status: StatusCode::FORBIDDEN,
+                detail: "courier does not belong to this tenant".into(),
+            });
+        }
+    }
+    let vehicle = state
+        .fleet
+        .assign_courier(vehicle_id, request.courier_id)
+        .await?;
+    Ok(Json((&vehicle).into()))
+}
+
+async fn send_vehicle_to_maintenance(
+    State(state): State<AppState>,
+    Path(vehicle_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<qervon_api_contracts::VehicleResponse>, ApiError> {
+    let vehicle_id = VehicleId(vehicle_id);
+    require_vehicle_tenant(&state, vehicle_id, claims.as_ref()).await?;
+    let vehicle = state.fleet.send_to_maintenance(vehicle_id).await?;
+    Ok(Json((&vehicle).into()))
+}
+
+async fn activate_vehicle(
+    State(state): State<AppState>,
+    Path(vehicle_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<qervon_api_contracts::VehicleResponse>, ApiError> {
+    let vehicle_id = VehicleId(vehicle_id);
+    require_vehicle_tenant(&state, vehicle_id, claims.as_ref()).await?;
+    let vehicle = state.fleet.activate(vehicle_id).await?;
+    Ok(Json((&vehicle).into()))
+}
+
+async fn decommission_vehicle(
+    State(state): State<AppState>,
+    Path(vehicle_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<qervon_api_contracts::VehicleResponse>, ApiError> {
+    let vehicle_id = VehicleId(vehicle_id);
+    require_vehicle_tenant(&state, vehicle_id, claims.as_ref()).await?;
+    let vehicle = state.fleet.decommission(vehicle_id).await?;
+    Ok(Json((&vehicle).into()))
+}
+
 async fn update_courier_location(
     State(state): State<AppState>,
     Path(courier_id): Path<uuid::Uuid>,
@@ -981,7 +1822,7 @@ async fn persist_courier_location(
     request: UpdateLocationRequest,
 ) -> Result<Json<CourierResponse>, ApiError> {
     let location = Location::new(request.latitude, request.longitude)?;
-    state
+    let recorded_point = state
         .tracking
         .record_location(courier_id, location, request.speed_kmh, request.battery_pct)
         .await?;
@@ -997,6 +1838,8 @@ async fn persist_courier_location(
         latitude: request.latitude,
         longitude: request.longitude,
         timestamp: chrono::Utc::now(),
+        fraud_flagged: recorded_point.fraud_flagged,
+        fraud_risk_score: recorded_point.fraud_risk_score,
     };
     state.publish_location(event).await.map_err(|error| {
         ApiError::unprocessable(format!("could not relay courier location: {error}"))
@@ -1012,6 +1855,188 @@ async fn get_own_courier(
     require_courier_subject(&state, &claims).await?;
     let courier = state.couriers.get_courier(claims.subject).await?;
     Ok(Json((&courier).into()))
+}
+
+/// Default currency for a wallet that has not received any transactions
+/// yet. Qervon does not currently model a per-tenant default currency, so
+/// this matches the currency used throughout the rest of the vertical slice
+/// (order fares, invoices, payouts).
+const DEFAULT_WALLET_CURRENCY: &str = "TRY";
+
+async fn get_own_wallet(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<qervon_api_contracts::CourierWalletResponse>, ApiError> {
+    require_courier_subject(&state, &claims).await?;
+    let wallet = state
+        .courier_wallets
+        .get_wallet(claims.subject, DEFAULT_WALLET_CURRENCY)
+        .await?;
+    Ok(Json((&wallet).into()))
+}
+
+async fn get_courier_wallet(
+    State(state): State<AppState>,
+    Path(courier_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<qervon_api_contracts::CourierWalletResponse>, ApiError> {
+    if let Some(Extension(claims)) = &claims {
+        if state.tenants.find_courier_tenant(courier_id).await? != Some(TenantId(claims.tenant_id))
+        {
+            return Err(ApiError {
+                status: StatusCode::FORBIDDEN,
+                detail: "courier does not belong to this tenant".into(),
+            });
+        }
+    }
+    let wallet = state
+        .courier_wallets
+        .get_wallet(courier_id, DEFAULT_WALLET_CURRENCY)
+        .await?;
+    Ok(Json((&wallet).into()))
+}
+
+async fn list_courier_ratings(
+    State(state): State<AppState>,
+    Path(courier_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<Vec<qervon_api_contracts::CustomerRatingResponse>>, ApiError> {
+    if let Some(Extension(claims)) = &claims {
+        if state.tenants.find_courier_tenant(courier_id).await? != Some(TenantId(claims.tenant_id))
+        {
+            return Err(ApiError {
+                status: StatusCode::FORBIDDEN,
+                detail: "courier does not belong to this tenant".into(),
+            });
+        }
+    }
+    let ratings = state.ratings.list_for_courier(courier_id).await?;
+    Ok(Json(ratings.iter().map(Into::into).collect()))
+}
+
+async fn list_own_ratings(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<qervon_api_contracts::CustomerRatingResponse>>, ApiError> {
+    require_courier_subject(&state, &claims).await?;
+    let ratings = state.ratings.list_for_courier(claims.subject).await?;
+    Ok(Json(ratings.iter().map(Into::into).collect()))
+}
+
+/// Polled by the courier app (no push mechanism offers jobs today) to
+/// discover a pending job offer. Returns `null` when there is none — a
+/// normal, expected state, not an error. If this courier's own offer was
+/// just found to have expired, attempts to re-offer the order to the
+/// next-best candidate in the same tenant (see `reoffer_for_tenant`) before
+/// responding — the re-offer cascade's only trigger points are this poll
+/// and `reject_courier_offer` below, since expiry is discovered lazily
+/// rather than by a background sweep (see QAS-000003).
+async fn get_own_pending_offer(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Option<qervon_api_contracts::PendingOfferResponse>>, ApiError> {
+    require_courier_subject(&state, &claims).await?;
+    match state
+        .dispatch
+        .find_pending_offer_or_expiry(claims.subject)
+        .await?
+    {
+        qervon_application::PendingOfferLookup::Active(assignment, order) => Ok(Json(Some(
+            qervon_api_contracts::PendingOfferResponse::new(&assignment, &order),
+        ))),
+        qervon_application::PendingOfferLookup::None => Ok(Json(None)),
+        qervon_application::PendingOfferLookup::JustExpired(assignment) => {
+            let _ = reoffer_for_tenant(
+                &state,
+                assignment.order_id,
+                TenantId(claims.tenant_id),
+                &assignment.excluded_including_self(),
+            )
+            .await;
+            Ok(Json(None))
+        }
+    }
+}
+
+async fn accept_courier_offer(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<OrderResponse>, ApiError> {
+    require_courier_subject(&state, &claims).await?;
+    let order = state
+        .dispatch
+        .accept_offer(OrderId(order_id), claims.subject)
+        .await?;
+    Ok(Json((&order).into()))
+}
+
+/// Rejects a pending job offer, then attempts to re-offer the same order to
+/// the next-best candidate in the same tenant (see `reoffer_for_tenant`) —
+/// the courier who just rejected never sees the outcome of that cascade
+/// step; whichever courier it lands on discovers it on their own next poll
+/// of `GET /v1/courier/me/offer`.
+async fn reject_courier_offer(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<StatusCode, ApiError> {
+    require_courier_subject(&state, &claims).await?;
+    let rejected = state
+        .dispatch
+        .reject_offer(OrderId(order_id), claims.subject)
+        .await?;
+    let _ = reoffer_for_tenant(
+        &state,
+        rejected.order_id,
+        TenantId(claims.tenant_id),
+        &rejected.excluded_including_self(),
+    )
+    .await;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+fn tenant_context_required() -> ApiError {
+    ApiError {
+        status: StatusCode::FORBIDDEN,
+        detail: "coupons require a tenant-scoped session".into(),
+    }
+}
+
+async fn create_coupon(
+    State(state): State<AppState>,
+    claims: Option<Extension<AccessClaims>>,
+    Json(request): Json<qervon_api_contracts::CreateCouponRequest>,
+) -> Result<(StatusCode, Json<qervon_api_contracts::CouponResponse>), ApiError> {
+    let Some(Extension(claims)) = claims else {
+        return Err(tenant_context_required());
+    };
+    let coupon = state
+        .coupons
+        .create_coupon(
+            TenantId(claims.tenant_id),
+            request.code,
+            request.discount_percent,
+            request.max_discount_minor,
+            request.valid_until,
+            request.usage_limit,
+        )
+        .await?;
+    Ok((StatusCode::CREATED, Json((&coupon).into())))
+}
+
+async fn list_coupons(
+    State(state): State<AppState>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<Vec<qervon_api_contracts::CouponResponse>>, ApiError> {
+    let Some(Extension(claims)) = claims else {
+        return Err(tenant_context_required());
+    };
+    let coupons = state
+        .coupons
+        .list_for_tenant(TenantId(claims.tenant_id))
+        .await?;
+    Ok(Json(coupons.iter().map(Into::into).collect()))
 }
 
 async fn set_own_courier_availability(
@@ -1046,7 +2071,9 @@ async fn list_courier_orders(
         if order.assigned_courier_id != Some(claims.subject)
             || matches!(
                 order.status,
-                qervon_domain::OrderStatus::Delivered | qervon_domain::OrderStatus::Cancelled
+                qervon_domain::OrderStatus::Delivered
+                    | qervon_domain::OrderStatus::Cancelled
+                    | qervon_domain::OrderStatus::Returned
             )
         {
             continue;
@@ -1094,15 +2121,158 @@ async fn courier_deliver_order(
         request.photo_evidence_url,
     )?;
     let order = if state.postgres_pool.is_some() {
-        complete_delivery_atomically(&state, order_id, &proof, claims.tenant_id).await?
+        complete_delivery_atomically(
+            &state,
+            order_id,
+            &proof,
+            claims.tenant_id,
+            request.payment_collected,
+        )
+        .await?
     } else {
-        let order = state.dispatch.deliver_order(order_id).await?;
+        let mut order = state.dispatch.deliver_order(order_id).await?;
         state.proofs_of_delivery.create(&proof).await?;
         create_delivery_financial_records(&state, &order).await?;
         enqueue_delivery_outbox_event(&state, &order, claims.tenant_id).await?;
+        if request.payment_collected {
+            order = state.orders.mark_payment_collected(order_id).await?;
+        }
         order
     };
     Ok(Json((&order).into()))
+}
+
+const MAX_UPLOAD_BYTES: usize = 8 * 1024 * 1024;
+
+#[derive(serde::Serialize, utoipa::ToSchema)]
+struct UploadedFileResponse {
+    /// Pass this back as `photo_evidence_url` on
+    /// `POST /v1/courier/orders/{id}/deliver`.
+    url: String,
+}
+
+/// Accepts a single-file multipart upload (JPEG or PNG) of a delivery-proof
+/// photo for `order_id` and saves it to local disk under
+/// `AppState.uploads_dir`, returning the URL to pass back as
+/// `photo_evidence_url` on the deliver request.
+///
+/// This is real, working persistence — but local-filesystem, not a cloud
+/// object store (no such credential exists in this environment). The
+/// uploads directory must be a persistent, backed-up path in production
+/// (see the deployment runbook); see BACKEND_BACKLOG.md for what a future
+/// S3-compatible swap would look like.
+async fn upload_delivery_photo(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+    mut multipart: axum::extract::Multipart,
+) -> Result<Json<UploadedFileResponse>, ApiError> {
+    let order_id = OrderId(order_id);
+    require_courier_order(&state, order_id, &claims).await?;
+
+    let mut saved: Option<(std::path::PathBuf, String)> = None;
+    loop {
+        let field = multipart
+            .next_field()
+            .await
+            .map_err(|_| ApiError::unprocessable("invalid multipart upload body"))?;
+        let Some(field) = field else { break };
+        let extension = match field.content_type() {
+            Some("image/jpeg") => "jpg",
+            Some("image/png") => "png",
+            _ => continue,
+        };
+        let bytes = field
+            .bytes()
+            .await
+            .map_err(|_| ApiError::unprocessable("failed to read uploaded file"))?;
+        if bytes.is_empty() {
+            continue;
+        }
+        if bytes.len() > MAX_UPLOAD_BYTES {
+            return Err(ApiError::unprocessable(
+                "uploaded file exceeds the 8 MB limit",
+            ));
+        }
+        let dir = state
+            .uploads_dir
+            .join("delivery-photos")
+            .join(order_id.0.to_string());
+        tokio::fs::create_dir_all(&dir)
+            .await
+            .map_err(|_| ApiError {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                detail: "could not create upload directory".into(),
+            })?;
+        let filename = format!("{}.{extension}", uuid::Uuid::now_v7());
+        let path = dir.join(&filename);
+        tokio::fs::write(&path, &bytes)
+            .await
+            .map_err(|_| ApiError {
+                status: StatusCode::INTERNAL_SERVER_ERROR,
+                detail: "could not save uploaded file".into(),
+            })?;
+        saved = Some((path, filename));
+        break;
+    }
+
+    let Some((_, filename)) = saved else {
+        return Err(ApiError::unprocessable(
+            "no image file provided (expected a multipart field with content-type image/jpeg or image/png)",
+        ));
+    };
+    Ok(Json(UploadedFileResponse {
+        url: format!("/v1/uploads/delivery-photos/{}/{filename}", order_id.0),
+    }))
+}
+
+/// Serves a previously uploaded delivery-proof photo. Gated the same way
+/// the order it belongs to is: the caller must be a signed-in member of the
+/// tenant that owns that order.
+async fn serve_upload(
+    State(state): State<AppState>,
+    Path(path): Path<String>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Response, ApiError> {
+    let mut segments = path.splitn(3, '/');
+    let (Some("delivery-photos"), Some(order_id_str), Some(filename)) =
+        (segments.next(), segments.next(), segments.next())
+    else {
+        return Err(ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "upload not found".into(),
+        });
+    };
+    let not_found = || ApiError {
+        status: StatusCode::NOT_FOUND,
+        detail: "upload not found".into(),
+    };
+    let order_id = OrderId(
+        order_id_str
+            .parse::<uuid::Uuid>()
+            .map_err(|_| not_found())?,
+    );
+    require_order_tenant(&state, order_id, Some(&Extension(claims))).await?;
+
+    // Reject any filename containing a path separator or parent-directory
+    // reference before joining it onto a trusted base path — the order id
+    // segment above is already validated as a real UUID, but the filename
+    // segment is still attacker-influenced input at this point.
+    if filename.contains('/') || filename.contains("..") {
+        return Err(not_found());
+    }
+    let path = state
+        .uploads_dir
+        .join("delivery-photos")
+        .join(order_id.0.to_string())
+        .join(filename);
+    let bytes = tokio::fs::read(&path).await.map_err(|_| not_found())?;
+    let content_type = if filename.ends_with(".png") {
+        "image/png"
+    } else {
+        "image/jpeg"
+    };
+    Ok(([(header::CONTENT_TYPE, content_type)], bytes).into_response())
 }
 
 /// Commits every durable delivery side effect, including the webhook outbox row,
@@ -1113,6 +2283,7 @@ async fn complete_delivery_atomically(
     order_id: OrderId,
     proof: &qervon_domain::ProofOfDeliveryRecord,
     tenant_id: uuid::Uuid,
+    payment_collected: bool,
 ) -> Result<qervon_domain::Order, ApiError> {
     let pool = state
         .postgres_pool
@@ -1120,6 +2291,9 @@ async fn complete_delivery_atomically(
         .expect("PostgreSQL pool checked before atomic delivery");
     let mut order = state.orders.get_order(order_id).await?;
     order.deliver(Utc::now())?;
+    if payment_collected {
+        order.mark_payment_collected()?;
+    }
     let courier_id = order
         .assigned_courier_id
         .ok_or_else(|| ApiError::unprocessable("delivered order has no assigned courier"))?;
@@ -1128,10 +2302,12 @@ async fn complete_delivery_atomically(
     })?;
 
     sqlx::query(
-        "UPDATE orders.orders SET status = 'delivered', delivered_at = $2 WHERE id = $1 AND status = 'in_transit'",
+        "UPDATE orders.orders SET status = 'delivered', delivered_at = $2, payment_collected = $3 \
+         WHERE id = $1 AND status = 'in_transit'",
     )
     .bind(order.id.0)
     .bind(order.delivered_at)
+    .bind(order.payment_collected)
     .execute(&mut *transaction)
     .await
     .map_err(|error| ApiError::unprocessable(format!("could not complete order: {error}")))?
@@ -1177,6 +2353,44 @@ async fn complete_delivery_atomically(
     .execute(&mut *transaction)
     .await
     .map_err(|error| ApiError::unprocessable(format!("could not issue invoice: {error}")))?;
+    sqlx::query(
+        "INSERT INTO billing.courier_wallets \
+         (courier_id, balance_minor, total_earned_minor, total_bonus_minor, total_penalties_minor, currency) \
+         VALUES ($1, 0, 0, 0, 0, $2) ON CONFLICT (courier_id) DO NOTHING",
+    )
+    .bind(courier_id)
+    .bind(&order.fare.currency)
+    .execute(&mut *transaction)
+    .await
+    .map_err(|error| ApiError::unprocessable(format!("could not initialize courier wallet: {error}")))?;
+    sqlx::query(
+        "UPDATE billing.courier_wallets \
+         SET balance_minor = balance_minor + $2, total_earned_minor = total_earned_minor + $2 \
+         WHERE courier_id = $1",
+    )
+    .bind(courier_id)
+    .bind(order.fare.amount_minor)
+    .execute(&mut *transaction)
+    .await
+    .map_err(|error| {
+        ApiError::unprocessable(format!("could not credit courier wallet: {error}"))
+    })?;
+    sqlx::query(
+        "INSERT INTO billing.wallet_transactions \
+         (id, courier_id, transaction_type, amount_minor, currency, description, created_at) \
+         VALUES ($1, $2, 'delivery_earning', $3, $4, $5, $6)",
+    )
+    .bind(uuid::Uuid::now_v7())
+    .bind(courier_id)
+    .bind(order.fare.amount_minor)
+    .bind(&order.fare.currency)
+    .bind(format!("Teslimat Hakedişi: Order #{}", order.id.0))
+    .bind(now)
+    .execute(&mut *transaction)
+    .await
+    .map_err(|error| {
+        ApiError::unprocessable(format!("could not record wallet transaction: {error}"))
+    })?;
     sqlx::query(
         "INSERT INTO notifications.notifications (id, recipient_id, channel, title, body, status, created_at) VALUES ($1,$2,'push',$3,$4,'queued',$5)",
     )
@@ -1255,6 +2469,17 @@ async fn create_delivery_financial_records(
             body: format!("Siparişiniz {} teslim edildi.", order.id.0),
         })
         .await?;
+    if let Some(courier_id) = order.assigned_courier_id {
+        state
+            .courier_wallets
+            .credit_delivery_earning(
+                courier_id,
+                order.fare.amount_minor,
+                &order.fare.currency,
+                &order.id.0.to_string(),
+            )
+            .await?;
+    }
     Ok(())
 }
 
@@ -1301,14 +2526,20 @@ async fn list_live_locations(
             detail: "customers must use order tracking".into(),
         });
     }
-    let locations = state
+    let mut locations = state
         .latest_locations
         .read()
         .map_err(|_| ApiError::unprocessable("live location cache is unavailable"))?
         .values()
         .filter(|event| event.tenant_id == claims.tenant_id)
         .cloned()
-        .collect();
+        .map(|event| (event.courier_id, event))
+        .collect::<HashMap<_, _>>();
+    for event in persisted_live_locations(&state, claims.tenant_id).await? {
+        locations.entry(event.courier_id).or_insert(event);
+    }
+    let mut locations = locations.into_values().collect::<Vec<_>>();
+    locations.sort_by_key(|event| std::cmp::Reverse(event.timestamp));
     Ok(Json(locations))
 }
 
@@ -1334,15 +2565,99 @@ async fn order_tracking(
     let courier_id = order
         .assigned_courier_id
         .ok_or_else(|| ApiError::unprocessable("order does not have an assigned courier"))?;
-    let event = state
+    if let Some(event) = state
         .latest_locations
         .read()
         .map_err(|_| ApiError::unprocessable("live location cache is unavailable"))?
         .get(&courier_id)
         .filter(|event| event.tenant_id == claims.tenant_id)
         .cloned()
+    {
+        return Ok(Json(event));
+    }
+    let event = persisted_location_for_courier(&state, courier_id, claims.tenant_id)
+        .await?
         .ok_or_else(|| ApiError::unprocessable("courier location is not available"))?;
     Ok(Json(event))
+}
+
+async fn persisted_live_locations(
+    state: &AppState,
+    tenant_id: uuid::Uuid,
+) -> Result<Vec<crate::state::LocationUpdateEvent>, ApiError> {
+    let Some(pool) = &state.postgres_pool else {
+        return Ok(Vec::new());
+    };
+    let rows: Vec<(uuid::Uuid, f64, f64, chrono::DateTime<Utc>, bool, f64)> = sqlx::query_as(
+        "SELECT DISTINCT ON (point.courier_id) point.courier_id, point.latitude, point.longitude, \
+         point.recorded_at, point.fraud_flagged, point.fraud_risk_score
+         FROM tracking.location_points point
+         JOIN tenancy.courier_tenants tenant ON tenant.courier_id = point.courier_id
+         WHERE tenant.tenant_id = $1
+         ORDER BY point.courier_id, point.recorded_at DESC",
+    )
+    .bind(tenant_id)
+    .fetch_all(pool)
+    .await
+    .map_err(|error| {
+        ApiError::unprocessable(format!("could not load persisted live locations: {error}"))
+    })?;
+    Ok(rows
+        .into_iter()
+        .map(
+            |(courier_id, latitude, longitude, timestamp, fraud_flagged, fraud_risk_score)| {
+                crate::state::LocationUpdateEvent {
+                    courier_id,
+                    tenant_id,
+                    latitude,
+                    longitude,
+                    timestamp,
+                    fraud_flagged,
+                    fraud_risk_score,
+                }
+            },
+        )
+        .collect())
+}
+
+async fn persisted_location_for_courier(
+    state: &AppState,
+    courier_id: uuid::Uuid,
+    tenant_id: uuid::Uuid,
+) -> Result<Option<crate::state::LocationUpdateEvent>, ApiError> {
+    let Some(pool) = &state.postgres_pool else {
+        return Ok(None);
+    };
+    let row: Option<(f64, f64, chrono::DateTime<Utc>, bool, f64)> = sqlx::query_as(
+        "SELECT point.latitude, point.longitude, point.recorded_at, point.fraud_flagged, \
+         point.fraud_risk_score
+         FROM tracking.location_points point
+         JOIN tenancy.courier_tenants tenant ON tenant.courier_id = point.courier_id
+         WHERE point.courier_id = $1 AND tenant.tenant_id = $2
+         ORDER BY point.recorded_at DESC LIMIT 1",
+    )
+    .bind(courier_id)
+    .bind(tenant_id)
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| {
+        ApiError::unprocessable(format!(
+            "could not load persisted courier location: {error}"
+        ))
+    })?;
+    Ok(row.map(
+        |(latitude, longitude, timestamp, fraud_flagged, fraud_risk_score)| {
+            crate::state::LocationUpdateEvent {
+                courier_id,
+                tenant_id,
+                latitude,
+                longitude,
+                timestamp,
+                fraud_flagged,
+                fraud_risk_score,
+            }
+        },
+    ))
 }
 
 async fn operations_overview(
@@ -1355,6 +2670,7 @@ async fn operations_overview(
     let mut active_orders = 0;
     let mut pending_orders = 0;
     let mut in_transit_orders = 0;
+    let mut returned_orders = 0;
     let mut revenue_by_currency = BTreeMap::<String, i64>::new();
     for order in state.orders.list_all().await? {
         if tenant_id.is_some() && state.tenants.find_order_tenant(order.id).await? != tenant_id {
@@ -1375,6 +2691,9 @@ async fn operations_overview(
                 *revenue_by_currency
                     .entry(order.fare.currency.clone())
                     .or_default() += order.fare.amount_minor;
+            }
+            qervon_domain::OrderStatus::Returned => {
+                returned_orders += 1;
             }
             qervon_domain::OrderStatus::Cancelled => {}
         }
@@ -1397,6 +2716,7 @@ async fn operations_overview(
         active_orders,
         pending_orders,
         in_transit_orders,
+        returned_orders,
         available_couriers,
         busy_couriers,
         offline_couriers,
@@ -1596,20 +2916,103 @@ async fn create_customer_order(
     Extension(claims): Extension<AccessClaims>,
     Json(request): Json<CreateCustomerOrderRequest>,
 ) -> Result<(StatusCode, Json<OrderResponse>), ApiError> {
+    let tenant_id = TenantId(claims.tenant_id);
+    let pickup = to_address(request.pickup)?;
+    let dropoff = to_address(request.dropoff)?;
+    // The fare is always computed here, server-side, from the tenant's
+    // pricing configuration (or the documented default) — a client can
+    // never supply or manipulate its own price.
+    let quote = state
+        .pricing
+        .quote_fare(tenant_id, &pickup.location, &dropoff.location)
+        .await?;
+    let fare_amount_minor = match &request.coupon_code {
+        Some(code) if !code.trim().is_empty() => {
+            let (discounted, _coupon) = state
+                .coupons
+                .apply_to_fare(tenant_id, code, quote.fare_minor)
+                .await?;
+            discounted
+        }
+        _ => quote.fare_minor,
+    };
+    let payment_method = request
+        .payment_method
+        .map(|value| value.parse::<qervon_domain::PaymentMethod>())
+        .transpose()
+        .map_err(|_| ApiError::unprocessable("invalid payment method"))?;
     let order = state
         .orders
         .create_order(CreateOrderInput {
             customer_id: claims.subject,
-            pickup: to_address(request.pickup)?,
-            dropoff: to_address(request.dropoff)?,
-            fare: Money::new(request.fare_amount_minor, request.fare_currency)?,
+            pickup,
+            dropoff,
+            fare: Money::new(fare_amount_minor, quote.currency)?,
+            payment_method,
+            delivery_note: request.delivery_note,
+            contact_phone: request.contact_phone,
         })
         .await?;
-    state
-        .tenants
-        .bind_order(TenantId(claims.tenant_id), order.id)
-        .await?;
+    state.tenants.bind_order(tenant_id, order.id).await?;
+    // “Kurye çağır” offers the job to the best-ranked courier; the order
+    // stays Pending until that courier explicitly accepts (or Pending
+    // forever if nobody is currently available — a normal operational
+    // state that the admin dispatcher can resolve manually).
+    offer_for_tenant(&state, order.id, tenant_id).await?;
     Ok((StatusCode::CREATED, Json((&order).into())))
+}
+
+/// Offers a newly created order to the best-ranked available courier within
+/// `tenant_id`, without changing the order's state. Returns `Ok(())`
+/// whether or not a candidate was found — "no courier currently available"
+/// is a normal operational state, not a failure of order creation.
+async fn offer_for_tenant(
+    state: &AppState,
+    order_id: OrderId,
+    tenant_id: TenantId,
+) -> Result<(), qervon_application::ApplicationError> {
+    let mut candidates = Vec::new();
+    for courier in state.couriers.list_available_couriers().await? {
+        if state.tenants.find_courier_tenant(courier.id).await? == Some(tenant_id) {
+            candidates.push(courier);
+        }
+    }
+    state
+        .dispatch
+        .offer_from_candidates(order_id, &candidates)
+        .await?;
+    Ok(())
+}
+
+/// Re-offers a `Pending` order (whose previous offer was just rejected or
+/// expired) to the next-best available courier within `tenant_id`,
+/// excluding every courier already recorded in `excluded`. A no-op
+/// (`Ok(())`) when no eligible candidate remains — the order simply stays
+/// `Pending` for an operator to resolve manually. Errors from this step are
+/// intentionally swallowed by callers (logged, not surfaced as an HTTP
+/// failure) because the triggering request (a reject, or a courier's own
+/// offer poll) already succeeded on its own terms; a failed cascade attempt
+/// should not turn that into a client-visible error.
+async fn reoffer_for_tenant(
+    state: &AppState,
+    order_id: OrderId,
+    tenant_id: TenantId,
+    excluded: &[uuid::Uuid],
+) -> Result<(), qervon_application::ApplicationError> {
+    let mut candidates = Vec::new();
+    for courier in state.couriers.list_available_couriers().await? {
+        if excluded.contains(&courier.id) {
+            continue;
+        }
+        if state.tenants.find_courier_tenant(courier.id).await? == Some(tenant_id) {
+            candidates.push(courier);
+        }
+    }
+    state
+        .dispatch
+        .reoffer_from_candidates(order_id, excluded, &candidates)
+        .await?;
+    Ok(())
 }
 
 async fn get_customer_profile(
@@ -1679,15 +3082,7 @@ async fn get_customer_order_invoice(
     Path(order_id): Path<uuid::Uuid>,
     Extension(claims): Extension<AccessClaims>,
 ) -> Result<Json<qervon_domain::Invoice>, ApiError> {
-    let order = state.orders.get_order(OrderId(order_id)).await?;
-    if order.customer_id != claims.subject
-        || state.tenants.find_order_tenant(order.id).await? != Some(TenantId(claims.tenant_id))
-    {
-        return Err(ApiError {
-            status: StatusCode::FORBIDDEN,
-            detail: "order does not belong to this customer".into(),
-        });
-    }
+    let order = require_customer_order(&state, OrderId(order_id), &claims).await?;
     state
         .billing
         .find_invoice_for_order(order.id)
@@ -1701,21 +3096,177 @@ async fn get_customer_order_proof(
     Path(order_id): Path<uuid::Uuid>,
     Extension(claims): Extension<AccessClaims>,
 ) -> Result<Json<qervon_domain::ProofOfDeliveryRecord>, ApiError> {
-    let order = state.orders.get_order(OrderId(order_id)).await?;
-    if order.customer_id != claims.subject
-        || state.tenants.find_order_tenant(order.id).await? != Some(TenantId(claims.tenant_id))
-    {
-        return Err(ApiError {
-            status: StatusCode::FORBIDDEN,
-            detail: "order does not belong to this customer".into(),
-        });
-    }
+    let order = require_customer_order(&state, OrderId(order_id), &claims).await?;
     state
         .proofs_of_delivery
         .find_by_order(order.id)
         .await?
         .map(Json)
         .ok_or_else(|| ApiError::unprocessable("proof of delivery is not available"))
+}
+
+async fn cancel_customer_order(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<OrderResponse>, ApiError> {
+    let order = require_customer_order(&state, OrderId(order_id), &claims).await?;
+    let cancelled = state.dispatch.cancel_order(order.id).await?;
+    Ok(Json((&cancelled).into()))
+}
+
+/// Returns `null` (not an error) when the order has no assigned courier yet
+/// or is not in a state where an ETA is meaningful — the courier app's
+/// pending-offer endpoint uses the same "nullable, not 404" convention for
+/// a normal-but-not-yet-available state.
+async fn get_customer_order_eta(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Option<qervon_api_contracts::EtaResponse>>, ApiError> {
+    let order = require_customer_order(&state, OrderId(order_id), &claims).await?;
+    let Some(courier_id) = order.assigned_courier_id else {
+        return Ok(Json(None));
+    };
+    let destination = match order.status {
+        qervon_domain::OrderStatus::CourierAssigned => &order.pickup,
+        qervon_domain::OrderStatus::InTransit => &order.dropoff,
+        _ => return Ok(Json(None)),
+    };
+    let courier = match state.couriers.get_courier(courier_id).await {
+        Ok(courier) => courier,
+        Err(_) => return Ok(Json(None)),
+    };
+    let Some(current_location) = courier.current_location else {
+        return Ok(Json(None));
+    };
+    let distance_km = current_location.distance_km(&destination.location);
+    let eta_minutes =
+        qervon_application::AiDispatcher::calculate_dynamic_eta(distance_km, courier.vehicle, None);
+    Ok(Json(Some(qervon_api_contracts::EtaResponse {
+        eta_minutes,
+        distance_km,
+    })))
+}
+
+async fn get_customer_fare_quote(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Query(query): Query<FareQuoteQuery>,
+) -> Result<Json<qervon_api_contracts::FareQuoteResponse>, ApiError> {
+    let pickup = Location::new(query.pickup_latitude, query.pickup_longitude)?;
+    let dropoff = Location::new(query.dropoff_latitude, query.dropoff_longitude)?;
+    let quote = state
+        .pricing
+        .quote_fare(TenantId(claims.tenant_id), &pickup, &dropoff)
+        .await?;
+    Ok(Json(qervon_api_contracts::FareQuoteResponse {
+        fare_amount_minor: quote.fare_minor,
+        currency: quote.currency,
+        distance_km: quote.distance_km,
+    }))
+}
+
+#[derive(serde::Deserialize)]
+struct FareQuoteQuery {
+    pickup_latitude: f64,
+    pickup_longitude: f64,
+    dropoff_latitude: f64,
+    dropoff_longitude: f64,
+}
+
+async fn get_pricing(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<qervon_api_contracts::PricingResponse>, ApiError> {
+    let pricing = state
+        .pricing
+        .get_pricing(TenantId(claims.tenant_id))
+        .await?;
+    Ok(Json((&pricing).into()))
+}
+
+async fn update_pricing(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<qervon_api_contracts::UpdatePricingRequest>,
+) -> Result<Json<qervon_api_contracts::PricingResponse>, ApiError> {
+    if !matches!(claims.role, UserRole::SuperAdmin | UserRole::Admin) {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "only tenant administrators can change delivery pricing".to_string(),
+        });
+    }
+    let pricing = state
+        .pricing
+        .update_pricing(
+            TenantId(claims.tenant_id),
+            request.base_fare_minor,
+            request.per_km_rate_minor,
+            request.minimum_fare_minor,
+            request.currency,
+        )
+        .await?;
+    Ok(Json((&pricing).into()))
+}
+
+async fn rate_customer_order(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<qervon_api_contracts::RateOrderRequest>,
+) -> Result<
+    (
+        StatusCode,
+        Json<qervon_api_contracts::CustomerRatingResponse>,
+    ),
+    ApiError,
+> {
+    let rating = state
+        .ratings
+        .rate_order(
+            OrderId(order_id),
+            claims.subject,
+            request.rating_stars,
+            request.comment,
+        )
+        .await?;
+    Ok((StatusCode::CREATED, Json((&rating).into())))
+}
+
+async fn create_customer_support_ticket(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<qervon_api_contracts::OpenSupportTicketRequest>,
+) -> Result<
+    (
+        StatusCode,
+        Json<qervon_api_contracts::SupportTicketResponse>,
+    ),
+    ApiError,
+> {
+    let ticket = state
+        .support_tickets
+        .open_ticket(
+            TenantId(claims.tenant_id),
+            claims.subject,
+            request.order_id,
+            request.subject,
+            request.message,
+        )
+        .await?;
+    Ok((StatusCode::CREATED, Json((&ticket).into())))
+}
+
+async fn list_customer_support_tickets(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<qervon_api_contracts::SupportTicketResponse>>, ApiError> {
+    let tickets = state
+        .support_tickets
+        .list_for_customer(claims.subject)
+        .await?;
+    Ok(Json(tickets.iter().map(Into::into).collect()))
 }
 
 async fn list_customer_notifications(
@@ -1931,6 +3482,9 @@ async fn create_order(
             pickup: to_address(request.pickup)?,
             dropoff: to_address(request.dropoff)?,
             fare: Money::new(request.fare_amount_minor, request.fare_currency)?,
+            payment_method: None,
+            delivery_note: None,
+            contact_phone: None,
         })
         .await?;
     if let Some(Extension(claims)) = claims {
@@ -1967,6 +3521,25 @@ async fn require_order_tenant(
         });
     }
     Ok(())
+}
+
+/// Loads an order and verifies it belongs to both this customer and this
+/// tenant, returning it for the caller to act on.
+async fn require_customer_order(
+    state: &AppState,
+    order_id: OrderId,
+    claims: &AccessClaims,
+) -> Result<qervon_domain::Order, ApiError> {
+    let order = state.orders.get_order(order_id).await?;
+    if order.customer_id != claims.subject
+        || state.tenants.find_order_tenant(order.id).await? != Some(TenantId(claims.tenant_id))
+    {
+        return Err(ApiError {
+            status: StatusCode::FORBIDDEN,
+            detail: "order does not belong to this customer".into(),
+        });
+    }
+    Ok(order)
 }
 
 async fn assign_courier(
@@ -2046,6 +3619,17 @@ async fn cancel_order(
     Ok(Json((&order).into()))
 }
 
+async fn return_order(
+    State(state): State<AppState>,
+    Path(order_id): Path<uuid::Uuid>,
+    claims: Option<Extension<AccessClaims>>,
+) -> Result<Json<OrderResponse>, ApiError> {
+    let order_id = OrderId(order_id);
+    require_order_tenant(&state, order_id, claims.as_ref()).await?;
+    let order = state.dispatch.return_order(order_id).await?;
+    Ok(Json((&order).into()))
+}
+
 async fn list_orders(
     State(state): State<AppState>,
     claims: Option<Extension<AccessClaims>>,
@@ -2069,4 +3653,39 @@ fn to_address(dto: AddressDto) -> Result<Address, ApiError> {
         location: Location::new(dto.latitude, dto.longitude)?,
         label: dto.label,
     })
+}
+
+#[cfg(test)]
+mod cors_tests {
+    use super::parse_allowed_origins;
+    use axum::http::HeaderValue;
+
+    #[test]
+    fn no_configured_value_yields_no_origins() {
+        assert!(parse_allowed_origins(None).is_empty());
+    }
+
+    #[test]
+    fn parses_and_trims_comma_separated_origins() {
+        let origins =
+            parse_allowed_origins(Some(" http://localhost:5173 ,https://app.example.com"));
+        assert_eq!(
+            origins,
+            vec![
+                "http://localhost:5173".parse::<HeaderValue>().unwrap(),
+                "https://app.example.com".parse::<HeaderValue>().unwrap(),
+            ]
+        );
+    }
+
+    #[test]
+    fn drops_malformed_origin_entries() {
+        // A raw newline is not a legal header value; it must be dropped
+        // rather than panicking or poisoning the rest of the list.
+        let origins = parse_allowed_origins(Some("http://ok.example,bad\nvalue"));
+        assert_eq!(
+            origins,
+            vec!["http://ok.example".parse::<HeaderValue>().unwrap()]
+        );
+    }
 }

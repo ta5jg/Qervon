@@ -100,9 +100,12 @@ fn migration_phase(file: &Path) -> u8 {
         Some("fleet") => 7,
         Some("notifications") => 8,
         Some("tracking") => 9,
-        Some("integrations") => 10,
-        Some("zz_cross_schema") => 11,
-        _ => 12,
+        Some("feedback") => 10,
+        Some("marketing") => 11,
+        Some("pricing") => 12,
+        Some("integrations") => 13,
+        Some("zz_cross_schema") => 14,
+        _ => 15,
     }
 }
 

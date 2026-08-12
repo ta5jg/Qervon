@@ -68,6 +68,65 @@ where
             .await
     }
 
+    pub async fn offer_for_order(
+        &self,
+        order_id: OrderId,
+    ) -> Result<Option<Assignment>, qervon_application::ApplicationError> {
+        self.service.offer_for_order(order_id).await
+    }
+
+    pub async fn offer_from_candidates(
+        &self,
+        order_id: OrderId,
+        candidates: &[Courier],
+    ) -> Result<Option<Assignment>, qervon_application::ApplicationError> {
+        self.service
+            .offer_from_candidates(order_id, candidates)
+            .await
+    }
+
+    pub async fn find_pending_offer(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<Option<(Assignment, Order)>, qervon_application::ApplicationError> {
+        self.service.find_pending_offer(courier_id).await
+    }
+
+    pub async fn find_pending_offer_or_expiry(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<qervon_application::PendingOfferLookup, qervon_application::ApplicationError> {
+        self.service.find_pending_offer_or_expiry(courier_id).await
+    }
+
+    pub async fn accept_offer(
+        &self,
+        order_id: OrderId,
+        courier_id: Uuid,
+    ) -> Result<Order, qervon_application::ApplicationError> {
+        self.service.accept_offer(order_id, courier_id).await
+    }
+
+    pub async fn reject_offer(
+        &self,
+        order_id: OrderId,
+        courier_id: Uuid,
+    ) -> Result<Assignment, qervon_application::ApplicationError> {
+        self.service.reject_offer(order_id, courier_id).await
+    }
+
+    /// See `DispatchService::reoffer_from_candidates`.
+    pub async fn reoffer_from_candidates(
+        &self,
+        order_id: OrderId,
+        excluded: &[Uuid],
+        candidates: &[Courier],
+    ) -> Result<Option<Assignment>, qervon_application::ApplicationError> {
+        self.service
+            .reoffer_from_candidates(order_id, excluded, candidates)
+            .await
+    }
+
     pub async fn start_transit(
         &self,
         order_id: OrderId,
@@ -80,6 +139,13 @@ where
         order_id: OrderId,
     ) -> Result<Order, qervon_application::ApplicationError> {
         self.service.deliver(order_id).await
+    }
+
+    pub async fn return_order(
+        &self,
+        order_id: OrderId,
+    ) -> Result<Order, qervon_application::ApplicationError> {
+        self.service.return_order(order_id).await
     }
 
     pub async fn cancel_order(

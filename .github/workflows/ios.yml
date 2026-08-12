@@ -4,14 +4,59 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Runs the real Swift package unit tests and builds both native iOS
+#   apps for the Simulator SDK via the project's own build script. See
+#   QES-000010 for why this replaced the previous mobile-build.yml, whose
+#   "verification" step only ran a syntax-only swiftc -parse against
+#   stale file paths.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QAS-000007, QES-000004, QES-000006, QES-000010.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: iOS CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/ios/**"
+      - ".github/workflows/ios.yml"
+  pull_request:
+    paths:
+      - "mobile/ios/**"
+      - ".github/workflows/ios.yml"
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: mobile/ios
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Swift package unit tests (QervonKit)
+        run: swift test --package-path Packages/QervonKit
+
+      - name: Build both apps for the Simulator SDK
+        run: ./scripts/build-simulator.sh

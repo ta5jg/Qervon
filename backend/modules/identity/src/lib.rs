@@ -75,4 +75,12 @@ where
     ) -> Result<User, qervon_application::ApplicationError> {
         self.service.change_role(id, new_role).await
     }
+
+    pub async fn set_user_phone(
+        &self,
+        id: UserId,
+        phone: String,
+    ) -> Result<User, qervon_application::ApplicationError> {
+        self.service.set_phone(id, phone).await
+    }
 }

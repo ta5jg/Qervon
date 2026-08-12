@@ -53,4 +53,11 @@ where
     pub async fn list_all(&self) -> Result<Vec<Order>, qervon_application::ApplicationError> {
         self.service.list_all().await
     }
+
+    pub async fn mark_payment_collected(
+        &self,
+        id: OrderId,
+    ) -> Result<Order, qervon_application::ApplicationError> {
+        self.service.mark_payment_collected(id).await
+    }
 }

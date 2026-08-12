@@ -28,15 +28,20 @@ use std::time::{Duration, Instant};
 use tokio::time::sleep;
 use tracing::warn;
 
-use qervon_application::AuthService;
+use qervon_application::{
+    AuthService, CouponService, CourierWalletService, DevicePushService, OtpService,
+    PricingService, RatingService, SupportTicketService,
+};
 use qervon_billing_module::BillingModule;
 use qervon_couriers_module::CouriersModule;
 use qervon_customers_module::CustomersModule;
 use qervon_dispatch_module::DispatchModule;
 use qervon_domain::{
-    AssignmentRepository, CourierPayoutRepository, CourierRepository, CredentialRepository,
-    CustomerRepository, InvoiceRepository, NotificationRepository, OrderRepository,
-    ProofOfDeliveryRepository, TenantRepository, TrackingRepository, UserRepository,
+    AssignmentRepository, CouponRepository, CourierPayoutRepository, CourierRepository,
+    CourierWalletRepository, CredentialRepository, CustomerRatingRepository, CustomerRepository,
+    DeliveryPricingRepository, DevicePushTokenRepository, InvoiceRepository,
+    NotificationRepository, OrderRepository, OtpChallengeRepository, ProofOfDeliveryRepository,
+    SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
     VehicleRepository, WebhookRepository,
 };
 use qervon_fleet_module::FleetModule;
@@ -44,11 +49,12 @@ use qervon_identity_module::IdentityModule;
 use qervon_infrastructure::{
     memory::InMemoryStore,
     postgres::{
-        PgAssignmentRepository, PgCourierPayoutRepository, PgCourierRepository,
-        PgCredentialRepository, PgCustomerRepository, PgInvoiceRepository,
-        PgNotificationRepository, PgOrderRepository, PgPoolOptions, PgProofOfDeliveryRepository,
-        PgTenantRepository, PgTrackingRepository, PgUserRepository, PgVehicleRepository,
-        PgWebhookRepository,
+        PgAssignmentRepository, PgCouponRepository, PgCourierPayoutRepository, PgCourierRepository,
+        PgCourierWalletRepository, PgCredentialRepository, PgCustomerRatingRepository,
+        PgCustomerRepository, PgDeliveryPricingRepository, PgDevicePushTokenRepository,
+        PgInvoiceRepository, PgNotificationRepository, PgOrderRepository, PgOtpChallengeRepository,
+        PgPoolOptions, PgProofOfDeliveryRepository, PgSupportTicketRepository, PgTenantRepository,
+        PgTrackingRepository, PgUserRepository, PgVehicleRepository, PgWebhookRepository,
     },
 };
 use qervon_notifications_module::NotificationsModule;
@@ -69,6 +75,13 @@ type DynCredentials = Arc<dyn CredentialRepository>;
 type DynTenants = Arc<dyn TenantRepository>;
 type DynProofsOfDelivery = Arc<dyn ProofOfDeliveryRepository>;
 type DynWebhooks = Arc<dyn WebhookRepository>;
+type DynOtpChallenges = Arc<dyn OtpChallengeRepository>;
+type DynCourierWallets = Arc<dyn CourierWalletRepository>;
+type DynCustomerRatings = Arc<dyn CustomerRatingRepository>;
+type DynSupportTickets = Arc<dyn SupportTicketRepository>;
+type DynCoupons = Arc<dyn CouponRepository>;
+type DynDevicePushTokens = Arc<dyn DevicePushTokenRepository>;
+type DynDeliveryPricing = Arc<dyn DeliveryPricingRepository>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum StorageBackend {
@@ -138,6 +151,14 @@ pub struct LocationUpdateEvent {
     pub latitude: f64,
     pub longitude: f64,
     pub timestamp: DateTime<Utc>,
+    /// AI Fraud Guard flag-and-accept signal for this sample (see
+    /// `qervon_domain::TrackingPoint`). Historical points restored from
+    /// PostgreSQL carry their persisted value; points restored before this
+    /// field existed default to `false`/`0.0`.
+    #[serde(default)]
+    pub fraud_flagged: bool,
+    #[serde(default)]
+    pub fraud_risk_score: f64,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -159,6 +180,13 @@ pub struct AppState {
     pub customers: Arc<CustomersModule<DynCustomers>>,
     pub credentials: DynCredentials,
     pub auth: Arc<AuthService<DynUsers, DynCredentials>>,
+    pub otp: Arc<OtpService<DynUsers, DynOtpChallenges>>,
+    pub courier_wallets: Arc<CourierWalletService<DynCourierWallets>>,
+    pub ratings: Arc<RatingService<DynCustomerRatings, DynOrders>>,
+    pub support_tickets: Arc<SupportTicketService<DynSupportTickets>>,
+    pub coupons: Arc<CouponService<DynCoupons>>,
+    pub device_push: Arc<DevicePushService<DynDevicePushTokens>>,
+    pub pricing: Arc<PricingService<DynDeliveryPricing>>,
     pub tenants: DynTenants,
     pub location_tx: tokio::sync::broadcast::Sender<LocationUpdateEvent>,
     pub latest_locations: Arc<std::sync::RwLock<HashMap<uuid::Uuid, LocationUpdateEvent>>>,
@@ -168,10 +196,17 @@ pub struct AppState {
     /// Production API access token. It is required whenever PostgreSQL storage is used.
     pub api_access_token: Option<Arc<str>>,
     pub token_signing_secret: Option<Arc<str>>,
+    /// One-time installation secret required by PostgreSQL-backed first setup.
+    pub initial_setup_token: Option<Arc<str>>,
     pub storage_backend: StorageBackend,
     pub started_at: Instant,
     pub runtime_metrics: Arc<ApiRuntimeMetrics>,
     pub postgres_pool: Option<sqlx::PgPool>,
+    /// Local-filesystem root for uploaded files (delivery-proof photos
+    /// today). Real, working persistence — but not a cloud object store;
+    /// see QLS-000013 and BACKEND_BACKLOG.md. Configured via
+    /// `QERVON_UPLOADS_DIR`, defaulting to `./data/uploads` for local/dev.
+    pub uploads_dir: std::path::PathBuf,
 }
 
 impl AppState {
@@ -195,8 +230,15 @@ impl AppState {
             .ok()
             .filter(|value| value.len() >= 32)
             .map(Arc::<str>::from);
+        state.initial_setup_token = std::env::var("QERVON_INITIAL_SETUP_TOKEN")
+            .ok()
+            .filter(|value| value.len() >= 16)
+            .map(Arc::<str>::from);
         if state.api_access_token.is_none() && state.token_signing_secret.is_none() {
             return Err("QERVON_API_ACCESS_TOKEN or a 32+ character QERVON_TOKEN_SIGNING_SECRET is required".into());
+        }
+        if let Ok(dir) = std::env::var("QERVON_UPLOADS_DIR") {
+            state.uploads_dir = std::path::PathBuf::from(dir);
         }
         Ok(state)
     }
@@ -218,6 +260,13 @@ impl AppState {
             Arc::new(store.tenant_repository()),
             Arc::new(store.proof_of_delivery_repository()),
             Arc::new(store.webhook_repository()),
+            Arc::new(store.otp_challenge_repository()),
+            Arc::new(store.courier_wallet_repository()),
+            Arc::new(store.customer_rating_repository()),
+            Arc::new(store.support_ticket_repository()),
+            Arc::new(store.coupon_repository()),
+            Arc::new(store.device_push_token_repository()),
+            Arc::new(store.delivery_pricing_repository()),
         )
     }
 
@@ -244,6 +293,13 @@ impl AppState {
             Arc::new(PgTenantRepository::new(pool.clone())),
             Arc::new(PgProofOfDeliveryRepository::new(pool.clone())),
             Arc::new(PgWebhookRepository::new(pool.clone())),
+            Arc::new(PgOtpChallengeRepository::new(pool.clone())),
+            Arc::new(PgCourierWalletRepository::new(pool.clone())),
+            Arc::new(PgCustomerRatingRepository::new(pool.clone())),
+            Arc::new(PgSupportTicketRepository::new(pool.clone())),
+            Arc::new(PgCouponRepository::new(pool.clone())),
+            Arc::new(PgDevicePushTokenRepository::new(pool.clone())),
+            Arc::new(PgDeliveryPricingRepository::new(pool.clone())),
         );
         state.postgres_pool = Some(pool);
         state.start_location_relay(database_url);
@@ -337,11 +393,19 @@ impl AppState {
         tenants: DynTenants,
         proofs_of_delivery: DynProofsOfDelivery,
         webhooks: DynWebhooks,
+        otp_challenges: DynOtpChallenges,
+        courier_wallets: DynCourierWallets,
+        customer_ratings: DynCustomerRatings,
+        support_tickets: DynSupportTickets,
+        coupons: DynCoupons,
+        device_push_tokens: DynDevicePushTokens,
+        delivery_pricing: DynDeliveryPricing,
     ) -> Self {
         let (location_tx, _) = tokio::sync::broadcast::channel(100);
         Self {
             orders: Arc::new(OrdersModule::new(orders.clone())),
             couriers: Arc::new(CouriersModule::new(couriers.clone())),
+            ratings: Arc::new(RatingService::new(customer_ratings, orders.clone())),
             dispatch: Arc::new(DispatchModule::new(orders, couriers, assignments)),
             tracking: Arc::new(TrackingModule::new(tracking)),
             fleet: Arc::new(FleetModule::new(vehicles)),
@@ -349,7 +413,13 @@ impl AppState {
             notifications: Arc::new(NotificationsModule::new(notifications)),
             identity: Arc::new(IdentityModule::new(users.clone())),
             customers: Arc::new(CustomersModule::new(customers)),
-            auth: Arc::new(AuthService::new(users, credentials.clone())),
+            auth: Arc::new(AuthService::new(users.clone(), credentials.clone())),
+            otp: Arc::new(OtpService::new(users, otp_challenges)),
+            courier_wallets: Arc::new(CourierWalletService::new(courier_wallets)),
+            support_tickets: Arc::new(SupportTicketService::new(support_tickets)),
+            coupons: Arc::new(CouponService::new(coupons)),
+            device_push: Arc::new(DevicePushService::new(device_push_tokens)),
+            pricing: Arc::new(PricingService::new(delivery_pricing)),
             credentials,
             tenants,
             location_tx,
@@ -359,10 +429,12 @@ impl AppState {
             webhooks,
             api_access_token: None,
             token_signing_secret: None,
+            initial_setup_token: None,
             storage_backend: StorageBackend::Memory,
             started_at: Instant::now(),
             runtime_metrics: Arc::new(ApiRuntimeMetrics::default()),
             postgres_pool: None,
+            uploads_dir: std::path::PathBuf::from("./data/uploads"),
         }
     }
 }

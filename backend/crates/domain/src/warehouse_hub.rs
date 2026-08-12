@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000001, QES-000002.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use crate::Location;
 use serde::{Deserialize, Serialize};

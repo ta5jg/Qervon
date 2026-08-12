@@ -19,15 +19,18 @@
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use qervon_domain::{
-    Address, Assignment, AssignmentRepository, Courier, CourierPayout, CourierPayoutRepository,
-    CourierRepository, Credential, CredentialRepository, CustomerId, CustomerProfile,
-    CustomerRepository, DomainError, Invoice, InvoiceId, InvoiceRepository, InvoiceStatus,
+    Address, Assignment, AssignmentRepository, Coupon, CouponRepository, Courier, CourierPayout,
+    CourierPayoutRepository, CourierRepository, CourierWallet, CourierWalletRepository, Credential,
+    CredentialRepository, CustomerId, CustomerProfile, CustomerRating, CustomerRatingRepository,
+    CustomerRepository, DeliveryPricing, DeliveryPricingRepository, DevicePushToken,
+    DevicePushTokenRepository, DomainError, Invoice, InvoiceId, InvoiceRepository, InvoiceStatus,
     Location, Money, Notification, NotificationChannel, NotificationId, NotificationRepository,
-    NotificationStatus, Order, OrderId, OrderRepository, PayoutStatus, ProofOfDeliveryRecord,
-    ProofOfDeliveryRepository, RefreshSession, SavedAddress, TenantCompany, TenantId,
-    TenantMemberRole, TenantMembership, TenantRepository, TrackingPoint, TrackingRepository,
-    TrackingSession, TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId,
-    VehicleRepository, VehicleStatus, WebhookRepository, WebhookSubscription,
+    NotificationStatus, Order, OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository,
+    PayoutStatus, ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, SavedAddress,
+    SupportTicket, SupportTicketRepository, TenantCompany, TenantId, TenantMemberRole,
+    TenantMembership, TenantRepository, TrackingPoint, TrackingRepository, TrackingSession,
+    TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository,
+    VehicleStatus, WalletTransaction, WebhookRepository, WebhookSubscription,
 };
 use sqlx::{FromRow, PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -64,6 +67,11 @@ struct OrderRow {
     assigned_courier_id: Option<Uuid>,
     created_at: DateTime<Utc>,
     delivered_at: Option<DateTime<Utc>>,
+    returned_at: Option<DateTime<Utc>>,
+    payment_method: Option<String>,
+    payment_collected: bool,
+    delivery_note: Option<String>,
+    contact_phone: Option<String>,
 }
 
 impl OrderRow {
@@ -84,6 +92,11 @@ impl OrderRow {
             assigned_courier_id: self.assigned_courier_id,
             created_at: self.created_at,
             delivered_at: self.delivered_at,
+            returned_at: self.returned_at,
+            payment_method: self.payment_method.map(|value| value.parse()).transpose()?,
+            payment_collected: self.payment_collected,
+            delivery_note: self.delivery_note,
+            contact_phone: self.contact_phone,
         })
     }
 }
@@ -101,7 +114,8 @@ impl PgOrderRepository {
 
 const ORDER_COLUMNS: &str = "id, customer_id, pickup_lat, pickup_lon, pickup_label, \
     dropoff_lat, dropoff_lon, dropoff_label, status, fare_amount_minor, fare_currency, \
-    assigned_courier_id, created_at, delivered_at";
+    assigned_courier_id, created_at, delivered_at, returned_at, payment_method, \
+    payment_collected, delivery_note, contact_phone";
 
 #[async_trait]
 impl OrderRepository for PgOrderRepository {
@@ -109,8 +123,10 @@ impl OrderRepository for PgOrderRepository {
         sqlx::query(
             "INSERT INTO orders.orders (id, customer_id, pickup_lat, pickup_lon, pickup_label, \
              dropoff_lat, dropoff_lon, dropoff_label, status, fare_amount_minor, fare_currency, \
-             assigned_courier_id, created_at, delivered_at) \
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)",
+             assigned_courier_id, created_at, delivered_at, returned_at, payment_method, \
+             payment_collected, delivery_note, contact_phone) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, \
+             $17, $18, $19)",
         )
         .bind(order.id.0)
         .bind(order.customer_id)
@@ -126,6 +142,11 @@ impl OrderRepository for PgOrderRepository {
         .bind(order.assigned_courier_id)
         .bind(order.created_at)
         .bind(order.delivered_at)
+        .bind(order.returned_at)
+        .bind(order.payment_method.map(|method| method.as_str()))
+        .bind(order.payment_collected)
+        .bind(&order.delivery_note)
+        .bind(&order.contact_phone)
         .execute(&self.pool)
         .await
         .map(|_| ())
@@ -145,13 +166,16 @@ impl OrderRepository for PgOrderRepository {
 
     async fn update(&self, order: &Order) -> Result<(), DomainError> {
         let affected = sqlx::query(
-            "UPDATE orders.orders SET status = $2, assigned_courier_id = $3, delivered_at = $4 \
-             WHERE id = $1",
+            "UPDATE orders.orders SET status = $2, assigned_courier_id = $3, delivered_at = $4, \
+             returned_at = $5, payment_method = $6, payment_collected = $7 WHERE id = $1",
         )
         .bind(order.id.0)
         .bind(order.status.as_str())
         .bind(order.assigned_courier_id)
         .bind(order.delivered_at)
+        .bind(order.returned_at)
+        .bind(order.payment_method.map(|method| method.as_str()))
+        .bind(order.payment_collected)
         .execute(&self.pool)
         .await
         .map_err(map_db_error)?
@@ -453,6 +477,544 @@ impl CourierPayoutRepository for PgCourierPayoutRepository {
         .bind(payout.net_amount.amount_minor)
         .bind(&payout.gross_amount.currency)
         .bind(payout.status.as_str())
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgCourierWalletRepository {
+    pool: PgPool,
+}
+
+impl PgCourierWalletRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct CourierWalletHeaderRow {
+    courier_id: Uuid,
+    balance_minor: i64,
+    total_earned_minor: i64,
+    total_bonus_minor: i64,
+    total_penalties_minor: i64,
+    currency: String,
+}
+
+#[derive(FromRow)]
+struct WalletTransactionRow {
+    id: Uuid,
+    transaction_type: String,
+    amount_minor: i64,
+    currency: String,
+    description: String,
+    created_at: DateTime<Utc>,
+}
+
+impl WalletTransactionRow {
+    fn into_domain(self) -> Result<WalletTransaction, DomainError> {
+        Ok(WalletTransaction {
+            id: self.id,
+            transaction_type: self.transaction_type.parse()?,
+            amount_minor: self.amount_minor,
+            currency: self.currency,
+            description: self.description,
+            created_at: self.created_at,
+        })
+    }
+}
+
+#[async_trait]
+impl CourierWalletRepository for PgCourierWalletRepository {
+    async fn find_by_courier(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<Option<CourierWallet>, DomainError> {
+        let header: Option<CourierWalletHeaderRow> = sqlx::query_as(
+            "SELECT courier_id, balance_minor, total_earned_minor, total_bonus_minor, \
+             total_penalties_minor, currency FROM billing.courier_wallets WHERE courier_id = $1",
+        )
+        .bind(courier_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        let Some(header) = header else {
+            return Ok(None);
+        };
+        let transaction_rows: Vec<WalletTransactionRow> = sqlx::query_as(
+            "SELECT id, transaction_type, amount_minor, currency, description, created_at \
+             FROM billing.wallet_transactions WHERE courier_id = $1 ORDER BY created_at ASC",
+        )
+        .bind(courier_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        let transactions = transaction_rows
+            .into_iter()
+            .map(WalletTransactionRow::into_domain)
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(Some(CourierWallet {
+            courier_id: header.courier_id,
+            balance_minor: header.balance_minor,
+            total_earned_minor: header.total_earned_minor,
+            total_bonus_minor: header.total_bonus_minor,
+            total_penalties_minor: header.total_penalties_minor,
+            currency: header.currency,
+            transactions,
+        }))
+    }
+
+    async fn create(&self, wallet: &CourierWallet) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO billing.courier_wallets \
+             (courier_id, balance_minor, total_earned_minor, total_bonus_minor, \
+              total_penalties_minor, currency) \
+             VALUES ($1, $2, $3, $4, $5, $6)",
+        )
+        .bind(wallet.courier_id)
+        .bind(wallet.balance_minor)
+        .bind(wallet.total_earned_minor)
+        .bind(wallet.total_bonus_minor)
+        .bind(wallet.total_penalties_minor)
+        .bind(&wallet.currency)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn append_transaction(
+        &self,
+        wallet: &CourierWallet,
+        transaction: &WalletTransaction,
+    ) -> Result<(), DomainError> {
+        let mut tx = self.pool.begin().await.map_err(map_db_error)?;
+        let affected = sqlx::query(
+            "UPDATE billing.courier_wallets \
+             SET balance_minor = $2, total_earned_minor = $3, total_bonus_minor = $4, \
+                 total_penalties_minor = $5 \
+             WHERE courier_id = $1",
+        )
+        .bind(wallet.courier_id)
+        .bind(wallet.balance_minor)
+        .bind(wallet.total_earned_minor)
+        .bind(wallet.total_bonus_minor)
+        .bind(wallet.total_penalties_minor)
+        .execute(&mut *tx)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        sqlx::query(
+            "INSERT INTO billing.wallet_transactions \
+             (id, courier_id, transaction_type, amount_minor, currency, description, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        )
+        .bind(transaction.id)
+        .bind(wallet.courier_id)
+        .bind(transaction.transaction_type.as_str())
+        .bind(transaction.amount_minor)
+        .bind(&transaction.currency)
+        .bind(&transaction.description)
+        .bind(transaction.created_at)
+        .execute(&mut *tx)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)?;
+        tx.commit().await.map_err(map_db_error)
+    }
+}
+
+#[derive(Clone)]
+pub struct PgCustomerRatingRepository {
+    pool: PgPool,
+}
+
+impl PgCustomerRatingRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct CustomerRatingRow {
+    id: Uuid,
+    order_id: Uuid,
+    customer_id: Uuid,
+    courier_id: Uuid,
+    rating_stars: i16,
+    comment: Option<String>,
+    photo_url: Option<String>,
+    created_at: DateTime<Utc>,
+}
+
+impl CustomerRatingRow {
+    fn into_domain(self) -> CustomerRating {
+        CustomerRating {
+            id: self.id,
+            order_id: self.order_id,
+            customer_id: self.customer_id,
+            courier_id: self.courier_id,
+            rating_stars: self.rating_stars as u8,
+            comment: self.comment,
+            photo_url: self.photo_url,
+            created_at: self.created_at,
+        }
+    }
+}
+
+const CUSTOMER_RATING_COLUMNS: &str =
+    "id, order_id, customer_id, courier_id, rating_stars, comment, photo_url, created_at";
+
+#[async_trait]
+impl CustomerRatingRepository for PgCustomerRatingRepository {
+    async fn create(&self, rating: &CustomerRating) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO feedback.customer_ratings \
+             (id, order_id, customer_id, courier_id, rating_stars, comment, photo_url, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(rating.id)
+        .bind(rating.order_id)
+        .bind(rating.customer_id)
+        .bind(rating.courier_id)
+        .bind(i16::from(rating.rating_stars))
+        .bind(&rating.comment)
+        .bind(&rating.photo_url)
+        .bind(rating.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_by_order(&self, order_id: Uuid) -> Result<Option<CustomerRating>, DomainError> {
+        let row: Option<CustomerRatingRow> = sqlx::query_as(&format!(
+            "SELECT {CUSTOMER_RATING_COLUMNS} FROM feedback.customer_ratings WHERE order_id = $1"
+        ))
+        .bind(order_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(row.map(CustomerRatingRow::into_domain))
+    }
+
+    async fn list_for_courier(&self, courier_id: Uuid) -> Result<Vec<CustomerRating>, DomainError> {
+        let rows: Vec<CustomerRatingRow> = sqlx::query_as(&format!(
+            "SELECT {CUSTOMER_RATING_COLUMNS} FROM feedback.customer_ratings \
+             WHERE courier_id = $1 ORDER BY created_at DESC"
+        ))
+        .bind(courier_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(rows
+            .into_iter()
+            .map(CustomerRatingRow::into_domain)
+            .collect())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgSupportTicketRepository {
+    pool: PgPool,
+}
+
+impl PgSupportTicketRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct SupportTicketRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    customer_id: Uuid,
+    order_id: Option<Uuid>,
+    subject: String,
+    message: String,
+    status: String,
+    created_at: DateTime<Utc>,
+}
+
+impl SupportTicketRow {
+    fn into_domain(self) -> Result<SupportTicket, DomainError> {
+        Ok(SupportTicket {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            customer_id: self.customer_id,
+            order_id: self.order_id,
+            subject: self.subject,
+            message: self.message,
+            status: self.status.parse()?,
+            created_at: self.created_at,
+        })
+    }
+}
+
+const SUPPORT_TICKET_COLUMNS: &str =
+    "id, tenant_id, customer_id, order_id, subject, message, status, created_at";
+
+#[async_trait]
+impl SupportTicketRepository for PgSupportTicketRepository {
+    async fn create(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO feedback.support_tickets \
+             (id, tenant_id, customer_id, order_id, subject, message, status, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(ticket.id)
+        .bind(ticket.tenant_id.0)
+        .bind(ticket.customer_id)
+        .bind(ticket.order_id)
+        .bind(&ticket.subject)
+        .bind(&ticket.message)
+        .bind(ticket.status.as_str())
+        .bind(ticket.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<SupportTicket>, DomainError> {
+        let row: Option<SupportTicketRow> = sqlx::query_as(&format!(
+            "SELECT {SUPPORT_TICKET_COLUMNS} FROM feedback.support_tickets WHERE id = $1"
+        ))
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(SupportTicketRow::into_domain).transpose()
+    }
+
+    async fn list_for_customer(
+        &self,
+        customer_id: Uuid,
+    ) -> Result<Vec<SupportTicket>, DomainError> {
+        let rows: Vec<SupportTicketRow> = sqlx::query_as(&format!(
+            "SELECT {SUPPORT_TICKET_COLUMNS} FROM feedback.support_tickets \
+             WHERE customer_id = $1 ORDER BY created_at DESC"
+        ))
+        .bind(customer_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter()
+            .map(SupportTicketRow::into_domain)
+            .collect()
+    }
+
+    async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
+        let affected = sqlx::query("UPDATE feedback.support_tickets SET status = $2 WHERE id = $1")
+            .bind(ticket.id)
+            .bind(ticket.status.as_str())
+            .execute(&self.pool)
+            .await
+            .map_err(map_db_error)?
+            .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgDeliveryPricingRepository {
+    pool: PgPool,
+}
+
+impl PgDeliveryPricingRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct DeliveryPricingRow {
+    tenant_id: Uuid,
+    base_fare_minor: i64,
+    per_km_rate_minor: i64,
+    minimum_fare_minor: i64,
+    currency: String,
+    updated_at: DateTime<Utc>,
+}
+
+impl DeliveryPricingRow {
+    fn into_domain(self) -> DeliveryPricing {
+        DeliveryPricing {
+            tenant_id: TenantId(self.tenant_id),
+            base_fare_minor: self.base_fare_minor,
+            per_km_rate_minor: self.per_km_rate_minor,
+            minimum_fare_minor: self.minimum_fare_minor,
+            currency: self.currency,
+            updated_at: self.updated_at,
+        }
+    }
+}
+
+const DELIVERY_PRICING_COLUMNS: &str =
+    "tenant_id, base_fare_minor, per_km_rate_minor, minimum_fare_minor, currency, updated_at";
+
+#[async_trait]
+impl DeliveryPricingRepository for PgDeliveryPricingRepository {
+    async fn find_by_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Option<DeliveryPricing>, DomainError> {
+        let row: Option<DeliveryPricingRow> = sqlx::query_as(&format!(
+            "SELECT {DELIVERY_PRICING_COLUMNS} FROM pricing.delivery_pricing WHERE tenant_id = $1"
+        ))
+        .bind(tenant_id.0)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(row.map(DeliveryPricingRow::into_domain))
+    }
+
+    async fn upsert(&self, pricing: &DeliveryPricing) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO pricing.delivery_pricing \
+             (tenant_id, base_fare_minor, per_km_rate_minor, minimum_fare_minor, currency, \
+              updated_at) \
+             VALUES ($1, $2, $3, $4, $5, $6) \
+             ON CONFLICT (tenant_id) DO UPDATE SET \
+             base_fare_minor = EXCLUDED.base_fare_minor, \
+             per_km_rate_minor = EXCLUDED.per_km_rate_minor, \
+             minimum_fare_minor = EXCLUDED.minimum_fare_minor, \
+             currency = EXCLUDED.currency, \
+             updated_at = EXCLUDED.updated_at",
+        )
+        .bind(pricing.tenant_id.0)
+        .bind(pricing.base_fare_minor)
+        .bind(pricing.per_km_rate_minor)
+        .bind(pricing.minimum_fare_minor)
+        .bind(&pricing.currency)
+        .bind(pricing.updated_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+}
+
+#[derive(Clone)]
+pub struct PgCouponRepository {
+    pool: PgPool,
+}
+
+impl PgCouponRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct CouponRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    code: String,
+    discount_percent: f64,
+    max_discount_minor: i64,
+    valid_until: DateTime<Utc>,
+    usage_limit: i32,
+    used_count: i32,
+    is_active: bool,
+    created_at: DateTime<Utc>,
+}
+
+impl CouponRow {
+    fn into_domain(self) -> Coupon {
+        Coupon {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            code: self.code,
+            discount_percent: self.discount_percent,
+            max_discount_minor: self.max_discount_minor,
+            valid_until: self.valid_until,
+            usage_limit: self.usage_limit as u32,
+            used_count: self.used_count as u32,
+            is_active: self.is_active,
+            created_at: self.created_at,
+        }
+    }
+}
+
+const COUPON_COLUMNS: &str = "id, tenant_id, code, discount_percent, max_discount_minor, \
+     valid_until, usage_limit, used_count, is_active, created_at";
+
+#[async_trait]
+impl CouponRepository for PgCouponRepository {
+    async fn create(&self, coupon: &Coupon) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO marketing.coupons \
+             (id, tenant_id, code, discount_percent, max_discount_minor, valid_until, \
+              usage_limit, used_count, is_active, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+        )
+        .bind(coupon.id)
+        .bind(coupon.tenant_id.0)
+        .bind(&coupon.code)
+        .bind(coupon.discount_percent)
+        .bind(coupon.max_discount_minor)
+        .bind(coupon.valid_until)
+        .bind(coupon.usage_limit as i32)
+        .bind(coupon.used_count as i32)
+        .bind(coupon.is_active)
+        .bind(coupon.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_by_code(
+        &self,
+        tenant_id: TenantId,
+        code: &str,
+    ) -> Result<Option<Coupon>, DomainError> {
+        let row: Option<CouponRow> = sqlx::query_as(&format!(
+            "SELECT {COUPON_COLUMNS} FROM marketing.coupons WHERE tenant_id = $1 AND code = $2"
+        ))
+        .bind(tenant_id.0)
+        .bind(code)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(row.map(CouponRow::into_domain))
+    }
+
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<Coupon>, DomainError> {
+        let rows: Vec<CouponRow> = sqlx::query_as(&format!(
+            "SELECT {COUPON_COLUMNS} FROM marketing.coupons WHERE tenant_id = $1 \
+             ORDER BY created_at DESC"
+        ))
+        .bind(tenant_id.0)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(rows.into_iter().map(CouponRow::into_domain).collect())
+    }
+
+    async fn update(&self, coupon: &Coupon) -> Result<(), DomainError> {
+        let affected = sqlx::query(
+            "UPDATE marketing.coupons SET used_count = $2, is_active = $3 WHERE id = $1",
+        )
+        .bind(coupon.id)
+        .bind(coupon.used_count as i32)
+        .bind(coupon.is_active)
         .execute(&self.pool)
         .await
         .map_err(map_db_error)?
@@ -927,8 +1489,9 @@ impl TrackingRepository for PgTrackingRepository {
     async fn record_point(&self, point: &TrackingPoint) -> Result<(), DomainError> {
         sqlx::query(
             "INSERT INTO tracking.location_points \
-             (id, courier_id, latitude, longitude, speed_kmh, battery_pct, recorded_at) \
-             VALUES ($1, $2, $3, $4, $5, $6, $7)",
+             (id, courier_id, latitude, longitude, speed_kmh, battery_pct, recorded_at, \
+              fraud_flagged, fraud_risk_score) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
         )
         .bind(point.id)
         .bind(point.courier_id)
@@ -937,6 +1500,8 @@ impl TrackingRepository for PgTrackingRepository {
         .bind(point.speed_kmh)
         .bind(point.battery_pct.map(i16::from))
         .bind(point.recorded_at)
+        .bind(point.fraud_flagged)
+        .bind(point.fraud_risk_score)
         .execute(&self.pool)
         .await
         .map(|_| ())
@@ -1060,6 +1625,100 @@ impl WebhookRepository for PgWebhookRepository {
             return Err(map_row_absent());
         }
         Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgDevicePushTokenRepository {
+    pool: PgPool,
+}
+
+impl PgDevicePushTokenRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct DevicePushTokenRow {
+    id: Uuid,
+    user_id: Uuid,
+    platform: String,
+    device_token: String,
+    created_at: DateTime<Utc>,
+}
+
+impl DevicePushTokenRow {
+    fn into_domain(self) -> Result<DevicePushToken, DomainError> {
+        Ok(DevicePushToken {
+            id: self.id,
+            user_id: UserId(self.user_id),
+            platform: self.platform.parse()?,
+            device_token: self.device_token,
+            created_at: self.created_at,
+        })
+    }
+}
+
+const DEVICE_PUSH_TOKEN_COLUMNS: &str = "id, user_id, platform, device_token, created_at";
+
+#[async_trait]
+impl DevicePushTokenRepository for PgDevicePushTokenRepository {
+    async fn create(&self, token: &DevicePushToken) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO notifications.device_push_tokens \
+             (id, user_id, platform, device_token, created_at) VALUES ($1, $2, $3, $4, $5)",
+        )
+        .bind(token.id)
+        .bind(token.user_id.0)
+        .bind(token.platform.as_str())
+        .bind(&token.device_token)
+        .bind(token.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_by_user_and_token(
+        &self,
+        user_id: UserId,
+        device_token: &str,
+    ) -> Result<Option<DevicePushToken>, DomainError> {
+        let row: Option<DevicePushTokenRow> = sqlx::query_as(&format!(
+            "SELECT {DEVICE_PUSH_TOKEN_COLUMNS} FROM notifications.device_push_tokens \
+             WHERE user_id = $1 AND device_token = $2"
+        ))
+        .bind(user_id.0)
+        .bind(device_token)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(DevicePushTokenRow::into_domain).transpose()
+    }
+
+    async fn list_for_user(&self, user_id: UserId) -> Result<Vec<DevicePushToken>, DomainError> {
+        let rows: Vec<DevicePushTokenRow> = sqlx::query_as(&format!(
+            "SELECT {DEVICE_PUSH_TOKEN_COLUMNS} FROM notifications.device_push_tokens \
+             WHERE user_id = $1 ORDER BY created_at DESC"
+        ))
+        .bind(user_id.0)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter()
+            .map(DevicePushTokenRow::into_domain)
+            .collect()
+    }
+
+    async fn delete(&self, user_id: UserId, id: Uuid) -> Result<(), DomainError> {
+        sqlx::query("DELETE FROM notifications.device_push_tokens WHERE id = $1 AND user_id = $2")
+            .bind(id)
+            .bind(user_id.0)
+            .execute(&self.pool)
+            .await
+            .map(|_| ())
+            .map_err(map_db_error)
     }
 }
 
@@ -1193,6 +1852,9 @@ struct AssignmentRow {
     courier_id: Uuid,
     status: String,
     assigned_at: DateTime<Utc>,
+    offered_at: DateTime<Utc>,
+    responded_at: Option<DateTime<Utc>>,
+    excluded_courier_ids: Vec<Uuid>,
 }
 
 impl AssignmentRow {
@@ -1203,9 +1865,15 @@ impl AssignmentRow {
             courier_id: self.courier_id,
             status: self.status.parse()?,
             assigned_at: self.assigned_at,
+            offered_at: self.offered_at,
+            responded_at: self.responded_at,
+            excluded_courier_ids: self.excluded_courier_ids,
         })
     }
 }
+
+const ASSIGNMENT_COLUMNS: &str = "id, order_id, courier_id, status, assigned_at, offered_at, \
+     responded_at, excluded_courier_ids";
 
 #[derive(Clone)]
 pub struct PgAssignmentRepository {
@@ -1222,14 +1890,24 @@ impl PgAssignmentRepository {
 impl AssignmentRepository for PgAssignmentRepository {
     async fn create(&self, assignment: &Assignment) -> Result<(), DomainError> {
         sqlx::query(
-            "INSERT INTO dispatch.assignments (id, order_id, courier_id, status, assigned_at) \
-             VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO dispatch.assignments \
+             (id, order_id, courier_id, status, assigned_at, offered_at, responded_at, \
+              excluded_courier_ids) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) \
+             ON CONFLICT (order_id) DO UPDATE SET \
+             id = EXCLUDED.id, courier_id = EXCLUDED.courier_id, status = EXCLUDED.status, \
+             assigned_at = EXCLUDED.assigned_at, offered_at = EXCLUDED.offered_at, \
+             responded_at = EXCLUDED.responded_at, \
+             excluded_courier_ids = EXCLUDED.excluded_courier_ids",
         )
         .bind(assignment.id)
         .bind(assignment.order_id.0)
         .bind(assignment.courier_id)
         .bind(assignment.status.as_str())
         .bind(assignment.assigned_at)
+        .bind(assignment.offered_at)
+        .bind(assignment.responded_at)
+        .bind(&assignment.excluded_courier_ids)
         .execute(&self.pool)
         .await
         .map(|_| ())
@@ -1237,10 +1915,9 @@ impl AssignmentRepository for PgAssignmentRepository {
     }
 
     async fn find_by_order(&self, order_id: OrderId) -> Result<Option<Assignment>, DomainError> {
-        let row: Option<AssignmentRow> = sqlx::query_as(
-            "SELECT id, order_id, courier_id, status, assigned_at \
-             FROM dispatch.assignments WHERE order_id = $1",
-        )
+        let row: Option<AssignmentRow> = sqlx::query_as(&format!(
+            "SELECT {ASSIGNMENT_COLUMNS} FROM dispatch.assignments WHERE order_id = $1"
+        ))
         .bind(order_id.0)
         .fetch_optional(&self.pool)
         .await
@@ -1248,14 +1925,37 @@ impl AssignmentRepository for PgAssignmentRepository {
         row.map(AssignmentRow::into_domain).transpose()
     }
 
+    async fn find_pending_offer_for_courier(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<Option<Assignment>, DomainError> {
+        let row: Option<AssignmentRow> = sqlx::query_as(&format!(
+            "SELECT {ASSIGNMENT_COLUMNS} FROM dispatch.assignments \
+             WHERE courier_id = $1 AND status = 'offered'"
+        ))
+        .bind(courier_id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(AssignmentRow::into_domain).transpose()
+    }
+
     async fn update(&self, assignment: &Assignment) -> Result<(), DomainError> {
-        let affected = sqlx::query("UPDATE dispatch.assignments SET status = $2 WHERE id = $1")
-            .bind(assignment.id)
-            .bind(assignment.status.as_str())
-            .execute(&self.pool)
-            .await
-            .map_err(map_db_error)?
-            .rows_affected();
+        let affected = sqlx::query(
+            "UPDATE dispatch.assignments SET courier_id = $2, status = $3, assigned_at = $4, \
+             offered_at = $5, responded_at = $6, excluded_courier_ids = $7 WHERE id = $1",
+        )
+        .bind(assignment.id)
+        .bind(assignment.courier_id)
+        .bind(assignment.status.as_str())
+        .bind(assignment.assigned_at)
+        .bind(assignment.offered_at)
+        .bind(assignment.responded_at)
+        .bind(&assignment.excluded_courier_ids)
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
         if affected == 0 {
             return Err(map_row_absent());
         }
@@ -1341,6 +2041,17 @@ impl UserRepository for PgUserRepository {
         row.map(UserRow::into_domain).transpose()
     }
 
+    async fn find_by_phone(&self, phone: &str) -> Result<Option<User>, DomainError> {
+        let row: Option<UserRow> = sqlx::query_as(
+            "SELECT id, email, phone, display_name, role, status, created_at FROM identity.users WHERE phone = $1",
+        )
+        .bind(phone)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(UserRow::into_domain).transpose()
+    }
+
     async fn update(&self, user: &User) -> Result<(), DomainError> {
         let affected = sqlx::query(
             "UPDATE identity.users SET phone = $2, display_name = $3, role = $4, status = $5 WHERE id = $1",
@@ -1401,6 +2112,13 @@ impl TenantRepository for PgTenantRepository {
         .await
         .map(|_| ())
         .map_err(map_db_error)
+    }
+
+    async fn has_any_tenant(&self) -> Result<bool, DomainError> {
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM tenancy.tenants)")
+            .fetch_one(&self.pool)
+            .await
+            .map_err(map_db_error)
     }
 
     async fn find_by_slug(&self, slug: &str) -> Result<Option<TenantCompany>, DomainError> {
@@ -1495,6 +2213,34 @@ impl TenantRepository for PgTenantRepository {
                 .fetch_optional(&self.pool)
                 .await
                 .map_err(map_db_error)?;
+        Ok(tenant_id.map(TenantId))
+    }
+
+    async fn bind_vehicle(
+        &self,
+        tenant_id: TenantId,
+        vehicle_id: VehicleId,
+    ) -> Result<(), DomainError> {
+        sqlx::query("INSERT INTO tenancy.vehicle_tenants (vehicle_id, tenant_id) VALUES ($1, $2)")
+            .bind(vehicle_id.0)
+            .bind(tenant_id.0)
+            .execute(&self.pool)
+            .await
+            .map(|_| ())
+            .map_err(map_db_error)
+    }
+
+    async fn find_vehicle_tenant(
+        &self,
+        vehicle_id: VehicleId,
+    ) -> Result<Option<TenantId>, DomainError> {
+        let tenant_id: Option<Uuid> = sqlx::query_scalar(
+            "SELECT tenant_id FROM tenancy.vehicle_tenants WHERE vehicle_id = $1",
+        )
+        .bind(vehicle_id.0)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
         Ok(tenant_id.map(TenantId))
     }
 }
@@ -1607,6 +2353,107 @@ impl CredentialRepository for PgCredentialRepository {
             "UPDATE identity.refresh_sessions SET revoked_at = COALESCE(revoked_at, now()) WHERE id = $1",
         )
         .bind(id)
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgOtpChallengeRepository {
+    pool: PgPool,
+}
+
+impl PgOtpChallengeRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct OtpChallengeRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    phone: String,
+    code_hash: String,
+    attempts: i16,
+    created_at: DateTime<Utc>,
+    expires_at: DateTime<Utc>,
+    consumed_at: Option<DateTime<Utc>>,
+}
+
+impl OtpChallengeRow {
+    fn into_domain(self) -> OtpChallenge {
+        OtpChallenge {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            phone: self.phone,
+            code_hash: self.code_hash,
+            attempts: self.attempts as u8,
+            created_at: self.created_at,
+            expires_at: self.expires_at,
+            consumed_at: self.consumed_at,
+        }
+    }
+}
+
+const OTP_CHALLENGE_COLUMNS: &str =
+    "id, tenant_id, phone, code_hash, attempts, created_at, expires_at, consumed_at";
+
+#[async_trait]
+impl OtpChallengeRepository for PgOtpChallengeRepository {
+    async fn create(&self, challenge: &OtpChallenge) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO identity.otp_challenges \
+             (id, tenant_id, phone, code_hash, attempts, created_at, expires_at, consumed_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(challenge.id)
+        .bind(challenge.tenant_id.0)
+        .bind(&challenge.phone)
+        .bind(&challenge.code_hash)
+        .bind(i16::from(challenge.attempts))
+        .bind(challenge.created_at)
+        .bind(challenge.expires_at)
+        .bind(challenge.consumed_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_latest_active(
+        &self,
+        tenant_id: TenantId,
+        phone: &str,
+        now: DateTime<Utc>,
+    ) -> Result<Option<OtpChallenge>, DomainError> {
+        let row: Option<OtpChallengeRow> = sqlx::query_as(&format!(
+            "SELECT {OTP_CHALLENGE_COLUMNS} FROM identity.otp_challenges \
+             WHERE tenant_id = $1 AND phone = $2 AND consumed_at IS NULL AND expires_at > $3 \
+             ORDER BY created_at DESC LIMIT 1"
+        ))
+        .bind(tenant_id.0)
+        .bind(phone)
+        .bind(now)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(row.map(OtpChallengeRow::into_domain))
+    }
+
+    async fn update(&self, challenge: &OtpChallenge) -> Result<(), DomainError> {
+        let affected = sqlx::query(
+            "UPDATE identity.otp_challenges SET attempts = $2, consumed_at = $3 WHERE id = $1",
+        )
+        .bind(challenge.id)
+        .bind(i16::from(challenge.attempts))
+        .bind(challenge.consumed_at)
         .execute(&self.pool)
         .await
         .map_err(map_db_error)?

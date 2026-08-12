@@ -100,4 +100,26 @@ where
         self.users.update(&user).await?;
         Ok(user)
     }
+
+    /// Sets or replaces the phone number used for OTP login. Required
+    /// before a user can request an OTP challenge, since `OtpService`
+    /// resolves accounts strictly by phone number.
+    pub async fn set_phone(&self, id: UserId, phone: String) -> Result<User, ApplicationError> {
+        if phone.trim().is_empty() {
+            return Err(ApplicationError::Conflict(
+                "phone number is required".into(),
+            ));
+        }
+        if let Some(existing) = self.users.find_by_phone(&phone).await? {
+            if existing.id != id {
+                return Err(ApplicationError::Conflict(
+                    "phone number is already linked to another account".into(),
+                ));
+            }
+        }
+        let mut user = self.get(id).await?;
+        user.set_phone(phone);
+        self.users.update(&user).await?;
+        Ok(user)
+    }
 }

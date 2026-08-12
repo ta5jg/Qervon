@@ -19,4 +19,5 @@
 pub mod api_error;
 pub mod auth;
 pub mod http;
+pub mod rate_limit;
 pub mod state;

@@ -20,15 +20,19 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use qervon_domain::{
-    Assignment, AssignmentRepository, Courier, CourierPayout, CourierPayoutRepository,
-    CourierRepository, CourierStatus, Credential, CredentialRepository, CustomerId,
-    CustomerProfile, CustomerRepository, DomainError, Invoice, InvoiceId, InvoiceRepository,
-    Notification, NotificationId, NotificationRepository, Order, OrderId, OrderRepository,
-    ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, TenantCompany, TenantId,
-    TenantMembership, TenantRepository, TrackingPoint, TrackingRepository, TrackingSession,
-    TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository,
-    VehicleStatus, WebhookRepository, WebhookSubscription,
+    Assignment, AssignmentRepository, AssignmentStatus, Coupon, CouponRepository, Courier,
+    CourierPayout, CourierPayoutRepository, CourierRepository, CourierStatus, CourierWallet,
+    CourierWalletRepository, Credential, CredentialRepository, CustomerId, CustomerProfile,
+    CustomerRating, CustomerRatingRepository, CustomerRepository, DeliveryPricing,
+    DeliveryPricingRepository, DevicePushToken, DevicePushTokenRepository, DomainError, Invoice,
+    InvoiceId, InvoiceRepository, Notification, NotificationId, NotificationRepository, Order,
+    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, ProofOfDeliveryRecord,
+    ProofOfDeliveryRepository, RefreshSession, SupportTicket, SupportTicketRepository,
+    TenantCompany, TenantId, TenantMembership, TenantRepository, TrackingPoint, TrackingRepository,
+    TrackingSession, TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId,
+    VehicleRepository, VehicleStatus, WalletTransaction, WebhookRepository, WebhookSubscription,
 };
 use uuid::Uuid;
 
@@ -55,8 +59,16 @@ pub struct InMemoryStore {
     tenant_memberships: Arc<RwLock<HashMap<(TenantId, UserId), TenantMembership>>>,
     courier_tenants: Arc<RwLock<HashMap<Uuid, TenantId>>>,
     order_tenants: Arc<RwLock<HashMap<OrderId, TenantId>>>,
+    vehicle_tenants: Arc<RwLock<HashMap<VehicleId, TenantId>>>,
     proofs_of_delivery: Arc<RwLock<HashMap<OrderId, ProofOfDeliveryRecord>>>,
     webhooks: Arc<RwLock<HashMap<Uuid, WebhookSubscription>>>,
+    otp_challenges: Arc<RwLock<HashMap<Uuid, OtpChallenge>>>,
+    courier_wallets: Arc<RwLock<HashMap<Uuid, CourierWallet>>>,
+    customer_ratings: Arc<RwLock<HashMap<Uuid, CustomerRating>>>,
+    support_tickets: Arc<RwLock<HashMap<Uuid, SupportTicket>>>,
+    coupons: Arc<RwLock<HashMap<Uuid, Coupon>>>,
+    device_push_tokens: Arc<RwLock<HashMap<Uuid, DevicePushToken>>>,
+    delivery_pricing: Arc<RwLock<HashMap<TenantId, DeliveryPricing>>>,
 }
 
 impl InMemoryStore {
@@ -125,6 +137,48 @@ impl InMemoryStore {
         }
     }
 
+    pub fn otp_challenge_repository(&self) -> InMemoryOtpChallengeRepository {
+        InMemoryOtpChallengeRepository {
+            store: Arc::clone(&self.otp_challenges),
+        }
+    }
+
+    pub fn courier_wallet_repository(&self) -> InMemoryCourierWalletRepository {
+        InMemoryCourierWalletRepository {
+            store: Arc::clone(&self.courier_wallets),
+        }
+    }
+
+    pub fn customer_rating_repository(&self) -> InMemoryCustomerRatingRepository {
+        InMemoryCustomerRatingRepository {
+            store: Arc::clone(&self.customer_ratings),
+        }
+    }
+
+    pub fn support_ticket_repository(&self) -> InMemorySupportTicketRepository {
+        InMemorySupportTicketRepository {
+            store: Arc::clone(&self.support_tickets),
+        }
+    }
+
+    pub fn coupon_repository(&self) -> InMemoryCouponRepository {
+        InMemoryCouponRepository {
+            store: Arc::clone(&self.coupons),
+        }
+    }
+
+    pub fn device_push_token_repository(&self) -> InMemoryDevicePushTokenRepository {
+        InMemoryDevicePushTokenRepository {
+            store: Arc::clone(&self.device_push_tokens),
+        }
+    }
+
+    pub fn delivery_pricing_repository(&self) -> InMemoryDeliveryPricingRepository {
+        InMemoryDeliveryPricingRepository {
+            store: Arc::clone(&self.delivery_pricing),
+        }
+    }
+
     pub fn user_repository(&self) -> InMemoryUserRepository {
         InMemoryUserRepository {
             store: Arc::clone(&self.users),
@@ -149,6 +203,7 @@ impl InMemoryStore {
             memberships: Arc::clone(&self.tenant_memberships),
             courier_tenants: Arc::clone(&self.courier_tenants),
             order_tenants: Arc::clone(&self.order_tenants),
+            vehicle_tenants: Arc::clone(&self.vehicle_tenants),
         }
     }
 }
@@ -159,6 +214,7 @@ pub struct InMemoryTenantRepository {
     memberships: Arc<RwLock<HashMap<(TenantId, UserId), TenantMembership>>>,
     courier_tenants: Arc<RwLock<HashMap<Uuid, TenantId>>>,
     order_tenants: Arc<RwLock<HashMap<OrderId, TenantId>>>,
+    vehicle_tenants: Arc<RwLock<HashMap<VehicleId, TenantId>>>,
 }
 
 #[async_trait]
@@ -175,6 +231,14 @@ impl TenantRepository for InMemoryTenantRepository {
         }
         tenants.insert(slug.to_owned(), tenant.clone());
         Ok(())
+    }
+
+    async fn has_any_tenant(&self) -> Result<bool, DomainError> {
+        Ok(!self
+            .tenants
+            .read()
+            .map_err(|_| DomainError::validation("lock poisoned"))?
+            .is_empty())
     }
 
     async fn find_by_slug(&self, slug: &str) -> Result<Option<TenantCompany>, DomainError> {
@@ -241,6 +305,28 @@ impl TenantRepository for InMemoryTenantRepository {
             .read()
             .map_err(|_| DomainError::validation("lock poisoned"))?
             .get(&order_id)
+            .copied())
+    }
+    async fn bind_vehicle(
+        &self,
+        tenant_id: TenantId,
+        vehicle_id: VehicleId,
+    ) -> Result<(), DomainError> {
+        self.vehicle_tenants
+            .write()
+            .map_err(|_| DomainError::validation("lock poisoned"))?
+            .insert(vehicle_id, tenant_id);
+        Ok(())
+    }
+    async fn find_vehicle_tenant(
+        &self,
+        vehicle_id: VehicleId,
+    ) -> Result<Option<TenantId>, DomainError> {
+        Ok(self
+            .vehicle_tenants
+            .read()
+            .map_err(|_| DomainError::validation("lock poisoned"))?
+            .get(&vehicle_id)
             .copied())
     }
 }
@@ -395,6 +481,22 @@ impl AssignmentRepository for InMemoryAssignmentRepository {
 
     async fn find_by_order(&self, order_id: OrderId) -> Result<Option<Assignment>, DomainError> {
         Ok(self.store.read().unwrap().get(&order_id).cloned())
+    }
+
+    async fn find_pending_offer_for_courier(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<Option<Assignment>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .find(|assignment| {
+                assignment.courier_id == courier_id
+                    && assignment.status == AssignmentStatus::Offered
+            })
+            .cloned())
     }
 
     async fn update(&self, assignment: &Assignment) -> Result<(), DomainError> {
@@ -735,8 +837,341 @@ impl UserRepository for InMemoryUserRepository {
             .cloned())
     }
 
+    async fn find_by_phone(&self, phone: &str) -> Result<Option<User>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .find(|u| u.phone.as_deref() == Some(phone))
+            .cloned())
+    }
+
     async fn update(&self, user: &User) -> Result<(), DomainError> {
         self.store.write().unwrap().insert(user.id, user.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// OtpChallengeRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryOtpChallengeRepository {
+    store: Arc<RwLock<HashMap<Uuid, OtpChallenge>>>,
+}
+
+#[async_trait]
+impl OtpChallengeRepository for InMemoryOtpChallengeRepository {
+    async fn create(&self, challenge: &OtpChallenge) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(challenge.id, challenge.clone());
+        Ok(())
+    }
+
+    async fn find_latest_active(
+        &self,
+        tenant_id: TenantId,
+        phone: &str,
+        now: DateTime<Utc>,
+    ) -> Result<Option<OtpChallenge>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|challenge| {
+                challenge.tenant_id == tenant_id
+                    && challenge.phone == phone
+                    && !challenge.is_consumed()
+                    && !challenge.is_expired(now)
+            })
+            .max_by_key(|challenge| challenge.created_at)
+            .cloned())
+    }
+
+    async fn update(&self, challenge: &OtpChallenge) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(challenge.id, challenge.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// CourierWalletRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryCourierWalletRepository {
+    store: Arc<RwLock<HashMap<Uuid, CourierWallet>>>,
+}
+
+#[async_trait]
+impl CourierWalletRepository for InMemoryCourierWalletRepository {
+    async fn find_by_courier(
+        &self,
+        courier_id: Uuid,
+    ) -> Result<Option<CourierWallet>, DomainError> {
+        Ok(self.store.read().unwrap().get(&courier_id).cloned())
+    }
+
+    async fn create(&self, wallet: &CourierWallet) -> Result<(), DomainError> {
+        let mut store = self.store.write().unwrap();
+        if store.contains_key(&wallet.courier_id) {
+            return Err(DomainError::AlreadyExists(
+                "courier already has a wallet".into(),
+            ));
+        }
+        store.insert(wallet.courier_id, wallet.clone());
+        Ok(())
+    }
+
+    async fn append_transaction(
+        &self,
+        wallet: &CourierWallet,
+        _transaction: &WalletTransaction,
+    ) -> Result<(), DomainError> {
+        // The in-memory store keeps the full aggregate (including its
+        // transaction history) in one entry, so persisting the post-mutation
+        // `wallet` already captures the newly appended transaction.
+        self.store
+            .write()
+            .unwrap()
+            .insert(wallet.courier_id, wallet.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// CustomerRatingRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryCustomerRatingRepository {
+    store: Arc<RwLock<HashMap<Uuid, CustomerRating>>>,
+}
+
+#[async_trait]
+impl CustomerRatingRepository for InMemoryCustomerRatingRepository {
+    async fn create(&self, rating: &CustomerRating) -> Result<(), DomainError> {
+        let mut store = self.store.write().unwrap();
+        if store
+            .values()
+            .any(|existing| existing.order_id == rating.order_id)
+        {
+            return Err(DomainError::AlreadyExists(
+                "order already has a rating".into(),
+            ));
+        }
+        store.insert(rating.id, rating.clone());
+        Ok(())
+    }
+
+    async fn find_by_order(&self, order_id: Uuid) -> Result<Option<CustomerRating>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .find(|rating| rating.order_id == order_id)
+            .cloned())
+    }
+
+    async fn list_for_courier(&self, courier_id: Uuid) -> Result<Vec<CustomerRating>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|rating| rating.courier_id == courier_id)
+            .cloned()
+            .collect())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// SupportTicketRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemorySupportTicketRepository {
+    store: Arc<RwLock<HashMap<Uuid, SupportTicket>>>,
+}
+
+#[async_trait]
+impl SupportTicketRepository for InMemorySupportTicketRepository {
+    async fn create(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(ticket.id, ticket.clone());
+        Ok(())
+    }
+
+    async fn find_by_id(&self, id: Uuid) -> Result<Option<SupportTicket>, DomainError> {
+        Ok(self.store.read().unwrap().get(&id).cloned())
+    }
+
+    async fn list_for_customer(
+        &self,
+        customer_id: Uuid,
+    ) -> Result<Vec<SupportTicket>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|ticket| ticket.customer_id == customer_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(ticket.id, ticket.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// CouponRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryCouponRepository {
+    store: Arc<RwLock<HashMap<Uuid, Coupon>>>,
+}
+
+#[async_trait]
+impl CouponRepository for InMemoryCouponRepository {
+    async fn create(&self, coupon: &Coupon) -> Result<(), DomainError> {
+        let mut store = self.store.write().unwrap();
+        let duplicate = store
+            .values()
+            .any(|existing| existing.tenant_id == coupon.tenant_id && existing.code == coupon.code);
+        if duplicate {
+            return Err(DomainError::AlreadyExists(
+                "a coupon with this code already exists for this tenant".into(),
+            ));
+        }
+        store.insert(coupon.id, coupon.clone());
+        Ok(())
+    }
+
+    async fn find_by_code(
+        &self,
+        tenant_id: TenantId,
+        code: &str,
+    ) -> Result<Option<Coupon>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .find(|coupon| coupon.tenant_id == tenant_id && coupon.code == code)
+            .cloned())
+    }
+
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<Coupon>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|coupon| coupon.tenant_id == tenant_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn update(&self, coupon: &Coupon) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(coupon.id, coupon.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// DeliveryPricingRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryDeliveryPricingRepository {
+    store: Arc<RwLock<HashMap<TenantId, DeliveryPricing>>>,
+}
+
+#[async_trait]
+impl DeliveryPricingRepository for InMemoryDeliveryPricingRepository {
+    async fn find_by_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Option<DeliveryPricing>, DomainError> {
+        Ok(self.store.read().unwrap().get(&tenant_id).cloned())
+    }
+
+    async fn upsert(&self, pricing: &DeliveryPricing) -> Result<(), DomainError> {
+        self.store
+            .write()
+            .unwrap()
+            .insert(pricing.tenant_id, pricing.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// DevicePushTokenRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryDevicePushTokenRepository {
+    store: Arc<RwLock<HashMap<Uuid, DevicePushToken>>>,
+}
+
+#[async_trait]
+impl DevicePushTokenRepository for InMemoryDevicePushTokenRepository {
+    async fn create(&self, token: &DevicePushToken) -> Result<(), DomainError> {
+        self.store.write().unwrap().insert(token.id, token.clone());
+        Ok(())
+    }
+
+    async fn find_by_user_and_token(
+        &self,
+        user_id: UserId,
+        device_token: &str,
+    ) -> Result<Option<DevicePushToken>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .find(|token| token.user_id == user_id && token.device_token == device_token)
+            .cloned())
+    }
+
+    async fn list_for_user(&self, user_id: UserId) -> Result<Vec<DevicePushToken>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|token| token.user_id == user_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn delete(&self, user_id: UserId, id: Uuid) -> Result<(), DomainError> {
+        let mut store = self.store.write().unwrap();
+        if store.get(&id).is_some_and(|token| token.user_id == user_id) {
+            store.remove(&id);
+        }
         Ok(())
     }
 }
@@ -814,6 +1249,8 @@ mod tests {
             },
             Money::new(1_000, "TRY").unwrap(),
             Utc::now(),
+            None,
+            None,
         )
         .expect("order")
     }

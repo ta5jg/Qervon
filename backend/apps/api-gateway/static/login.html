@@ -1,1 +1,95 @@
-<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qervon Giriş</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#090d1a;color:#fff;font:16px system-ui}main{width:min(380px,calc(100% - 40px));padding:32px;border:1px solid #334155;border-radius:18px;background:#101827}h1{color:#34d399}label{display:block;margin:14px 0 4px}input,button{box-sizing:border-box;width:100%;padding:12px;border-radius:9px}input{background:#0b1220;color:#fff;border:1px solid #334155}button{margin-top:20px;border:0;background:#34d399;font-weight:800}#message{min-height:20px;color:#fca5a5;margin-top:12px}</style></head><body><main><h1>QERVON</h1><p>Tenant hesabınıza giriş yapın.</p><form id="form"><label>Tenant kodu</label><input id="tenant" required><label>E-posta</label><input id="email" type="email" required><label>Parola</label><input id="password" type="password" required><button>Giriş yap</button></form><div id="message"></div></main><script>const form=document.getElementById('form'),tenant=document.getElementById('tenant'),email=document.getElementById('email'),password=document.getElementById('password'),message=document.getElementById('message');form.addEventListener('submit',async e=>{e.preventDefault();const r=await fetch('/v1/browser/auth/login',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({tenant_slug:tenant.value,email:email.value,password:password.value})});if(!r.ok){message.textContent='Giriş bilgileri veya tenant erişimi geçersiz.';return}location.assign('/')})</script></body></html>
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Qervon Giriş</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; background:#090d1a; color:#fff; }
+    main { width:min(400px,calc(100% - 40px)); padding:32px; border:1px solid #334155; border-radius:18px; background:#101827; box-shadow:0 20px 60px #0008; }
+    h1 { margin:0; color:#34d399; letter-spacing:.08em; } p { color:#a8b4c8; line-height:1.5; }
+    label { display:block; margin:14px 0 4px; font-size:14px; } input,button { box-sizing:border-box; width:100%; padding:12px; border-radius:9px; font:inherit; }
+    input { background:#0b1220; color:#fff; border:1px solid #334155; } button { margin-top:20px; border:0; background:#34d399; color:#062b20; font-weight:800; cursor:pointer; }
+    #message { min-height:22px; color:#fca5a5; margin-top:12px; } .hint { font-size:13px; }
+    details { margin-top:20px; border-top:1px solid #334155; padding-top:16px; color:#a8b4c8; }
+    summary { cursor:pointer; color:#6ee7b7; font-weight:700; }
+    details button { margin-top:14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>QERVON</h1>
+    <p id="heading">Tenant hesabınıza giriş yapın.</p>
+    <p class="hint">Kurye hesabı, firmanızın tenant yöneticisi tarafından oluşturulur.</p>
+    <form id="form">
+      <label for="tenant">Tenant kodu</label><input id="tenant" autocomplete="organization" required>
+      <label for="email">E-posta</label><input id="email" type="email" autocomplete="username" required>
+      <label for="password">Parola</label><input id="password" type="password" autocomplete="current-password" required>
+      <button type="submit">Giriş yap</button>
+    </form>
+    <div id="message" role="alert" aria-live="polite"></div>
+    <details id="customer-signup">
+      <summary>Müşteri hesabı oluştur</summary>
+      <p class="hint">Bu tenant için teslimat oluşturacak müşteri hesabı açın.</p>
+      <form id="signup-form">
+        <label for="signup-name">Ad soyad</label><input id="signup-name" autocomplete="name" required>
+        <label for="signup-email">E-posta</label><input id="signup-email" type="email" autocomplete="email" required>
+        <label for="signup-password">Parola</label><input id="signup-password" type="password" minlength="12" autocomplete="new-password" required>
+        <button type="submit">Müşteri hesabını oluştur</button>
+      </form>
+    </details>
+  </main>
+  <script>
+    const form = document.getElementById('form');
+    const tenant = document.getElementById('tenant');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const message = document.getElementById('message');
+    const signupForm = document.getElementById('signup-form');
+    const requestedReturn = new URLSearchParams(location.search).get('return_to');
+    const returnTo = requestedReturn && requestedReturn.startsWith('/') && !requestedReturn.startsWith('//') ? requestedReturn : '/';
+    const tenantFromUrl = new URLSearchParams(location.search).get('tenant');
+    if (tenantFromUrl) tenant.value = tenantFromUrl;
+    if (returnTo.includes('mobile-courier')) document.getElementById('heading').textContent = 'Kurye terminaline giriş yapın.';
+    if (returnTo.includes('customer')) {
+      document.getElementById('heading').textContent = 'Müşteri hesabınızla giriş yapın.';
+      document.querySelector('.hint').textContent = 'İlk kez kullanıyorsanız aşağıdan müşteri hesabı oluşturabilirsiniz.';
+      document.getElementById('customer-signup').open = true;
+    }
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      message.textContent = '';
+      const response = await fetch('/v1/browser/auth/login', {
+        method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin',
+        body:JSON.stringify({ tenant_slug:tenant.value.trim(), email:email.value.trim(), password:password.value })
+      });
+      if (!response.ok) { message.textContent = 'Giriş bilgileri veya tenant erişimi geçersiz.'; return; }
+      location.assign(returnTo);
+    });
+    signupForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      message.textContent = '';
+      const tenantSlug = tenant.value.trim();
+      if (!tenantSlug) { message.textContent = 'Önce tenant kodunu girin.'; tenant.focus(); return; }
+      const response = await fetch('/v1/auth/register', {
+        method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin',
+        body:JSON.stringify({
+          tenant_slug: tenantSlug,
+          email: document.getElementById('signup-email').value.trim(),
+          display_name: document.getElementById('signup-name').value.trim(),
+          password: document.getElementById('signup-password').value
+        })
+      });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        message.textContent = `Hesap oluşturulamadı: ${problem.detail || 'bilinmeyen hata'}`;
+        return;
+      }
+      email.value = document.getElementById('signup-email').value.trim();
+      password.value = document.getElementById('signup-password').value;
+      form.requestSubmit();
+    });
+  </script>
+</body>
+</html>

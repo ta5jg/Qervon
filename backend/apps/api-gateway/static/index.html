@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
 
   <style>
     :root {
@@ -217,6 +217,7 @@
       <div class="nav-item" onclick="switchTab('orders')"><i data-lucide="shopping-bag"></i> Sipariş Yönetimi</div>
       <div class="nav-item" onclick="switchTab('couriers')"><i data-lucide="bike"></i> Kurye Filosu</div>
       <div class="nav-item" onclick="switchTab('finance')"><i data-lucide="wallet"></i> Finans & Cüzdan</div>
+      <div class="nav-item" onclick="switchTab('pricing')"><i data-lucide="tag"></i> Fiyatlandırma</div>
       <div class="nav-item" onclick="switchTab('ai')"><i data-lucide="cpu"></i> AI Dispatcher & Fraud Guard</div>
     </div>
   </sidebar>
@@ -228,7 +229,11 @@
         <h2 id="page-title" style="font-size:18px; font-weight:800;">Genel Bakış Dashboard</h2>
         <div class="status-badge"><div class="pulse-dot"></div> RUST BACKEND CANLI</div>
       </div>
-      <div style="display:flex; gap:12px;">
+      <div id="auth-controls" style="display:flex; gap:12px; align-items:center;">
+        <a id="login-link" class="btn-action" style="text-decoration:none;" href="/login">Giriş</a>
+        <a id="setup-link" class="btn-action" style="text-decoration:none; background:linear-gradient(135deg,#2563eb,#1d4ed8);" href="/setup">İlk kurulum</a>
+        <span id="session-user" style="display:none; font-size:12px; font-weight:800; color:var(--accent-green);"></span>
+        <button id="logout-button" class="btn-action" style="display:none; background:linear-gradient(135deg,#475569,#334155);" type="button">Çıkış yap</button>
         <button class="btn-action" onclick="switchTab('map')"><i data-lucide="flame"></i> 🔥 Canlı Isı Haritası</button>
       </div>
     </header>
@@ -357,15 +362,71 @@
           <thead><tr><th>Üye</th><th>E-posta</th><th>Tenant Rolü</th><th>Katılım</th></tr></thead>
           <tbody id="company-members-body"><tr><td colspan="4">Üyeler yükleniyor…</td></tr></tbody>
         </table>
+        <form id="courier-provision-form" onsubmit="provisionCourier(event)" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:8px; margin-top:18px; align-items:end;">
+          <label style="font-size:11px; color:var(--text-muted);">Ad soyad<input id="courier-provision-name" required placeholder="Kurye adı" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">E-posta<input id="courier-provision-email" required type="email" placeholder="kurye@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="courier-provision-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Araç<select id="courier-provision-vehicle" style="display:block; width:100%; margin-top:5px;"><option value="motorcycle">Motosiklet</option><option value="bicycle">Bisiklet</option><option value="car">Otomobil</option><option value="van">Panelvan</option></select></label>
+          <button class="btn-action" type="submit">Kurye hesabı oluştur</button>
+        </form>
+        <p id="courier-provision-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Tenant yöneticisi oluştur</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Bu firmada kurye hesabı, sipariş ve ekip yönetebilecek yeni bir yönetici ekler.</p>
+          <form id="tenant-admin-form" onsubmit="provisionCompanyAdmin(event)" style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:8px; align-items:end;">
+            <label style="font-size:11px; color:var(--text-muted);">Ad soyad<input id="tenant-admin-name" required placeholder="Yönetici adı" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">E-posta<input id="tenant-admin-email" required type="email" placeholder="yonetici@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="tenant-admin-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+            <button class="btn-action" type="submit">Yönetici oluştur</button>
+          </form>
+          <p id="tenant-admin-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        </div>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Yeni firma / tenant oluştur</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Yalnız platform yöneticisi yeni tenant ve o tenant’ın ilk yöneticisini oluşturabilir.</p>
+          <form id="tenant-provision-form" onsubmit="provisionTenant(event)" style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; align-items:end;">
+            <label style="font-size:11px; color:var(--text-muted);">Firma adı<input id="tenant-provision-name" required placeholder="Firma adı" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Tenant kodu<input id="tenant-provision-slug" required pattern="[a-z0-9-]{3,63}" placeholder="firma-kodu" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Yönetici adı<input id="tenant-provision-admin-name" required placeholder="Ad soyad" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Yönetici e-posta<input id="tenant-provision-admin-email" required type="email" placeholder="yonetici@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="tenant-provision-admin-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+            <button class="btn-action" type="submit">Tenant oluştur</button>
+          </form>
+          <p id="tenant-provision-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DELIVERY PRICING -->
+    <div id="tab-pricing" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:6px;">Teslimat Fiyatlandırması</h3>
+        <p style="margin:0 0 16px; color:var(--text-muted); font-size:12px;">Bu tenant için mesafeye bağlı ücret formülü: <b>ücret = taban ücret + (mesafe km × km ücreti)</b>, asgari ücretin altına düşmez. Müşteri siparişi oluşturduğunda sunucu bu değerlerle ücreti kendisi hesaplar — istemci ücreti belirleyemez. Sadece <b>Admin</b>/<b>SuperAdmin</b> rolü kaydedebilir; diğer roller salt-okunur görür.</p>
+        <p id="pricing-updated-at" style="margin:0 0 16px; color:var(--text-muted); font-size:11px;"></p>
+        <form id="pricing-form" onsubmit="savePricing(event)" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:8px; align-items:end;">
+          <label style="font-size:11px; color:var(--text-muted);">Taban ücret<input id="pricing-base-fare" required type="number" step="0.01" min="0" placeholder="10.00" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Km başı ücret<input id="pricing-per-km" required type="number" step="0.01" min="0" placeholder="2.50" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Asgari ücret<input id="pricing-min-fare" required type="number" step="0.01" min="0" placeholder="15.00" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Para birimi<input id="pricing-currency" required maxlength="3" pattern="[A-Z]{3}" placeholder="TRY" style="display:block; width:100%; margin-top:5px; text-transform:uppercase;"></label>
+          <button class="btn-action" type="submit" id="pricing-save-button">Kaydet</button>
+        </form>
+        <p id="pricing-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Canlı ücret önizlemesi</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Örnek mesafe girip yukarıdaki (kaydedilmiş) formülle hesaplanan ücreti gör.</p>
+          <label style="font-size:11px; color:var(--text-muted); display:inline-block; max-width:220px;">Mesafe (km)<input id="pricing-preview-km" type="number" step="0.1" min="0" value="5" oninput="renderPricingPreview()" style="display:block; width:100%; margin-top:5px;"></label>
+          <p id="pricing-preview-result" style="margin-top:10px; font-size:14px; font-weight:800; color:var(--accent-green);"></p>
+        </div>
       </div>
     </div>
 
     <!-- TAB 6: AI DISPATCHER & FRAUD GUARD -->
     <div id="tab-ai" class="view-section">
       <div class="table-card glass">
-        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">AI Fraud Guard & Anomali Tespiti</h3>
-        <div style="padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#fca5a5; font-size:13px;">
-          🛡️ <b>AI Fraud Guard Aktif:</b> Fiziksel hız limiti 160 km/s olarak ayarlandı. Sahte GPS / Teleportation anomalisi tespit edilmedi.
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:6px;">AI Fraud Guard & Anomali Tespiti</h3>
+        <p style="margin:0 0 16px; color:var(--text-muted); font-size:12px;">Fiziksel hız limiti 160 km/s — bunu aşan ardışık konum sıçramaları burada canlı olarak listelenir (kayıt reddedilmez, yalnızca işaretlenir).</p>
+        <div id="fraud-alerts-body">
+          <div style="padding:16px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); border-radius:12px; color:var(--text-muted); font-size:13px;">Canlı veriler yükleniyor…</div>
         </div>
       </div>
     </div>
@@ -390,9 +451,50 @@
         ...options,
         headers: { ...csrfHeaders(), ...(options.headers || {}) }
       });
-      if (!response.ok) throw new Error(`API ${response.status}`);
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        throw new Error(problem.detail || `API ${response.status}`);
+      }
       return response.status === 204 ? null : response.json();
     }
+
+    function formatRole(role) {
+      return ({ super_admin: 'Platform yöneticisi', admin: 'Tenant yöneticisi', operator: 'Operasyon', dispatcher: 'Dispatcher', courier: 'Kurye', customer: 'Müşteri' }[role] || role);
+    }
+
+    async function refreshSessionControls() {
+      const login = document.getElementById('login-link');
+      const setup = document.getElementById('setup-link');
+      const user = document.getElementById('session-user');
+      const logout = document.getElementById('logout-button');
+      try {
+        const session = await adminApi('/v1/auth/session');
+        login.style.display = 'none';
+        setup.style.display = 'none';
+        user.textContent = `${session.display_name} · ${formatRole(session.role)}`;
+        user.style.display = 'inline';
+        logout.style.display = 'inline-flex';
+        return session;
+      } catch (_) {
+        login.style.display = 'inline-flex';
+        setup.style.display = 'inline-flex';
+        user.style.display = 'none';
+        logout.style.display = 'none';
+        return null;
+      }
+    }
+
+    async function logout() {
+      const button = document.getElementById('logout-button');
+      button.disabled = true;
+      try {
+        await adminApi('/v1/browser/auth/logout', { method: 'POST' });
+      } finally {
+        location.assign('/login');
+      }
+    }
+
+    document.getElementById('logout-button').addEventListener('click', logout);
 
     function formatMoney(amountMinor, currency) {
       return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amountMinor / 100);
@@ -418,9 +520,14 @@
       }).join('') : '<tr><td colspan="7">Bu tenant için sipariş yok.</td></tr>';
     }
 
-    function renderCouriers(couriers) {
+    function renderCouriers(couriers, vehicles) {
       const body = document.getElementById('couriers-body');
-      body.innerHTML = couriers.length ? couriers.map(courier => `<tr><td style="font-weight:700;">${courier.name}</td><td>${courier.vehicle}</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-green">${courier.status}</span></td></tr>`).join('') : '<tr><td colspan="7">Bu tenant için kurye yok.</td></tr>';
+      const vehicleByCourier = new Map((vehicles || []).filter(vehicle => vehicle.assigned_courier_id).map(vehicle => [vehicle.assigned_courier_id, vehicle]));
+      body.innerHTML = couriers.length ? couriers.map(courier => {
+        const vehicle = vehicleByCourier.get(courier.id);
+        const plate = vehicle ? escapeHtml(vehicle.plate_number) : '<span style="color:var(--text-muted);">Araç atanmadı</span>';
+        return `<tr><td style="font-weight:700;">${escapeHtml(courier.name)}</td><td>${escapeHtml(courier.vehicle)}</td><td>${plate}</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-green">${escapeHtml(courier.status)}</span></td></tr>`;
+      }).join('') : '<tr><td colspan="7">Bu tenant için kurye yok.</td></tr>';
     }
 
     function renderFinance(summary, invoices) {
@@ -446,25 +553,43 @@
     }
 
     async function refreshOperations() {
-      try {
-        const [overview, orders, couriers, finance, invoices, company, members] = await Promise.all([adminApi('/v1/operations/overview'), adminApi('/v1/orders'), adminApi('/v1/couriers'), adminApi('/v1/finance/summary'), adminApi('/v1/finance/invoices'), adminApi('/v1/company'), adminApi('/v1/company/members')]);
-        document.getElementById('val-orders').textContent = overview.active_orders;
-        document.getElementById('val-couriers').textContent = overview.available_couriers;
-        document.getElementById('val-pending').textContent = overview.pending_orders;
-        document.getElementById('val-busy').textContent = overview.busy_couriers;
-        document.getElementById('val-transit').textContent = overview.in_transit_orders;
-        const revenue = overview.delivered_revenue_by_currency[0];
-        document.getElementById('val-revenue').textContent = revenue ? formatMoney(revenue.amount_minor, revenue.currency) : '—';
-        renderOrders(orders, couriers);
-        renderCouriers(couriers);
-        renderFinance(finance, invoices);
-        renderCompany(company, members);
-      } catch (_) {
+      const results = await Promise.allSettled([
+        adminApi('/v1/operations/overview'),
+        adminApi('/v1/orders'),
+        adminApi('/v1/couriers'),
+        adminApi('/v1/finance/summary'),
+        adminApi('/v1/finance/invoices'),
+        adminApi('/v1/company'),
+        adminApi('/v1/company/members'),
+        adminApi('/v1/fleet/vehicles')
+      ]);
+      const value = (index, fallback) => results[index].status === 'fulfilled' ? results[index].value : fallback;
+      const overview = value(0, null);
+      if (!overview) {
         document.getElementById('orders-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
         document.getElementById('couriers-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
         document.getElementById('finance-body').innerHTML = '<tr><td colspan="6">Finans için yönetim oturumu gerekli.</td></tr>';
         document.getElementById('company-members-body').innerHTML = '<tr><td colspan="4">Firma bilgileri için yönetim oturumu gerekli.</td></tr>';
+        return;
       }
+      const orders = value(1, []);
+      const couriers = value(2, []);
+      const finance = value(3, { invoiced_by_currency: [], approved_payouts_by_currency: [] });
+      const invoices = value(4, []);
+      const company = value(5, { name: 'Yerel geliştirme tenantı', status: 'memory' });
+      const members = value(6, []);
+      const vehicles = value(7, []);
+      document.getElementById('val-orders').textContent = overview.active_orders;
+      document.getElementById('val-couriers').textContent = overview.available_couriers;
+      document.getElementById('val-pending').textContent = overview.pending_orders;
+      document.getElementById('val-busy').textContent = overview.busy_couriers;
+      document.getElementById('val-transit').textContent = overview.in_transit_orders;
+      const revenue = overview.delivered_revenue_by_currency[0];
+      document.getElementById('val-revenue').textContent = revenue ? formatMoney(revenue.amount_minor, revenue.currency) : '—';
+      renderOrders(orders, couriers);
+      renderCouriers(couriers, vehicles);
+      renderFinance(finance, invoices);
+      renderCompany(company, members);
     }
 
     async function assignCourier(orderId, courierId) {
@@ -481,6 +606,137 @@
       } catch (_) { alert('Teslimat başlatılamadı.'); }
     }
 
+    async function provisionCourier(event) {
+      event.preventDefault();
+      const message = document.getElementById('courier-provision-message');
+      message.textContent = 'Kurye hesabı oluşturuluyor…';
+      try {
+        const courier = await adminApi('/v1/couriers/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            display_name: document.getElementById('courier-provision-name').value.trim(),
+            email: document.getElementById('courier-provision-email').value.trim(),
+            password: document.getElementById('courier-provision-password').value,
+            vehicle: document.getElementById('courier-provision-vehicle').value
+          })
+        });
+        document.getElementById('courier-provision-form').reset();
+        message.textContent = `${courier.name} için kurye hesabı oluşturuldu. Kurye /mobile-courier.html ekranından giriş yapabilir.`;
+        await refreshOperations();
+      } catch (error) {
+        message.textContent = `Kurye hesabı oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    async function provisionCompanyAdmin(event) {
+      event.preventDefault();
+      const message = document.getElementById('tenant-admin-message');
+      message.textContent = 'Tenant yöneticisi oluşturuluyor…';
+      try {
+        const user = await adminApi('/v1/company/admins/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            display_name: document.getElementById('tenant-admin-name').value.trim(),
+            email: document.getElementById('tenant-admin-email').value.trim(),
+            password: document.getElementById('tenant-admin-password').value
+          })
+        });
+        document.getElementById('tenant-admin-form').reset();
+        message.textContent = `${user.display_name} bu tenant için yönetici olarak oluşturuldu.`;
+        await refreshOperations();
+      } catch (error) {
+        message.textContent = `Yönetici oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    async function provisionTenant(event) {
+      event.preventDefault();
+      const message = document.getElementById('tenant-provision-message');
+      message.textContent = 'Yeni tenant oluşturuluyor…';
+      try {
+        const created = await adminApi('/v1/tenants/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            tenant_name: document.getElementById('tenant-provision-name').value.trim(),
+            tenant_slug: document.getElementById('tenant-provision-slug').value.trim(),
+            admin_name: document.getElementById('tenant-provision-admin-name').value.trim(),
+            admin_email: document.getElementById('tenant-provision-admin-email').value.trim(),
+            admin_password: document.getElementById('tenant-provision-admin-password').value
+          })
+        });
+        document.getElementById('tenant-provision-form').reset();
+        message.textContent = `${created.tenant_slug} tenant’ı ve ilk yöneticisi oluşturuldu.`;
+      } catch (error) {
+        message.textContent = `Tenant oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    let currentPricing = null;
+    let currentSession = null;
+
+    async function loadPricing() {
+      const message = document.getElementById('pricing-message');
+      const canEdit = currentSession && ['admin', 'super_admin'].includes(currentSession.role);
+      document.getElementById('pricing-save-button').style.display = canEdit ? 'inline-flex' : 'none';
+      ['pricing-base-fare', 'pricing-per-km', 'pricing-min-fare', 'pricing-currency'].forEach(id => {
+        document.getElementById(id).disabled = !canEdit;
+      });
+      if (!canEdit) {
+        message.textContent = 'Bu değerleri yalnızca tenant yöneticisi (Admin/SuperAdmin) değiştirebilir — salt-okunur görüntüleniyor.';
+      }
+      try {
+        const pricing = await adminApi('/v1/pricing');
+        currentPricing = pricing;
+        document.getElementById('pricing-base-fare').value = (pricing.base_fare_minor / 100).toFixed(2);
+        document.getElementById('pricing-per-km').value = (pricing.per_km_rate_minor / 100).toFixed(2);
+        document.getElementById('pricing-min-fare').value = (pricing.minimum_fare_minor / 100).toFixed(2);
+        document.getElementById('pricing-currency').value = pricing.currency;
+        document.getElementById('pricing-updated-at').textContent =
+          `Son güncelleme: ${new Date(pricing.updated_at).toLocaleString('tr-TR')}`;
+        if (canEdit) message.textContent = '';
+        renderPricingPreview();
+      } catch (error) {
+        message.textContent = `Fiyatlandırma yüklenemedi: ${error.message}`;
+      }
+    }
+
+    function renderPricingPreview() {
+      const result = document.getElementById('pricing-preview-result');
+      if (!currentPricing || !result) return;
+      const km = Number(document.getElementById('pricing-preview-km').value) || 0;
+      const raw = currentPricing.base_fare_minor + Math.round(km * currentPricing.per_km_rate_minor);
+      const fare = Math.max(raw, currentPricing.minimum_fare_minor);
+      result.textContent = `${km} km için tahmini ücret: ${formatMoney(fare, currentPricing.currency)}`;
+    }
+
+    async function savePricing(event) {
+      event.preventDefault();
+      const message = document.getElementById('pricing-message');
+      const button = document.getElementById('pricing-save-button');
+      button.disabled = true;
+      message.textContent = 'Kaydediliyor…';
+      try {
+        const pricing = await adminApi('/v1/pricing', {
+          method: 'PUT',
+          body: JSON.stringify({
+            base_fare_minor: Math.round(Number(document.getElementById('pricing-base-fare').value) * 100),
+            per_km_rate_minor: Math.round(Number(document.getElementById('pricing-per-km').value) * 100),
+            minimum_fare_minor: Math.round(Number(document.getElementById('pricing-min-fare').value) * 100),
+            currency: document.getElementById('pricing-currency').value.trim().toUpperCase()
+          })
+        });
+        currentPricing = pricing;
+        document.getElementById('pricing-updated-at').textContent =
+          `Son güncelleme: ${new Date(pricing.updated_at).toLocaleString('tr-TR')}`;
+        message.textContent = 'Fiyatlandırma güncellendi. Yeni siparişler bu değerlerle hesaplanacak.';
+        renderPricingPreview();
+      } catch (error) {
+        message.textContent = `Fiyatlandırma kaydedilemedi: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    }
+
     function initMap() {
       if (mainMapInitialized) return;
       mainMapInitialized = true;
@@ -492,8 +748,24 @@
         html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
         className: ''
       });
+      const fraudCourierIcon = L.divIcon({
+        html: `<div style="background:#ef4444; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:bold;">⚠️</div>`,
+        className: ''
+      });
 
       window.qervonCourierIcon = courierIcon;
+      window.qervonFraudCourierIcon = fraudCourierIcon;
+    }
+
+    function renderFraudAlerts(locations) {
+      const container = document.getElementById('fraud-alerts-body');
+      if (!container) return;
+      const flagged = locations.filter(location => location.fraud_flagged);
+      if (!flagged.length) {
+        container.innerHTML = '<div style="padding:16px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:12px; color:#6ee7b7; font-size:13px;">🛡️ AI Fraud Guard aktif: fiziksel hız limiti (160 km/s) aşan bir anomali tespit edilmedi.</div>';
+        return;
+      }
+      container.innerHTML = flagged.map(location => `<div style="padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#fca5a5; font-size:13px; margin-bottom:10px;">⚠️ <b>Şüpheli GPS sıçraması:</b> Kurye ${escapeHtml(location.courier_id.slice(0, 8))} — risk skoru ${(location.fraud_risk_score * 100).toFixed(0)}% • ${new Date(location.timestamp).toLocaleTimeString('tr-TR')}</div>`).join('');
     }
 
     async function refreshLiveLocations() {
@@ -503,16 +775,24 @@
         if (!response.ok) throw new Error('tracking unavailable');
         const locations = await response.json();
         locations.forEach(location => {
+          const icon = location.fraud_flagged ? window.qervonFraudCourierIcon : window.qervonCourierIcon;
           let marker = liveMarkers.get(location.courier_id);
           if (!marker) {
-            marker = L.marker([location.latitude, location.longitude], { icon: window.qervonCourierIcon }).addTo(map);
+            marker = L.marker([location.latitude, location.longitude], { icon }).addTo(map);
             liveMarkers.set(location.courier_id, marker);
-          } else marker.setLatLng([location.latitude, location.longitude]);
+          } else {
+            marker.setLatLng([location.latitude, location.longitude]);
+            marker.setIcon(icon);
+          }
+          marker.bindPopup(location.fraud_flagged
+            ? `⚠️ Şüpheli hareket — risk skoru ${(location.fraud_risk_score * 100).toFixed(0)}%`
+            : 'Kurye konumu güncel');
         });
         const latest = locations[0];
         coords.textContent = latest
           ? `${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)} • ${new Date(latest.timestamp).toLocaleTimeString('tr-TR')}`
           : 'Bu tenant için aktif konum yok';
+        renderFraudAlerts(locations);
       } catch (_) { coords.textContent = 'Canlı konum bağlantısı kurulamadı'; }
     }
 
@@ -541,11 +821,28 @@
       if (tabId === 'dashboard' || tabId === 'map') {
         setTimeout(initMap, 100);
       }
+      if (tabId === 'pricing') {
+        loadPricing();
+      }
     }
 
     window.onload = () => {
       initMap();
-      refreshOperations();
+    async function bootDashboard() {
+      const session = await refreshSessionControls();
+      currentSession = session;
+      if (session?.role === 'courier') {
+        location.replace('/mobile-courier.html');
+        return;
+      }
+      if (session?.role === 'customer') {
+        location.replace('/customer');
+        return;
+      }
+      await refreshOperations();
+    }
+
+    bootDashboard();
       refreshLiveLocations();
       setInterval(refreshOperations, 10000);
       setInterval(refreshLiveLocations, 5000);
