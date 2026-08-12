@@ -1,338 +1,62 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qfs/QFS-000010-rule-engine.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qfs/QFS-000010-rule-engine.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon Foundation Specification for rule engine.
+Description:
+  No generic, data-driven rule engine exists. Pricing/coupon/dispatch
+  scoring rules are all hardcoded Rust formulas.
 
- Specification:
-   QMI-000000 and the applicable Qervon Foundation Specification
+Specification:
+  QAS-000009, QLS-000009, QFS-000007.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QFS-000010 — Rule Engine
 
-Rules encode deterministic business decisions.
+**Status: Vision / Not Implemented** (as a generic engine).
 
-# Purpose
+## What "rule engine" would mean
 
-This specification defines how platform rules are authored and evaluated.
+A system where business rules (fare formulas, coupon eligibility, AI
+Dispatcher scoring weights) are expressed as configurable data — evaluated
+by a shared interpreter — rather than compiled Rust, so an operator could
+adjust, say, the dispatcher's vehicle-type weighting or a tenant's fare
+formula without a code deploy.
 
-# Rules
+## What actually exists instead — every "rule" is a Rust formula
 
-- Rules must be explicit and testable.
-- Rules must not hide infrastructure behavior.
-- Rule evaluation must be deterministic and observable.
+- **Fare pricing** (`PricingService::quote_fare`, QLS-000002): per-tenant
+  `DeliveryPricing { base_fare, per_km_rate, min_fare }` — this is the
+  *one* place with real per-tenant configurability (via `GET`/`PUT
+  /v1/pricing`), but the formula shape itself (base + per-km, floor at a
+  minimum) is fixed Rust code, not a rule an operator could redefine.
+- **Coupon discounts** (`PromoCouponEngine::apply_to_fare`, QLS-000009):
+  a fixed set of discount kinds (percentage/flat), hardcoded in Rust.
+- **AI Dispatcher scoring** (`calculate_score`, QAS-000009): the
+  `0.7`/`0.3` ETA/distance weighting and per-vehicle-type multipliers are
+  literal constants in the function, not configurable at all — not even
+  per-tenant.
 
-# References
+## Why this hasn't been generalized
 
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/qas/QAS-000002-domain-model.md](/Users/irfangedik/Qervon_Platform/qervon/docs/qas/QAS-000002-domain-model.md)
+Pricing has real, if narrow, per-tenant configurability already
+(QLS-000009); the dispatcher-scoring weights have never needed to vary
+per-tenant so far. Building a generic rule engine for two or three fixed
+formulas would be speculative complexity with no current requirement
+driving it (see QES-000001's principle on this).
+
+## References
+
+- QLS-000009 (billing/pricing — the one place with real
+  configurability), QAS-000009 (AI Dispatcher — the hardcoded scoring
+  formula), QFS-000007/QFS-000008 (the sibling "no generic engine"
+  documents for workflow/policy).
 
 ---
 
@@ -340,4 +64,5 @@ This specification defines how platform rules are authored and evaluated.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the rule engine specification to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten as an explicit Vision/Not Implemented status listing every real "rule" as hardcoded Rust. |

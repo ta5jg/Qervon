@@ -1,338 +1,83 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/adr/ADR-000003-use-swift-for-ios.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/adr/ADR-000003-use-swift-for-ios.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Provides a concise orientation for the adr area aligned with the Qervon source PDFs.
+Description:
+  Architecture Decision Record: use native Swift/SwiftUI for the iOS
+  Courier and Customer apps (not Flutter).
 
- Specification:
-   QMI-000000 and the Qervon source PDFs
+Specification:
+  QMI-000000, QAS-000007, QES-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# ADR-000003 — Use Swift For Ios
+# ADR-000003 — Use Swift/SwiftUI for iOS
 
-This page orients readers to the adr area and keeps the repository vocabulary aligned with the source PDFs.
+- **Status:** Accepted — implemented.
+- **Date:** 2026-08-12 (Faz-2.2/Faz-2.3).
+- **Deciders:** Irfan Gedik.
 
-# Purpose
+## Context
 
-The goal is to explain what belongs here, what does not belong here, and which governing documents should be consulted first.
+Same product requirements as ADR-000002 (Android): background GPS
+publishing, biometric login, camera-based delivery evidence, live tracking
+map — this time for iOS. The user explicitly requested native Swift rather
+than Flutter for the mobile phase, prioritizing iOS first.
 
-# What belongs here
+## Decision
 
-- Area-specific implementation or guidance
-- Cross-links to the relevant QAS/QFS/QES/QMI documents
-- Clear ownership and boundaries
+Build both iOS apps natively in Swift/SwiftUI, as a single Xcode project
+(generated by XcodeGen from `mobile/ios/Project.yml`, never hand-edited)
+holding two app targets:
 
-# References
+- `QervonCourierApp` and `QervonCustomerApp` — the two installable apps.
+- `Packages/QervonKit` — one SPM package with library targets `QervonCore`
+  (DTOs), `QervonNetworking` (async/await HTTP client, Bearer + one-shot
+  refresh-retry), `QervonSecurity` (Keychain token store, biometric gate),
+  `QervonLocation` (CoreLocation courier broadcaster), `QervonDesignSystem`
+  (shared theme).
+- `Features/QervonFeatures` — one SPM package with one library target per
+  screen area (`AuthFeature` shared, the rest app-specific).
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+`xcodebuild` cannot resolve a destination for an application scheme
+without an installed Simulator runtime; `mobile/ios/scripts/build-simulator.sh`
+works around this by building every library scheme first (SDK-only, no
+runtime needed) and then the app targets directly against the same
+DerivedData path.
+
+## Consequences
+
+- **Positive:** first-class `VisionKit` (`DataScannerViewController`),
+  `LocalAuthentication`, and `CoreLocation` background-update access;
+  `Codable`/`async`/`await` map cleanly onto the backend's JSON contract.
+- **Negative:** duplicated UI code vs. Android (same tradeoff as
+  ADR-000002); Simulator has no camera, so `DataScannerViewController`
+  falls back to a manual "verified" toggle there — a real, documented
+  gap, not a fabricated scan result.
+- **Neutral:** no CocoaPods/Carthage dependency — everything is Swift
+  Package Manager, resolved locally with no network calls beyond the
+  initial `xcodegen`/toolchain download.
+
+## Alternatives Considered
+
+- **Flutter**: rejected for the same reasons as ADR-000002, and because
+  the user explicitly asked for native Swift over Flutter for this phase.
+- **UIKit instead of SwiftUI**: SwiftUI was chosen for faster iteration
+  and because it composes naturally with the multi-target/multi-package
+  structure above; no UIKit-only requirement forced a departure from it.
+
+## References
+
+- QAS-000007 (mobile platform architecture), QES-000004 (Swift
+  engineering standard), ADR-000002 (Kotlin for Android, the sibling
+  decision).
+- [mobile/ios/README.md](../../mobile/ios/README.md).
 
 ---
 
@@ -340,4 +85,5 @@ The goal is to explain what belongs here, what does not belong here, and which g
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned area overview to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the actual decision and implemented project structure. |

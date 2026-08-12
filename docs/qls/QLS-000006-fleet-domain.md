@@ -1,342 +1,61 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qls/QLS-000006-fleet-domain.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qls/QLS-000006-fleet-domain.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon logistics domain specification for fleet domain.
+Description:
+  The Vehicle fleet-asset entity, its lifecycle, and its tenant binding.
 
- Specification:
-   QMI-000000 and the Qervon logistics domain family
+Specification:
+  QAS-000002, QAS-000011, QLS-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QLS-000006 — Fleet Domain
 
-# Purpose
+**Status: Implemented.** Source: `backend/crates/domain/src/vehicle.rs`,
+`backend/modules/fleet`.
 
-This domain specification defines fleet domain within the Qervon logistics platform.
+## Lifecycle
 
-# Scope
+`VehicleStatus`: registered → `assign` → in-service → `maintenance` (and
+back) → `decommission` (terminal). Endpoints:
+`POST /v1/fleet/vehicles` (register/list), `GET /v1/fleet/vehicles/{id}`,
+`POST /v1/fleet/vehicles/{id}/assign` (bind to a courier),
+`.../maintenance`, `.../activate`, `.../decommission`.
 
-- Track vehicles, assets, and operational readiness.
-- Keep fleet data tied to work and location.
-- Treat vehicle assignment as a controlled business action.
+## Fields
 
-# Domain Boundaries
+`id`, `plate_number`, `vehicle: VehicleType`, `status`,
+`assigned_courier_id: Option<Uuid>`.
 
-- The domain owns its vocabulary and invariants.
-- Other domains must integrate through contracts or events.
-- The backend remains the source of truth.
+## Tenant binding (Faz-1 addition)
 
-# References
+Vehicles originally had no explicit tenant scoping; a
+`vehicle_tenants` join table and `TenantRepository::bind_vehicle`/
+`find_vehicle_tenant` were added specifically to close this gap during
+Faz-1's backend-hardening pass, matching the same tenant-isolation
+pattern every other resource uses (see QAS-000011).
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Relationship to Courier
+
+A `Vehicle` is optionally assigned to a `Courier` (QLS-000004) — the
+courier's own `vehicle: VehicleType` field (set at registration, e.g.
+"motorcycle") is independent of whether a specific fleet `Vehicle` asset
+(with its own plate/maintenance record) is currently bound to them. A
+courier can operate without ever having a fleet `Vehicle` bound — the
+fleet module is for tracking company-owned assets, not a prerequisite for
+dispatch.
+
+## References
+
+- QAS-000002 (domain model), QAS-000011 (the tenant-binding pattern this
+  followed), QLS-000004 (courier — the relationship above).
 
 ---
 
@@ -344,4 +63,5 @@ This domain specification defines fleet domain within the Qervon logistics platf
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned fleet domain to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real lifecycle and the Faz-1 tenant-binding addition. |

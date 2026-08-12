@@ -23,7 +23,8 @@ The signing secret is returned exactly once at creation; Qervon retains only its
 SHA-256 hash. Outgoing delivery, HMAC signing, retry policy and HTTP transport
 remain the next integration adapter; subscription management alone does not
 assert that events are already delivered.
-# Webhook Events
+
+## Webhook Events
 
 Webhook deliveries use a stable JSON envelope with `id`, `type`, `tenant_id`,
 `aggregate_id`, `created_at` and `payload`. The exact serialized UTF-8 body is signed

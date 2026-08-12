@@ -1,342 +1,68 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qls/QLS-000009-billing-domain.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qls/QLS-000009-billing-domain.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon logistics domain specification for billing domain.
+Description:
+  Invoices, courier payouts, and coupons — real; tax-specific invoicing
+  is a v2-backlog stub.
 
- Specification:
-   QMI-000000 and the Qervon logistics domain family
+Specification:
+  QAS-000002, QLS-000002, QLS-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QLS-000009 — Billing Domain
 
-# Purpose
+**Status: Implemented (core)** — tax-specific invoicing is a v2-backlog
+stub, see below.
 
-This domain specification defines billing domain within the Qervon logistics platform.
+## Invoices
 
-# Scope
+`Invoice { id, status: InvoiceStatus, amount: Money, ... }`
+(`backend/crates/domain/src/billing.rs`), one per order, readable via
+`GET /v1/customer/orders/{id}/invoice` and, in aggregate, via
+`GET /v1/finance/invoices` (operator-facing). `GET /v1/finance/summary`
+aggregates invoiced totals and approved-payout totals **by currency**
+(a tenant operating in multiple currencies gets a correct multi-currency
+summary, not a naive sum across currencies).
 
-- Represent charges, invoices, settlements, and adjustments.
-- Keep finance events traceable.
-- Separate billing truth from operational work.
+## Courier payouts
 
-# Domain Boundaries
+`CourierPayout { status: PayoutStatus, ... }` records that a payout was
+approved for a courier — this is a bookkeeping record, not a real
+bank-transfer integration; no money actually moves through this system
+(see QLS-000004's wallet section and BACKEND_BACKLOG.md).
 
-- The domain owns its vocabulary and invariants.
-- Other domains must integrate through contracts or events.
-- The backend remains the source of truth.
+## Coupons
 
-# References
+`Coupon` (`backend/crates/domain/src/coupon.rs`) — real, tenant-scoped
+discount codes, created via `POST /v1/coupons` (operator), applied via
+`coupon_code` on `POST /v1/customer/orders`.
+`PromoCouponEngine::apply_to_fare` redeems the coupon and computes the
+discounted fare **at order-creation time** — there is no separate
+no-side-effect "preview a coupon's discount before committing" endpoint;
+previewing requires actually creating the order (see
+BACKEND_BACKLOG.md's Faz-2.3 boundary note).
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Tax invoicing (`tax_invoicing.rs`) — v2 backlog
+
+A real domain model for tax-compliant invoice formatting exists but
+`// STATUS: v2 backlog -- domain model + unit tests only; no
+repository, migration, or HTTP route yet.` — the plain `Invoice` above is
+what's actually issued today; a tax-authority-compliant invoice format
+(sequential numbering rules, required fields for a specific
+jurisdiction, etc.) is not implemented.
+
+## References
+
+- QLS-000002 (order — fare computation this depends on), QLS-000004
+  (courier wallet — the other side of a payout), BACKEND_BACKLOG.md.
 
 ---
 
@@ -344,4 +70,5 @@ This domain specification defines billing domain within the Qervon logistics pla
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned billing domain to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real invoice/payout/coupon behavior and the tax-invoicing v2-backlog status. |

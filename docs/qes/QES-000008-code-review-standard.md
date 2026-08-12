@@ -1,342 +1,57 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qes/QES-000008-code-review-standard.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qes/QES-000008-code-review-standard.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon engineering standard for code review standard.
+Description:
+  What a reviewer is expected to check before approving a change.
 
- Specification:
-   QMI-000000 and QES governance
+Specification:
+  QES-000001, QES-000007.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QES-000008 — Code Review Standard
 
-# Purpose
+## What every review must check
 
-This engineering standard defines how the Qervon team should implement and review code review standard.
+1. **Does it match QES-000001's honesty principle?** No fabricated data,
+   no UI element that looks functional but isn't, no documentation claim
+   that outpaces the actual implementation.
+2. **Are domain invariants enforced in one place** (QAS-000001), not
+   duplicated or, worse, only checked client-side?
+3. **Is there a passing test for the happy path and at least one
+   rejection path** for new backend behavior (QES-000006)?
+4. **Does every new/changed file carry the standard header** (QES-000009)
+   with an accurate `Specification:` line pointing at the governance
+   document(s) that actually govern it?
+5. **If this change makes an existing governance document's claims
+   wrong, is that document updated in the same change** (QMI-000001) —
+   not deferred to a "docs follow-up" that historically never happened
+   (see QMI-000000's honesty-policy background on why this rule exists).
 
-# Requirements
+## Reviewer tooling available (real)
 
-- Review for correctness, clarity, and risk.
-- Reject hidden behavior and placeholder logic.
-- Keep reviews tied to the source PDFs.
+- The `bugbot` and `security-review` Cursor subagent skills can be
+  invoked to review a diff for defects/security issues respectively —
+  used as a supplement to human review, not a replacement for it.
+- `.github/CODEOWNERS` routes review to the right person by path.
 
-# Common Rules
+## What is not automated
 
-- Prefer clear, testable implementations.
-- Keep the architecture contract-first and observable.
-- Do not introduce placeholder behavior.
+There is no required-approvals branch-protection rule documented, no
+automated linting-as-a-bot-comment on PRs beyond what CI's pass/fail
+already communicates.
 
-# References
+## References
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+- QES-000001 (the principles this enforces), QES-000007 (git workflow),
+  QES-000009 (the header format reviewers check for).
 
 ---
 
@@ -344,4 +59,5 @@ This engineering standard defines how the Qervon team should implement and revie
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned code review standard to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real review checklist this project actually applies. |

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Qervon — Kurye Mobil Terminali (Live Hardware Simulator)</title>
+  <title>Qervon — Kurye Mobil Arayüz Önizlemesi</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -93,21 +93,22 @@
     <div class="mobile-header">
       <div>
         <div style="font-size:14px; font-weight:800; color:white;">KURYE TERMINALİ</div>
-        <div style="font-size:9px; color:var(--accent-cyan); font-weight:700;">HARDWARE GPS BROADCASTER</div>
+        <div style="font-size:9px; color:var(--accent-cyan); font-weight:700;">TASARIM ÖNİZLEMESİ • API'YE BAĞLI DEĞİL</div>
       </div>
-      <button class="toggle-online is-online" id="btn-status" onclick="toggleStatus()">ONLINE 🟢</button>
+      <span class="toggle-online" style="cursor:default; color:var(--text-muted);">ÖNİZLEME</span>
     </div>
 
     <div id="tab-courier-home" class="view-content active">
       <div id="map"></div>
 
       <div class="card">
-        <div style="font-size:10px; color:var(--text-muted); font-weight:700;">DONANIM FİZİKSEL GPS CANLI</div>
-        <div style="font-size:13px; font-weight:800; color:var(--accent-green); margin-top:2px;" id="gps-text">Konum Alınıyor...</div>
+        <div style="font-size:10px; color:var(--text-muted); font-weight:700;">CANLI KONUM</div>
+        <div style="font-size:13px; font-weight:800; color:var(--text-muted); margin-top:2px;">GitHub Pages önizlemesinde kullanılmaz</div>
+        <div style="font-size:10px; color:var(--text-muted); margin-top:8px; line-height:1.45;">Gerçek GPS, kurye oturumu ve sipariş verileri yalnız Qervon API ile aynı HTTPS alan adındaki <code>/mobile-courier.html</code> uygulamasında çalışır.</div>
       </div>
 
       <div class="card" style="border-color:rgba(56,189,248,0.4);">
-        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">YENİ GÖREV ATAMASI (AI DISPATCH)</div>
+        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">ÖRNEK GÖREV KARTI</div>
         <div style="font-size:14px; font-weight:800;">Sultanahmet ➔ Maslak Plaza</div>
         <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; font-weight:700;">
           <span style="color:var(--accent-green);">Kazanç: ₺45.00</span>
@@ -115,7 +116,7 @@
         </div>
       </div>
 
-      <button class="btn-main">✅ GÖREVİ KABUL ET & NAVİGASYON</button>
+      <button class="btn-main" type="button" disabled style="opacity:0.55; cursor:not-allowed;">ÖNİZLEMEDE İŞLEM YAPILMAZ</button>
     </div>
 
     <div id="tab-pod" class="view-content">
@@ -162,27 +163,8 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
+    const map = L.map('map', { zoomControl: false }).setView([0, 0], 2);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-
-    const courierIcon = L.divIcon({
-      html: `<div style="background:#10b981; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
-      className: ''
-    });
-    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
-
-    let isOnline = true;
-    function toggleStatus() {
-      isOnline = !isOnline;
-      const btn = document.getElementById('btn-status');
-      if (isOnline) {
-        btn.innerText = "ONLINE 🟢";
-        btn.className = "toggle-online is-online";
-      } else {
-        btn.innerText = "OFFLINE 🔴";
-        btn.className = "toggle-online";
-      }
-    }
 
     function switchCourierTab(tabId, el) {
       document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));

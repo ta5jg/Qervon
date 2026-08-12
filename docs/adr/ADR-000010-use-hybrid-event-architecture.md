@@ -1,338 +1,93 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/adr/ADR-000010-use-hybrid-event-architecture.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/adr/ADR-000010-use-hybrid-event-architecture.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Provides a concise orientation for the adr area aligned with the Qervon source PDFs.
+Description:
+  Architecture Decision Record: most state changes are plain synchronous
+  service calls with direct database writes; only live courier location
+  is treated as a genuine event stream. This is the "hybrid" — mostly
+  request/response, narrowly event-driven where it actually matters.
 
- Specification:
-   QMI-000000 and the Qervon source PDFs
+Specification:
+  QMI-000000, QAS-000003.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# ADR-000010 — Use Hybrid Event Architecture
+# ADR-000010 — Hybrid Event Architecture (Narrow, Not Pervasive)
 
-This page orients readers to the adr area and keeps the repository vocabulary aligned with the source PDFs.
+- **Status:** Accepted — implemented, narrower in practice than the
+  source PDFs' framing.
+- **Date:** 2026-08-05.
+- **Deciders:** Irfan Gedik.
 
-# Purpose
+## Context
 
-The goal is to explain what belongs here, what does not belong here, and which governing documents should be consulted first.
+The source architecture PDFs describe an event-driven system broadly.
+In practice, most of Qervon's state transitions — order creation, courier
+assignment, delivery completion, wallet credit — are naturally
+transactional: a customer's `POST /v1/customer/orders` call needs to
+either fully succeed (order row + tenant binding + optional coupon
+redemption) or fully fail, inside one request. Treating every one of
+these as an asynchronous event with eventual consistency would add
+complexity (idempotency keys, retry/dead-letter handling, event
+ordering) with no benefit for something that must be strongly consistent
+anyway.
 
-# What belongs here
+## Decision
 
-- Area-specific implementation or guidance
-- Cross-links to the relevant QAS/QFS/QES/QMI documents
-- Clear ownership and boundaries
+Use a **hybrid** approach:
 
-# References
+- **Direct, synchronous service calls** (the application-layer services
+  in `crates/application`, called straight from Axum handlers) for
+  everything that needs strong consistency within a single request:
+  order lifecycle transitions, dispatch assignment, wallet
+  credits/debits, coupon redemption. These are plain Rust function calls
+  and SQL transactions — "events" in name only, if at all.
+- **A genuine publish/subscribe event stream** for the one case that
+  actually benefits from it: live courier location updates, which many
+  independent viewers (an admin's live map, a customer's tracking screen)
+  need to receive as they happen, with no single request/response pair
+  that could carry them. This uses PostgreSQL `LISTEN`/`NOTIFY` plus an
+  in-process broadcast channel — see ADR-000006 for why NATS JetStream
+  was evaluated and not adopted for this.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Consequences
+
+- **Positive:** the vast majority of the system stays simple to reason
+  about (a request either succeeds or returns an error, no eventual
+  consistency to think about); the one place that genuinely needs a
+  stream (location) has one, sized appropriately (in-process +
+  `pg_notify`, not a message broker).
+- **Negative:** this is a narrower reading of "event-driven" than the
+  source PDFs implied — there is no general-purpose domain event bus,
+  no event sourcing, and no saga orchestration between bounded contexts.
+  If a future requirement genuinely needs cross-context choreography
+  (e.g., "when an order is delivered, asynchronously trigger three
+  independent side effects that must not block the delivery response"),
+  that would need new infrastructure, not a repurposing of the location
+  pipeline.
+- **Neutral:** this decision is compatible with introducing a real event
+  bus later (see ADR-000006) if/when a concrete need for one exists.
+
+## Alternatives Considered
+
+- **Full event sourcing** (every state change is an appended event,
+  current state derived by replay): rejected as substantial complexity
+  with no concrete requirement driving it today.
+- **Broad pub/sub for all state changes** (per the source PDFs' framing):
+  rejected for the reasons in Context above — most changes need
+  synchronous strong consistency, not eventual consistency.
+
+## References
+
+- QAS-000003 (event architecture), ADR-000006 (NATS JetStream, not
+  adopted), ADR-000007 (modular monolith).
 
 ---
 
@@ -340,4 +95,5 @@ The goal is to explain what belongs here, what does not belong here, and which g
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned area overview to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs, framing this broadly. |
+| 0.2.0 | 2026-08-12 | Rewritten to describe the actual narrow, hybrid implementation. |

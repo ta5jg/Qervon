@@ -1,347 +1,87 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qes/QES-000010-ci-cd-standard.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qes/QES-000010-ci-cd-standard.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon engineering standard for ci cd standard.
+Description:
+  Honest inventory of .github/workflows: which pipelines are real, which
+  are still empty placeholders, and (as of 2026-08-13) the fake
+  mobile-build.yml step that was found and replaced with real per-platform
+  CI.
 
- Specification:
-   QMI-000000 and QES governance
+Specification:
+  QES-000002 through QES-000006.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# QES-000010 — Ci Cd Standard
+# QES-000010 — CI/CD Standard
 
-# Purpose
+**Status: Implemented (backend + both mobile platforms + backend
+dependency scanning) — a few workflow files remain empty placeholders.**
 
-This engineering standard defines how the Qervon team should implement and review ci cd standard.
+## Real, working pipelines
 
-# Requirements
+| Workflow | What it actually does |
+| --- | --- |
+| `backend.yml` | `cargo fmt --check`, `cargo clippy -D warnings`, `cargo test --workspace --all-targets` on every push/PR touching `backend/**`. |
+| `android.yml` | `./gradlew :core:common:test :core:network:test` (JVM unit tests) then `./gradlew :app-courier:assembleDebug :app-customer:assembleDebug`, uploading both real debug APKs as build artifacts. Fails on any real Gradle build or test regression. |
+| `ios.yml` | `swift test --package-path Packages/QervonKit` (real XCTest suite) then `./scripts/build-simulator.sh`, which builds every Swift package library scheme and both app targets for the Simulator SDK. Fails on any real Swift compile or test regression. |
+| `security.yml` | `rustsec/audit-check` against the backend's `Cargo.lock`, on every push/PR touching `backend/**` and weekly on a schedule (so a newly-disclosed advisory is caught even with no code change). |
+| `deploy.yml` | Deploys `docs/` to GitHub Pages as a static site. Unrelated to product deployment (see QAS-000014 for the real VPS/systemd deploy process). |
 
-- Keep pipelines deterministic and observable.
-- Run lint, test, build, and security checks before merge.
-- Make deployment gates explicit.
+## Fixed: the fake `mobile-build.yml` (2026-08-13)
 
-# Common Rules
+`mobile-build.yml` used to exist with a `build-android` job that only ran
+`echo "... verified successfully."` (no Gradle command at all) and a
+`build-ios` job that ran a syntax-only `xcrun swiftc -parse` against
+stale, pre-restructuring file paths — neither could ever fail on a real
+regression. It has been **deleted** and replaced by the real
+`android.yml`/`ios.yml` workflows above, each independently verified by
+actually running its commands locally before being committed.
 
-- Prefer clear, testable implementations.
-- Keep the architecture contract-first and observable.
-- Do not introduce placeholder behavior.
+## Empty placeholders (no jobs at all)
 
-# References
+`architecture.yml`, `release.yml`, `web.yml` still contain only the file
+header comment — no `on:`/`jobs:` keys. Each name implies real intended
+scope (a governance/architecture-doc linter that could, for example,
+fail if a placeholder PDF-dump pattern like the one this whole
+documentation series used to contain ever reappears; a tagged-release
+binary-attachment workflow; a web-pages accessibility/lint check) that
+has not been built.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+`.github/dependabot.yml` is likewise an empty placeholder — no
+`updates:` configuration — so **no automated dependency-update PRs are
+actually being generated today** despite the file's presence suggesting
+otherwise. See QES-000011.
+
+## Recommended next steps (not yet implemented)
+
+1. Fill in `architecture.yml` with a real governance-doc lint (e.g. fail
+   if any `docs/{qmi,qfs,qas,qes,qls,adr}/*.md` file is missing a
+   `**Status:**` line, or if the PDF-dump placeholder string ever
+   reappears).
+2. Fill in `dependabot.yml` with a real `updates:` block, or remove the
+   file if dependency updates will be handled manually.
+3. Extend dependency scanning to Gradle/SPM (no equivalent of
+   `rustsec/audit-check` is wired in for either mobile platform yet).
+
+## References
+
+- QES-000002 through QES-000006 (what each workflow enforces),
+  QES-000001 (the honesty principle this document follows in recording
+  both the fix and what's still missing).
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned ci cd standard to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with an honest, file-by-file audit of every workflow's real vs. placeholder vs. fake status. |
+| 0.3.0 | 2026-08-13 | Replaced the fake `mobile-build.yml` with real, independently-verified `android.yml`/`ios.yml`; filled in `security.yml` with `cargo audit`. |

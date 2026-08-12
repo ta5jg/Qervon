@@ -1,339 +1,89 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000001-architecture-philosophy.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000001-architecture-philosophy.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for architecture philosophy.
+Description:
+  The architectural principles that hold across the whole system:
+  layering, module boundaries, and the project's honesty policy.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  QMI-000000, ADR-000001, ADR-000007.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QAS-000001 — Architecture Philosophy
 
-Qervon is a modular Logistics Operating System built for long-term growth.
+**Status: Implemented.**
 
-# Purpose
+## Clean/DDD layering
 
-This standard defines the architectural philosophy that every other Qervon specification must follow.
+The backend follows Domain-Driven Design with a strict dependency
+direction: `domain` → `application` → `infrastructure`, with
+`api-contracts` as a leaf shared by the HTTP layer only.
 
-# Core Principles
+- `crates/domain`: entities and value objects with their own invariants
+  (`Order`, `Courier`, `CustomerProfile`, `DeliveryPricing`, `Money`,
+  `Location`, ...) and pure business logic (state-transition methods like
+  `Order::assign`, fare-quoting math). No knowledge of HTTP or SQL.
+- `crates/application`: use-case services (`OrderService`,
+  `DispatchService`, `PricingService`, `CourierWalletService`, ...) that
+  orchestrate domain objects and repository traits. No knowledge of Axum
+  or `sqlx` concretely — only the repository traits domain/application
+  defines.
+- `crates/infrastructure`: implements those repository traits twice —
+  once in-memory (fast local dev, unit tests), once against PostgreSQL
+  (`sqlx`) — with no code duplication in domain/application.
+- `modules/*`: thin façades over application services, one per bounded
+  context, that `apps/api-gateway` composes.
 
-- Keep the platform goal explicit.
-- Use layers, modules, and contracts.
-- Prioritize long-term maintainability over short-term convenience.
+The rule this enforces: a domain invariant (e.g. "an order cannot move
+from `Delivered` back to `Pending`") lives in exactly one place
+(`qervon_domain::order`) and cannot be bypassed by adding a new HTTP
+handler that skips it — every code path to mutate an order goes through
+the same domain method.
 
-# Required References
+## Modular monolith, not microservices
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/qfs/QFS-000001-foundation-overview.md](/Users/irfangedik/Qervon_Platform/qervon/docs/qfs/QFS-000001-foundation-overview.md)
+See ADR-000007. One deployable binary, many internal crate boundaries.
+
+## Native-first for clients, not a shared UI layer
+
+Both mobile platforms (ADR-000002, ADR-000003) and the web layer
+(ADR-000004) are built against the same backend HTTP contract but with
+zero shared UI/business-logic code between them — each platform gets a
+real, idiomatic implementation rather than a compromise cross-platform
+layer. The tradeoff (duplicated screen code across iOS/Android/web) is
+accepted deliberately; see each ADR's Consequences section.
+
+## The honesty policy (the principle that shaped this rewrite)
+
+This is the philosophy that most concretely shaped how this documentation
+set itself was rewritten, and it applies equally to code:
+
+- **Never fabricate data or a working feature.** If a screen shows a
+  number, it came from a real API call, or it is visibly marked as an
+  estimate/placeholder. Concretely: the web pages' "Kazanç" cards used to
+  show a hardcoded `₺850.00`; the fix was to call the real
+  `GET /v1/courier/me/wallet` endpoint, not to make the number look more
+  plausible.
+- **A missing capability is stated, not hidden.** If something from the
+  source vision PDFs isn't built, the relevant document says so plainly
+  (see QMI-000000's Vision/Not Implemented status) rather than describing
+  it as if it exists.
+- **A decision that changed is recorded, not erased.** See ADR-000004 and
+  ADR-000006 — both record what was originally planned and what actually
+  happened, so the history stays legible.
+
+## References
+
+- ADR-000001 (Rust), ADR-000007 (modular monolith), QAS-000002 (domain
+  model, the concrete result of this layering).
 
 ---
 
@@ -341,4 +91,5 @@ This standard defines the architectural philosophy that every other Qervon speci
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the architecture philosophy to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real layering rules and the project's honesty policy. |

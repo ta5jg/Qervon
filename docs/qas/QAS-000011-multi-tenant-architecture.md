@@ -1,336 +1,86 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000011-multi-tenant-architecture.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000011-multi-tenant-architecture.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for multi tenant architecture.
+Description:
+  How tenant isolation is enforced across auth, the API, and the data
+  layer.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  QAS-000004, QAS-000006.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# QAS-000011 — Multi Tenant Architecture
+# QAS-000011 — Multi-Tenant Architecture
 
-# Purpose
+**Status: Implemented.**
 
-This standard aligns multi tenant architecture with the Qervon source PDFs.
+## Model
 
-# Requirements
+Every tenant is a row in `tenancy.tenants` with a unique `slug` (used in
+login) and `name`. Every user has zero or more `TenantMembership` rows
+(user_id, tenant_id, role) — a user is not implicitly a member of every
+tenant just because an account exists; `TenantMemberRole` (Owner, Admin,
+Member, ...) is distinct from the user's global `role` (which governs
+what kind of account it is — customer, courier, admin, super_admin).
 
-- Isolate tenants by design.
-- Choose shared or dedicated storage deliberately.
-- Make tenant context explicit in every sensitive path.
+Core resources (orders, couriers) are bound to exactly one tenant at
+creation and never move between tenants. A few originally-tenant-agnostic
+resources (vehicles) gained an explicit `vehicle_tenants` binding table
+during Faz-1 specifically to close a gap where fleet assets weren't yet
+tenant-scoped.
 
-# References
+## Enforcement layers
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+1. **Login-time:** authenticating requires a valid `tenant_slug` +
+   email + password combination *and* an existing membership row for
+   that user in that tenant — a correct password for the wrong tenant
+   slug fails, even for a user who is a real member of a different
+   tenant.
+2. **Token-time:** every access token embeds `tenant_id` (see
+   QAS-000004); every subsequent request is implicitly scoped to that
+   tenant for the life of the token.
+3. **Query-time:** every repository method that reads/writes a
+   tenant-scoped entity takes/filters by `tenant_id` explicitly — there
+   is no PostgreSQL Row-Level Security policy doing this implicitly;
+   isolation is enforced in application code, verified by integration
+   tests that assert cross-tenant access is rejected (see
+   `backend/apps/api-gateway/tests/api_flow.rs`, e.g. the "admin overview
+   is tenant scoped" test).
+4. **Resource-ownership checks:** beyond tenant scoping, a customer can
+   only act on their *own* orders (`require_customer_order`), and a
+   courier only on orders assigned to *them* (`require_courier_order`) —
+   two customers in the same tenant cannot see each other's orders.
+
+## Provisioning
+
+- The very first tenant + its owner are created once, out-of-band, via
+  either the `/setup` screen (local/dev) or a one-time VPS bootstrap
+  command (production) — never through the public registration API,
+  which can only ever create a `customer` account (see ADR-000008's
+  sibling discussion in `auth_register`).
+- Every subsequent tenant is provisioned by an existing platform
+  super-admin (`POST /v1/tenants/provision`), which creates the tenant
+  and its first admin together in one call.
+
+## What is not implemented
+
+- No per-tenant resource quotas/rate-limit tiers — the rate limiter
+  (QAS-000004) is IP-keyed, not tenant-keyed.
+- No tenant-level feature flags or plan tiers.
+- No tenant data export/deletion self-service tooling (GDPR-style).
+
+## References
+
+- QAS-000004 (auth this relies on), QAS-000006 (the data-layer
+  implementation), [docs/operations/deployment-runbook.md](../operations/deployment-runbook.md)
+  (tenant bootstrap procedure).
 
 ---
 
@@ -338,4 +88,5 @@ This standard aligns multi tenant architecture with the Qervon source PDFs.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned multi tenant architecture to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real four-layer enforcement model and provisioning flow. |

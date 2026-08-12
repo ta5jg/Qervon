@@ -1,341 +1,105 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000007-mobile-platform-architecture.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000007-mobile-platform-architecture.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon architecture standard for mobile platform architecture.
+Description:
+  The real, shipped architecture of the native iOS and Android Courier +
+  Customer apps.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  ADR-000002, ADR-000003, QAS-000005.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QAS-000007 — Mobile Platform Architecture
 
-# Purpose
+**Status: Implemented.** Four real apps: `mobile/ios/QervonCourierApp`,
+`mobile/ios/QervonCustomerApp`, `mobile/android/app-courier`,
+`mobile/android/app-customer` — all against the same
+`backend/apps/api-gateway` contract.
 
-This standard aligns mobile platform architecture with the Qervon source PDFs.
+## Shared shape across both platforms
 
-# Requirements
+Both platforms use the same layering, just in each platform's idiom:
 
-- Keep mobile layers presentation-focused.
-- Use Android and iOS against the same API contract.
-- Move business truth to the backend.
+| Concern | iOS | Android |
+| --- | --- | --- |
+| DTOs matching backend JSON | `QervonCore` (SPM) | `core:common` (pure Kotlin/JVM) |
+| HTTP client, Bearer + refresh-retry | `QervonNetworking` (SPM) | `core:network` (pure Kotlin/JVM, Retrofit+OkHttp) |
+| Token storage, biometric gate | `QervonSecurity` (SPM, Keychain + LocalAuthentication) | `core:security` (EncryptedSharedPreferences + BiometricPrompt) |
+| Background courier location | `QervonLocation` (SPM, CoreLocation) | `core:location` (foreground `Service` + FusedLocationProviderClient) |
+| Shared theme | `QervonDesignSystem` (SPM) | `core:designsystem` (Compose Material3) |
+| Screens | `Features/QervonFeatures` (SPM, one target per screen area) | `feature:*` (one Gradle module per screen area) |
 
-# References
+Both refresh-retry implementations follow the same rule: on a single 401,
+attempt exactly one token refresh and retry the original request once;
+never loop.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Courier app feature set (both platforms)
+
+Login (password or phone/OTP) with biometric re-lock → online/offline
+toggle → job offer with a countdown accept/reject
+(`GET /v1/courier/me/offer`, 45s server-side TTL) → active job list with
+external navigation (`geo:`/`google.navigation:` deep links, no in-app
+map, no Maps API key) → proof-of-delivery (QR/barcode scan, digital
+signature, camera photo) → earnings/wallet → profile.
+
+## Customer app feature set (both platforms)
+
+Register/login → address book (map-based picker + reverse geocoding) →
+new order with a live, non-binding fare quote
+(`GET /v1/customer/fare-quote`) → order history → order detail with live
+tracking map + ETA polling, cancel, rate, open a support ticket → profile.
+
+## Platform-specific choices, both deliberate and documented
+
+- **In-app maps:** iOS uses MapKit (a first-party framework, no API key
+  needed for the Apple ecosystem); Android uses `osmdroid`
+  (OpenStreetMap) specifically because the Google Maps SDK needs a
+  billing-enabled API key this environment does not have.
+- **QR/barcode scanning:** iOS uses VisionKit's
+  `DataScannerViewController` (falls back to a manual toggle on the
+  Simulator, which has no camera); Android uses Google ML Kit Barcode
+  Scanning + CameraX (works on the emulator's virtual camera too).
+- **Background location service:** iOS relies on `CLLocationManager`'s
+  background modes; Android uses an explicit foreground `Service`
+  (Android 14+ `FOREGROUND_SERVICE_LOCATION` type) because Android's
+  background-execution limits are stricter than iOS's for this use case.
+- **DI:** Android uses Hilt throughout (many modules, real benefit from
+  constructor injection); iOS uses a simpler manual composition root
+  (`AppSession`) since SwiftUI's environment-object pattern makes a full
+  DI framework less necessary at this app's size.
+
+## What is not implemented on either platform
+
+- **Native push (FCM/APNs sending).** iOS captures a real APNs device
+  token and posts it to `POST /v1/push/devices`, but no APNs credential
+  exists in this environment to actually send anything. Android does not
+  even integrate the FCM SDK, because a missing `google-services.json`
+  fails the *build*, not just the runtime, unlike iOS's silent failure.
+- **No pickup-evidence capture** — only delivery has QR/signature/photo
+  fields on the backend; pickup is a single confirmation tap on both
+  platforms.
+
+## References
+
+- ADR-000002 (Kotlin/Android), ADR-000003 (Swift/iOS), QAS-000005 (the
+  API contract both platforms consume).
+- [mobile/ios/README.md](../../mobile/ios/README.md),
+  [mobile/android/README.md](../../mobile/android/README.md).
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned mobile platform architecture to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real, shipped architecture of all four apps. |
+| 0.3.0 | 2026-08-13 | Removed the "no re-offer cascade" note — that gap is now closed backend-side (see QLS-000003), with no client change needed. |

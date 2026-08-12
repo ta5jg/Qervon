@@ -1,344 +1,69 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000002-domain-model.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000002-domain-model.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for domain model.
+Description:
+  The core domain entities and value objects in qervon_domain, and how
+  they relate.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  QAS-000001, QLS-000001.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QAS-000002 — Domain Model
 
-The domain model is the business heart of Qervon.
+**Status: Implemented.** Source of truth: `backend/crates/domain/src/`.
 
-# Purpose
+## Core entities
 
-This standard defines the canonical entities, aggregates, value objects, and invariants used across the platform.
+| Entity | Key fields | Lifecycle |
+| --- | --- | --- |
+| `Tenant` | id, slug, name | created at provisioning; every other entity below is tenant-scoped |
+| `Order` | pickup/dropoff `Address`, `fare: Money`, `status`, `payment_method`, `delivery_note`, `contact_phone` | `Pending → CourierAssigned → InTransit → Delivered`, or `→ Cancelled`/`→ Returned` at defined points (see QLS-000002) |
+| `Courier` | name, `vehicle: VehicleType`, `status: CourierStatus`, `current_location` | `Available ↔ Busy ↔ Offline` |
+| `Assignment` | order+courier pair, `status` (`Offered/Accepted/Rejected/Cancelled`), `offered_at`/`responded_at` | the offer/accept/reject negotiation between dispatch and a courier (see QLS-000003) |
+| `CustomerProfile` | `addresses: Vec<SavedAddress>`, `loyalty_points` | one per customer user |
+| `CourierWallet` | `balance_minor`, `total_earned_minor`, `transactions: Vec<WalletTransaction>` | credited automatically on delivery completion |
+| `DeliveryPricing` | `base_fare`, `per_km_rate`, `min_fare` | one per tenant, defaults applied if unconfigured |
+| `Vehicle` | plate, type, `status: VehicleStatus` | fleet asset, optionally assigned to a courier |
+| `Coupon` | code, discount rule | redeemed against a fare at order-creation time |
+| `SupportTicket`, `CustomerRating`, `Notification`, `DevicePushToken` | — | customer-feedback and messaging records |
 
-# Requirements
+## Value objects
 
-- Model entities, aggregates, and value objects explicitly.
-- Separate core domains from supporting domains.
-- Keep business truth in the backend domain model.
+- `Money { amount_minor, currency }` — every monetary amount in the system
+  is an integer minor-unit count (kuruş) plus an ISO currency string;
+  there is no floating-point money anywhere in the domain.
+- `Location { latitude, longitude }` and `Address { location, label }` —
+  `label` is free-text and always HTML-escaped by any HTML-rendering
+  client before display (see QAS-000008's security notes — this is where
+  the one real XSS gap found in this codebase originated).
+- Every entity ID is a `Uuid` generated as UUIDv7 (ADR-000009).
 
-# Boundaries
+## What this model deliberately does not include
 
-- The domain model does not define UI concerns.
-- It does not depend on infrastructure details.
-- It must remain explicit and testable.
+- No generic "custom fields"/schema-less extension mechanism — adding a
+  new attribute to `Order` means a real Rust struct field and a real
+  migration, not a JSON blob column. This is a deliberate rejection of
+  the schema-less flexibility a "rule engine"/"plugin system" style
+  design might offer (see QFS-000001) in favor of compile-time-checked
+  correctness.
+- No `Warehouse`, `RouteStep`, or `FieldServiceJob` entities — these
+  domains from the source vision PDFs are not built; see QLS-000011 and
+  QLS-000012.
 
-# References
+## References
 
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/qfs/QFS-000002-kernel-architecture.md](/Users/irfangedik/Qervon_Platform/qervon/docs/qfs/QFS-000002-kernel-architecture.md)
+- QAS-000001 (layering these entities live inside), QAS-000006
+  (how they're persisted), QLS-000001 through QLS-000015 (per-domain
+  detail).
 
 ---
 
@@ -346,4 +71,5 @@ This standard defines the canonical entities, aggregates, value objects, and inv
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the domain model standard to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the actual entity/value-object list from qervon_domain. |

@@ -1,347 +1,84 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qls/QLS-000003-dispatch-domain.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qls/QLS-000003-dispatch-domain.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon logistics domain specification for dispatch domain.
+Description:
+  The Assignment (offer/accept/reject) flow that connects an order to a
+  courier, and the AI Dispatcher scoring behind it.
 
- Specification:
-   QMI-000000 and the Qervon logistics domain family
+Specification:
+  QAS-000002, QAS-000009, QLS-000002, QLS-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QLS-000003 — Dispatch Domain
 
-# Purpose
+**Status: Implemented.** Source:
+`backend/crates/application/src/dispatch_service.rs`.
 
-This domain specification defines dispatch domain within the Qervon logistics platform.
+## The offer/accept/reject flow
 
-# Scope
+When a customer creates an order, dispatch does not assign a courier
+outright — it **offers** the job to the best-ranked available courier
+(see QAS-000009 for the ranking formula):
 
-- Assign work with deterministic rules.
-- Keep dispatch as the operational core of the platform.
-- Model dispatch decisions as observable workflow events.
+1. `Assignment` is created with `status = Offered`, `offered_at = now`,
+   a 45-second TTL. The order stays `Pending`; the courier stays
+   `Available` (not yet committed).
+2. The courier sees the offer via `GET /v1/courier/me/offer` (polled by
+   both mobile apps every few seconds while online — see QAS-000007).
+3. The courier calls `POST /v1/courier/orders/{id}/accept` (Assignment →
+   `Accepted`, order → `CourierAssigned`) or `.../reject` (Assignment →
+   `Rejected`, order stays `Pending`).
+4. If the courier does neither within the TTL, the offer expires lazily
+   — the next read of that assignment recognizes it's past `offered_at +
+   45s` and treats it as `Cancelled`, without a background job actively
+   sweeping expired offers.
 
-# Domain Boundaries
+## Automatic re-offer cascade
 
-- The domain owns its vocabulary and invariants.
-- Other domains must integrate through contracts or events.
-- The backend remains the source of truth.
+If a courier rejects or the offer times out, the order is automatically
+re-offered to the next-best **available** courier in the same tenant —
+excluding every courier already tried for this order
+(`Assignment.excluded_courier_ids`, carried forward across each re-offer
+via `Assignment::offer_excluding`/`excluded_including_self`,
+`DispatchService::reoffer_from_candidates`). This happens lazily, at the
+next trigger point (the rejecting courier's own `reject` call, or any
+courier's next `GET /v1/courier/me/offer` poll discovering their offer
+just expired) — there is no background sweep and no synchronous
+"try every candidate in one request" loop; each response only advances
+the cascade by one step.
 
-# References
+If every available courier in the tenant has already been offered and
+has rejected/expired, the order simply stays `Pending` — an operator can
+still resolve it manually via `POST /v1/orders/{id}/assign` (instant
+assignment, bypassing the offer flow entirely).
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Manual assignment path
+
+`POST /v1/orders/{id}/assign` (operator-only) skips the offer negotiation
+entirely and assigns a courier immediately — used for manual dispatch
+when the automatic flow isn't appropriate (e.g. an operator has
+out-of-band knowledge of courier availability).
+
+## References
+
+- QAS-000009 (AI Dispatcher scoring that picks the offered courier),
+  QLS-000002 (order lifecycle this flow drives), QLS-000004 (courier
+  domain — the `Available`/`Busy`/`Offline` states this flow reads).
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned dispatch domain to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real offer/accept/reject flow and its explicit no-cascade limitation. |
+| 0.3.0 | 2026-08-13 | Updated: the re-offer cascade is now implemented (`Assignment.excluded_courier_ids`, `reoffer_from_candidates`). |

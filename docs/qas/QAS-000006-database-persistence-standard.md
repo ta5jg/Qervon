@@ -1,344 +1,90 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000006-database-persistence-standard.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000006-database-persistence-standard.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for database persistence standard.
+Description:
+  How persistence is structured: the dual memory/PostgreSQL backend, the
+  migration system, and schema organization.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  ADR-000005, ADR-000009, QAS-000002.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# QAS-000006 — Database Persistence Standard
+# QAS-000006 — Database/Persistence Standard
 
-Data persistence must stay explicit, portable, and safely evolvable.
+**Status: Implemented.**
 
-# Purpose
+## Dual backend: memory and PostgreSQL
 
-This standard defines how Qervon stores, migrates, and owns persistent data.
+Every repository trait defined in `crates/domain`/`crates/application` has
+two implementations in `crates/infrastructure`:
 
-# Requirements
+- **In-memory** (`InMemory*Repository`, guarded behind `HashMap`s and
+  `RwLock`s): the default for local development and every backend
+  integration test — no database process required, sub-second test runs.
+- **PostgreSQL** (`Pg*Repository`, `sqlx` with compile-time checked
+  queries): the production backend, selected by `QERVON_STORAGE=postgres`.
 
-- Use PostgreSQL/PostGIS as the core store.
-- Require migrations for all schema changes.
-- Keep table ownership explicit and avoid shared write paths.
+`AppState` (`apps/api-gateway/src/state.rs`) constructs the whole
+dependency graph once per storage backend at startup; no handler code
+branches on which backend is active.
 
-# Persistence Baseline
+## Migrations
 
-- Use migrations for every schema change.
-- Treat database ownership as a service boundary.
-- Keep read models and write models intentionally separated when needed.
+`apps/migration-runner` applies SQL migration files from
+`backend/migrations/<schema>/<sequence>_<name>.sql`, one directory per
+logical schema (`tenancy`, `orders`, `dispatch`, `couriers`, `fleet`,
+`billing`, `pricing`, `zz_cross_schema` for cross-schema foreign keys
+added after the referenced schemas exist, ...), applied in a fixed phase
+order (see `migration_phase` in `apps/migration-runner/src/main.rs`).
+Migrations are additive and forward-only — there is no down-migration
+tooling; a mistake is fixed with a new forward migration, not a rollback
+script.
 
-# References
+## Schema organization
 
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/qfs/QFS-000006-configuration-system.md](/Users/irfangedik/Qervon_Platform/qervon/docs/qfs/QFS-000006-configuration-system.md)
+Tables are grouped into PostgreSQL schemas matching the bounded contexts
+in `modules/*` (e.g. `orders.orders`, `dispatch.assignments`,
+`pricing.delivery_pricing`), rather than one flat `public` schema — this
+keeps the SQL-level structure legible alongside the crate-level module
+boundaries from QAS-000001.
+
+## Multi-tenancy at the data layer
+
+Every tenant-scoped table carries a `tenant_id` foreign key (or, for a
+few entities, a join table like `vehicle_tenants`/`courier_tenants`
+binding an otherwise-global entity to a tenant); every repository query
+filters by `tenant_id` explicitly — there is no PostgreSQL Row-Level
+Security policy doing this implicitly. See QAS-000011.
+
+## Money and IDs
+
+- Every monetary column is an integer minor-unit amount (`amount_minor
+  BIGINT`) plus a currency code column — never `NUMERIC`/`FLOAT` for
+  money (see QAS-000002).
+- Every primary key is a UUIDv7 (ADR-000009), stored as PostgreSQL's
+  native `uuid` type.
+
+## What is not implemented
+
+- No read replicas, no connection-pool-per-tenant isolation — one
+  `sqlx::PgPool` shared across all tenants on one PostgreSQL instance.
+- No PostGIS (see ADR-000005) — no spatial index.
+- No automatic backup scheduling beyond the operator-run script in the
+  backup/restore runbook (see QAS-000015).
+
+## References
+
+- ADR-000005 (PostgreSQL, PostGIS not adopted), ADR-000009 (UUIDv7),
+  QAS-000011 (multi-tenant architecture),
+  [docs/operations/database-migration-runbook.md](../operations/database-migration-runbook.md).
 
 ---
 
@@ -346,4 +92,5 @@ This standard defines how Qervon stores, migrates, and owns persistent data.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the database persistence standard to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real dual-backend design and migration system. |

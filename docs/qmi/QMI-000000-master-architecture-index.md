@@ -1,347 +1,81 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qmi/QMI-000000-master-architecture-index.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qmi/QMI-000000-master-architecture-index.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the master index for the Qervon specification hierarchy.
+Description:
+  Master index of Qervon's governance documentation: what each document
+  series covers, how they relate, and where to start.
 
- Specification:
-   QMI-000000 and Qervon document governance
+Specification:
+  QMI-000001, QMI-000002, QMI-000003.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QMI-000000 — Master Architecture Index
 
-**Document ID:** QMI-000000
-**Title:** Master Architecture Index
-**Version:** 0.1.0  
-**Status:** Foundation Draft  
-**Classification:** Internal / Canonical  
-**Language:** English (Canonical)  
-**Owner:** Qervon Architecture Board
+## How to read this documentation set
 
----
+Qervon's `docs/` tree has six series, each with a distinct job. Read this
+page first; it tells you which series to open for a given question.
 
-# Purpose
+| Series | Full name | Answers the question | Count |
+| --- | --- | --- | --- |
+| **QMI** | Qervon Meta-Index | "How is this documentation itself organized and governed?" | 4 |
+| **ADR** | Architecture Decision Record | "Why did we choose X over Y, and is that decision still in force?" | 10 |
+| **QAS** | Qervon Architecture Specification | "How is subsystem X actually built?" | 15 |
+| **QES** | Qervon Engineering Standard | "What conventions do we follow when writing code/tests/PRs?" | 15 |
+| **QLS** | Qervon Logistics Specification | "What does domain concept X (an Order, a Courier, ...) actually mean and do?" | 15 |
+| **QFS** | Qervon Foundation Specification | "Is there a generic extensible platform/kernel underneath all this?" (see honesty note below) | 15 |
 
-This index is the entry point for the Qervon specification family and its source-aligned document map.
+## Honesty policy for this documentation set (read this)
 
-# Scope
+Every one of these 74 files originally contained nothing but a repeated
+auto-generated dump of the two source vision PDFs (`docs/qervon-1.md`,
+`docs/qervon-2.md`) behind the file's title — regardless of topic. As of
+2026-08-12 this was corrected file-by-file. Each rewritten document now
+carries an explicit status:
 
-- Keep one canonical entry point for every document family.
-- Link each spec to the source PDFs and its dependent documents.
-- Make the governance path obvious for new contributors.
+- **Implemented** — describes something real, checkable against the
+  actual source tree (a file path, a crate, a test). This is the default
+  and most common status for QAS, QES, ADR.
+- **Vision / Not Implemented** — describes something from the source
+  PDFs that does not exist in the codebase today, clearly labeled as
+  such with an explanation of what (if anything) exists instead. Most of
+  **QFS** falls here — see QFS-000001 for why — along with a handful of
+  QLS domains (see QLS-000011, QLS-000012).
+- **Superseded** — a decision that was made and then changed; the record
+  is kept (not deleted) with a pointer to what replaced it (see
+  ADR-000004, ADR-000006).
 
-# References
+If a document you're reading does not carry one of these statuses near
+the top, treat it as stale and flag it — the policy is that every file
+should.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/README.md](/Users/irfangedik/Qervon_Platform/qervon/docs/README.md)
+## Where to actually start
+
+- Building the backend? Start at QAS-000001 (architecture philosophy),
+  then QAS-000002 (domain model), then the relevant QLS domain document.
+- Building a mobile screen? Start at QAS-000007 (mobile platform
+  architecture), then ADR-000002/ADR-000003 for the per-platform
+  decision.
+- Touching the web pages? Start at QAS-000008 and ADR-000004.
+- Writing code and want the house style? Go straight to the matching
+  QES document for your language.
+- Deploying? QAS-000014 (deployment architecture) and
+  [docs/operations/deployment-runbook.md](../operations/deployment-runbook.md).
+
+## References
+
+- QMI-000001 (document governance — how these files are maintained),
+  QMI-000002 (versioning policy), QMI-000003 (architecture governance —
+  when a change needs an ADR).
+- Root [README.md](../../README.md), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 
@@ -349,4 +83,5 @@ This index is the entry point for the Qervon specification family and its source
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned governance document to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten as a real navigational index with an explicit honesty/status policy. |

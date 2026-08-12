@@ -1,344 +1,83 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000005-api-integration-standard.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000005-api-integration-standard.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for api integration standard.
+Description:
+  HTTP API conventions: routing, error shape, pagination (or its
+  absence), and how clients discover the contract.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  ADR-000008, QAS-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# QAS-000005 — Api Integration Standard
+# QAS-000005 — API Integration Standard
 
-APIs are the contract boundary between clients and the backend truth layer.
+**Status: Implemented.**
 
-# Purpose
+## Routing
 
-This standard defines how Qervon publishes, versions, and consumes APIs.
+- Every endpoint is under `/v1/...`; there is no `/v2` yet (see
+  QMI-000002 on API versioning policy).
+- Resource-oriented paths (`/v1/customer/orders/{id}/cancel`,
+  `/v1/courier/orders/{id}/accept`) rather than RPC-style verbs baked
+  into the path where a REST verb+path fits naturally; a few
+  action-shaped exceptions exist where "accept/reject/cancel" reads more
+  clearly than a generic `PATCH` with a status field (see the full route
+  table in `backend/apps/api-gateway/src/http.rs`).
+- Query parameters for read-only filtering/computation (e.g.
+  `GET /v1/customer/fare-quote?pickup_latitude=...`), never for anything
+  that mutates state.
 
-# Requirements
+## Error shape
 
-- Design contracts first.
-- Version all public APIs.
-- Document with OpenAPI and keep backward compatibility in mind.
+Every error response is `{"status": <int>, "title": <string>, "detail":
+<string>}` (`ApiError`/`ApiErrorBody` in `api-contracts`), with the HTTP
+status code matching the `status` field. Clients (all three: iOS,
+Android, and the web pages) decode this shape uniformly rather than
+guessing at error text.
 
-# API Baseline
+## Discovery
 
-- Prefer OpenAPI-backed contracts.
-- Make breaking changes explicit and versioned.
-- Keep idempotency and backward compatibility visible in the contract.
+`GET /api-docs/openapi.json` and `/swagger-ui` are generated from the
+same `utoipa`-annotated types the handlers actually use (see
+ADR-000008) — they are not a hand-maintained spec that can drift from
+the real behavior.
 
-# References
+## What is deliberately absent
 
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/api/README.md](/Users/irfangedik/Qervon_Platform/qervon/docs/api/README.md)
+- **No pagination** on any list endpoint today (`GET /v1/orders`,
+  `/v1/couriers`, etc. return the full tenant-scoped set). Acceptable at
+  current data volumes; will need `?cursor=`/`?limit=` parameters before
+  any tenant's order history grows into the tens of thousands.
+- **No GraphQL, no WebSocket-for-everything** — the source PDFs mention
+  GraphQL as an option; only REST + one narrow WebSocket path
+  (`/ws/tracking`, see QAS-000003) exist.
+- **No API-key-based third-party integration surface** — `/v1/customer/webhooks`
+  exists for outbound event delivery to a customer's own endpoint, but
+  there is no inbound public API-key system for third parties to call
+  Qervon directly yet.
+
+## Client conventions
+
+- Native mobile clients (iOS `QervonNetworking`, Android `core:network`)
+  both implement the same pattern: an `HttpClient`/`OkHttpClient` wrapper
+  that attaches the Bearer token, and a one-shot refresh-and-retry on a
+  single 401 (never an infinite retry loop) — see QAS-000007.
+- The shipped web pages attach the CSRF header and cookie credentials on
+  every request via a small shared `api()`/`adminApi()` fetch wrapper
+  per page (see QAS-000008).
+
+## References
+
+- ADR-000008 (contract-first via `api-contracts`), QAS-000004 (auth on
+  top of this transport), QAS-000007 (mobile client conventions).
 
 ---
 
@@ -346,4 +85,5 @@ This standard defines how Qervon publishes, versions, and consumes APIs.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the API integration standard to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real routing/error/discovery conventions and explicit scope gaps. |
