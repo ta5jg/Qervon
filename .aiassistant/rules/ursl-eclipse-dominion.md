@@ -1,301 +1,3 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
 
 # URSL Project Instructions
 
@@ -305,8 +7,7 @@ These instructions are generated for **JetBrains AI Assistant** from the canonic
 
 ## Source: Always
 
-
-# Always
+## Always
 
 - Inspect the current repository, relevant instructions, and acceptance criteria before changing code or configuration.
 - Keep identity, authorization, privacy, data integrity, and safety boundaries explicit.
@@ -319,13 +20,11 @@ These instructions are generated for **JetBrains AI Assistant** from the canonic
 
 A change that violates an applicable item is not ready for acceptance until the violation is corrected or an authorized exception is recorded.
 
-
 ---
 
 ## Source: Never
 
-
-# Never
+## Never
 
 - Never expose, commit, log, echo, or fabricate secrets, personal data, private keys, tokens, or production credentials.
 - Never claim a test, benchmark, visual result, deployment, audit, or external action succeeded without direct evidence.
@@ -338,13 +37,11 @@ A change that violates an applicable item is not ready for acceptance until the 
 
 Any breach blocks publication and requires remediation plus an impact assessment.
 
-
 ---
 
 ## Source: Preferred
 
-
-# Preferred
+## Preferred
 
 - Prefer explicit contracts, typed boundaries, deterministic inputs, reversible migrations, and independently testable components.
 - Prefer standard library and well-maintained dependencies over bespoke infrastructure; document the trade-off when choosing otherwise.
@@ -357,13 +54,11 @@ Any breach blocks publication and requires remediation plus an impact assessment
 
 Departures are allowed when justified by concrete constraints, documented trade-offs, and an appropriate verification plan.
 
-
 ---
 
 ## Source: Forbidden
 
-
-# Forbidden
+## Forbidden
 
 The following practices are prohibited in URSL-managed work:
 
@@ -378,12 +73,11 @@ The following practices are prohibited in URSL-managed work:
 
 Detection is a blocking failure unless an authorized exception explicitly records the scope, owner, expiry, and compensating controls.
 
-
 ---
 
 ## Source: Eclipse Dominion Project Rules
 
-# Eclipse Dominion Project Rules
+## Eclipse Dominion Project Rules
 
 - Preserve a clear territory, resource, champion, and raid loop; visible play
   and screenshots are acceptance evidence, not optional polish.
@@ -396,13 +90,11 @@ Detection is a blocking failure unless an authorized exception explicitly record
 - Version saves and network messages; define migration, rollback, integrity,
   anti-cheat, abuse response, telemetry privacy, and recovery behavior before release.
 
-
 ---
 
 ## Source: Rust Safety and Correctness Rules
 
-
-# Rust Safety and Correctness Rules
+## Rust Safety and Correctness Rules
 
 1. Production code MUST use safe Rust by default. Each `unsafe` operation MUST
    have a local `SAFETY:` proof and a testable invariant.
@@ -434,13 +126,11 @@ Run the narrowest relevant automated or reproducible check, exercise normal and 
 
 An exception requires a named owner, concrete rationale, compensating control, expiry, approval record, and review date. An expired exception fails this rule.
 
-
 ---
 
 ## Source: WGSL and GPU Integration Rules
 
-
-# WGSL and GPU Integration Rules
+## WGSL and GPU Integration Rules
 
 1. Host and WGSL resource layouts MUST be verified together, including offsets,
    alignment, padding, matrix representation, array stride, and binding size.
@@ -472,13 +162,11 @@ Run the narrowest relevant automated or reproducible check, exercise normal and 
 
 An exception requires a named owner, concrete rationale, compensating control, expiry, approval record, and review date. An expired exception fails this rule.
 
-
 ---
 
 ## Source: Rendering Core Rules
 
-
-# Rendering Core Rules
+## Rendering Core Rules
 
 ## Scope
 
@@ -502,13 +190,11 @@ Apply this rule whenever the change affects **rendering**. It is a release gate,
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Game Design Pillars
 
-
-# Game Design Pillars
+## Game Design Pillars
 
 ## Scope
 
@@ -532,13 +218,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Economy Balance
 
-
-# Economy Balance
+## Economy Balance
 
 ## Scope
 
@@ -562,13 +246,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Multiplayer Authority
 
-
-# Multiplayer Authority
+## Multiplayer Authority
 
 ## Scope
 
@@ -592,13 +274,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Network Reconciliation
 
-
-# Network Reconciliation
+## Network Reconciliation
 
 ## Scope
 
@@ -622,13 +302,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Save Game Integrity
 
-
-# Save Game Integrity
+## Save Game Integrity
 
 ## Scope
 
@@ -652,13 +330,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Anti Cheat
 
-
-# Anti Cheat
+## Anti Cheat
 
 ## Scope
 
@@ -682,13 +358,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Performance Budgets
 
-
-# Performance Budgets
+## Performance Budgets
 
 ## Scope
 
@@ -712,13 +386,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Accessibility
 
-
-# Accessibility
+## Accessibility
 
 ## Scope
 
@@ -742,13 +414,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Telemetry Privacy
 
-
-# Telemetry Privacy
+## Telemetry Privacy
 
 ## Scope
 
@@ -772,13 +442,11 @@ Apply this rule whenever the change affects **game-development**. It is a releas
 
 An exception requires a named owner, concrete rationale, bounded expiry, compensating control, approval record, and review date. Expired exceptions fail this rule.
 
-
 ---
 
 ## Source: Game Zero-to-Production
 
-
-# Game Zero-to-Production
+## Game Zero-to-Production
 
 ## Mission
 
@@ -865,13 +533,11 @@ For every feature:
 - Rollback tested
 - Documentation and ownership complete
 
-
 ---
 
 ## Source: Zero-to-Production Game Project Master Prompt
 
-
-# Zero-to-Production Game Project Master Prompt
+## Zero-to-Production Game Project Master Prompt
 
 You are the lead architect, senior implementer, security engineer, test engineer,
 release engineer, and technical writer for this project.
@@ -933,7 +599,6 @@ Discovery → Architecture → Bootstrap → Vertical Slice → Incremental Impl
 8. Remaining work
 9. Approval needed, if any
 
-
 ---
 
 ## Required Operational Workflows
@@ -942,7 +607,7 @@ Apply the relevant workflow below whenever its trigger matches the task. These w
 
 ### Rust Review
 
-# Rust Review
+## Rust Review
 
 Read `RULE-000100` and the Rust standard before reviewing. Treat compilation as
 necessary evidence, not proof of runtime correctness.
@@ -998,7 +663,7 @@ A Rust Review finding set with scope, severity or priority, affected contract, e
 
 ### WGSL and WGPU Review
 
-# WGSL and WGPU Review
+## WGSL and WGPU Review
 
 Review host and shader code together. A shader review without the matching bind
 group layouts and Rust structures is incomplete.
@@ -1058,7 +723,7 @@ A WGSL and WGPU Review finding set with scope, severity or priority, affected co
 
 ### Rendering Review
 
-# Rendering Review
+## Rendering Review
 
 Review the rendering pipeline as a data-flow system from canonical simulation
 state through transient scene data, GPU resources, passes, presentation, and
@@ -1108,7 +773,7 @@ A Review Rendering finding set with scope, severity or priority, affected contra
 
 ### Perform Game Security Assessment
 
-# Perform Game Security Assessment
+## Perform Game Security Assessment
 
 ## Trigger
 
@@ -1150,7 +815,7 @@ A game threat model covering authority, economy, client trust, abuse paths, tele
 
 ### Audit Anti Cheat
 
-# Audit Anti Cheat
+## Audit Anti Cheat
 
 ## Trigger
 
@@ -1192,7 +857,7 @@ A Audit Anti Cheat finding set with scope, severity or priority, affected contra
 
 ### Perform Supply Chain Assessment
 
-# Perform Supply Chain Assessment
+## Perform Supply Chain Assessment
 
 ## Trigger
 

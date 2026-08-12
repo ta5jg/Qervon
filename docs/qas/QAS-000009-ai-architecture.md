@@ -1,336 +1,103 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000009-ai-architecture.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000009-ai-architecture.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Defines the Qervon architecture standard for ai architecture.
+Description:
+  The real AI Dispatcher, Dynamic ETA, and AI Fraud Guard implementations
+  — deterministic heuristics, not machine-learning models.
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  QAS-000002, QAS-000003, QLS-000003.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# QAS-000009 — Ai Architecture
+# QAS-000009 — AI Architecture
 
-# Purpose
+**Status: Implemented — as deterministic heuristics, not ML models.**
+Source: `backend/crates/application/src/ai_dispatcher.rs`.
 
-This standard aligns ai architecture with the Qervon source PDFs.
+## Honesty note on the word "AI"
 
-# Requirements
+Nothing in this system trains or runs a machine-learning model. "AI
+Dispatcher", "AI ETA", and "AI Fraud Guard" are the source PDFs' names for
+three real, deterministic, hand-written scoring functions. This document
+uses those names because they're the names used throughout the code and
+the other governance documents, but the underlying implementation is
+plain arithmetic, testable and auditable line-by-line — not a black box.
 
-- Treat AI as an assistive capability, not the source of truth.
-- Route AI access through a controlled gateway.
-- Keep outputs explainable and reviewable.
+## AI Dispatcher (`AiDispatcher::rank_candidates`/`calculate_score`)
 
-# References
+For each available courier with a known current location:
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+```text
+score = (eta_minutes * 0.7 + distance_km * 0.3) * vehicle_weight
+```
+
+where `vehicle_weight` is `1.0` for motorcycle, `1.2` for car, and for
+bicycle either `0.9` (under 3 km — bicycles are favored for very short
+hops) or `2.0` (3 km or more — heavily penalized for longer distances).
+Couriers are ranked ascending (lowest score = best candidate) and the
+best-ranked available courier is offered the job (see QLS-000003 for the
+offer/accept/reject flow this feeds).
+
+## Dynamic ETA (`AiDispatcher::calculate_dynamic_eta`)
+
+```text
+effective_speed = base_speed_kmh / (traffic_multiplier * weather_multiplier)
+eta_minutes = (distance_km / effective_speed) * 60
+```
+
+Base speeds: bicycle 15 km/h, car 25 km/h, motorcycle 35 km/h.
+`TrafficContext { congestion_multiplier, weather }` supports a traffic
+multiplier and a weather multiplier (rainy = 1.25×, snowy = 1.60×) —
+**but every real call site passes `None` for this context.** There is no
+live traffic or weather data source wired in; the multiplier machinery
+exists in code and is unit-tested, but production ETAs today are always
+the base vehicle-speed calculation with no traffic/weather adjustment.
+Wiring a real traffic/weather API is a concrete, scoped future
+improvement, not a rewrite — the function signature already accepts it.
+
+This same function powers both the AI Dispatcher's internal scoring and
+the customer-facing `GET /v1/customer/orders/{id}/eta` endpoint.
+
+## AI Fraud Guard (`AiDispatcher::detect_gps_fraud`)
+
+```text
+speed_kmh = (distance_km_between_two_consecutive_samples / elapsed_seconds) * 3600
+is_fraudulent = speed_kmh > 160.0
+risk_score = min(speed_kmh / 200.0, 1.0)
+```
+
+Called on every `POST /v1/courier/me/location`/`POST
+/v1/couriers/{id}/location` write, comparing the new sample against the
+courier's immediately-preceding recorded location. Flag-and-accept, not
+block-and-reject: a flagged sample is still stored (with
+`fraud_flagged=true`, `fraud_risk_score`), still updates the courier's
+live position, but is visibly marked as suspicious to anyone viewing the
+live map (a red marker, a warning banner) — see `index.html`'s AI
+Fraud Guard tab. Nothing currently escalates a repeated fraud flag into
+an account action (suspension, alert to an operator) — that response is
+left to a human reviewing the dashboard today.
+
+## What is not implemented
+
+- **AI Route** (multi-stop route optimization for a courier carrying
+  several orders) — mentioned in the source PDFs, not built; there is no
+  batching of multiple orders onto one courier run today.
+- **Any actual machine-learning component** — no training pipeline, no
+  model file, no inference framework dependency exists in this codebase.
+
+## References
+
+- [QAS-000002](QAS-000002-domain-model.md) (the `Courier`/`Location` types these functions operate on),
+  [QAS-000003](QAS-000003-event-architecture.md) (the location-update pipeline this feeds), [QLS-000003](../qls/QLS-000003-dispatch-domain.md)
+  (dispatch domain, the offer flow this scoring drives).
 
 ---
 
@@ -338,4 +105,5 @@ This standard aligns ai architecture with the Qervon source PDFs.
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned ai architecture to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real scoring formulas and the honest note that traffic/weather context is unused in practice. |

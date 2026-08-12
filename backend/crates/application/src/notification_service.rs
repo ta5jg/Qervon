@@ -17,9 +17,7 @@
 // =============================================================================
 
 use chrono::Utc;
-use qervon_domain::{
-    Notification, NotificationChannel, NotificationId, NotificationRepository,
-};
+use qervon_domain::{Notification, NotificationChannel, NotificationId, NotificationRepository};
 use uuid::Uuid;
 
 use crate::error::ApplicationError;
@@ -64,10 +62,7 @@ where
         Ok(notification)
     }
 
-    pub async fn get(
-        &self,
-        id: NotificationId,
-    ) -> Result<Notification, ApplicationError> {
+    pub async fn get(&self, id: NotificationId) -> Result<Notification, ApplicationError> {
         self.notifications
             .find_by_id(id)
             .await?
@@ -83,10 +78,7 @@ where
     }
 
     /// Mark a queued notification as successfully delivered.
-    pub async fn mark_sent(
-        &self,
-        id: NotificationId,
-    ) -> Result<Notification, ApplicationError> {
+    pub async fn mark_sent(&self, id: NotificationId) -> Result<Notification, ApplicationError> {
         let mut notification = self.get(id).await?;
         notification.mark_sent(Utc::now())?;
         self.notifications.update(&notification).await?;
@@ -94,10 +86,7 @@ where
     }
 
     /// Mark a queued notification as failed to deliver.
-    pub async fn mark_failed(
-        &self,
-        id: NotificationId,
-    ) -> Result<Notification, ApplicationError> {
+    pub async fn mark_failed(&self, id: NotificationId) -> Result<Notification, ApplicationError> {
         let mut notification = self.get(id).await?;
         notification.mark_failed()?;
         self.notifications.update(&notification).await?;
@@ -105,10 +94,7 @@ where
     }
 
     /// Mark a delivered notification as read by the recipient.
-    pub async fn mark_read(
-        &self,
-        id: NotificationId,
-    ) -> Result<Notification, ApplicationError> {
+    pub async fn mark_read(&self, id: NotificationId) -> Result<Notification, ApplicationError> {
         let mut notification = self.get(id).await?;
         notification.mark_read()?;
         self.notifications.update(&notification).await?;

@@ -92,11 +92,7 @@ pub struct CustomerProfile {
 }
 
 impl CustomerProfile {
-    pub fn create(
-        id: CustomerId,
-        user_id: UserId,
-        now: DateTime<Utc>,
-    ) -> Self {
+    pub fn create(id: CustomerId, user_id: UserId, now: DateTime<Utc>) -> Self {
         Self {
             id,
             user_id,
@@ -230,12 +226,7 @@ mod tests {
         let mut p = sample_profile();
         let addr1 = istanbul_address();
         let addr1_id = addr1.id;
-        let addr2 = SavedAddress::new(
-            "İş",
-            Location::new(41.0, 29.0).unwrap(),
-            "Maslak",
-        )
-        .unwrap();
+        let addr2 = SavedAddress::new("İş", Location::new(41.0, 29.0).unwrap(), "Maslak").unwrap();
 
         p.add_address(addr1);
         p.add_address(addr2);

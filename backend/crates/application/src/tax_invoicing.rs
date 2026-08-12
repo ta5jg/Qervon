@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000006, QES-000006.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +44,7 @@ impl TaxInvoicingEngine {
         let total_amount_minor = net_amount_minor + vat_amount_minor;
 
         let inv_suffix = uuid::Uuid::now_v7().to_string();
-        let invoice_number = format!("QER2026{}", &inv_suffix[..8].to_uppercase());
+        let invoice_number = format!("QER2026{}", inv_suffix[..8].to_uppercase());
 
         ElectronicInvoiceDraft {
             invoice_number,
@@ -71,7 +72,7 @@ mod tests {
         let inv = TaxInvoicingEngine::generate_e_invoice(order_id, cust_id, 10000, "TRY"); // Net: ₺100.00
 
         assert_eq!(inv.net_amount_minor, 10000);
-        assert_eq!(inv.vat_amount_minor, 2000);  // KDV %20: ₺20.00
+        assert_eq!(inv.vat_amount_minor, 2000); // KDV %20: ₺20.00
         assert_eq!(inv.total_amount_minor, 12000); // Toplam: ₺120.00
         assert!(inv.invoice_number.starts_with("QER2026"));
     }

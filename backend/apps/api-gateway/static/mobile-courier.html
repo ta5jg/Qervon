@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qervon — Kurye Mobil Terminali (Live Hardware Simulator)</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#10b981">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
 
   <style>
     :root {
@@ -96,7 +98,7 @@
         <div style="font-size:14px; font-weight:800; color:white;">KURYE TERMINALİ</div>
         <div style="font-size:9px; color:var(--accent-cyan); font-weight:700;">HARDWARE GPS BROADCASTER</div>
       </div>
-      <button class="toggle-online is-online" id="btn-status" onclick="toggleStatus()">ONLINE 🟢</button>
+      <button class="toggle-online" id="btn-status" type="button" onclick="toggleStatus()">OTURUM YOK</button>
     </div>
 
     <!-- TAB 1: GÖREV & HARİTA -->
@@ -105,54 +107,61 @@
 
       <div class="card">
         <div style="font-size:10px; color:var(--text-muted); font-weight:700;">DONANIM FİZİKSEL GPS CANLI</div>
-        <div style="font-size:13px; font-weight:800; color:var(--accent-green); margin-top:2px;" id="gps-text">Konum Alınıyor...</div>
+        <div style="font-size:13px; font-weight:800; color:var(--text-muted); margin-top:2px;" id="gps-text">Gerçek konum bekleniyor</div>
+        <button class="btn-main" style="margin-top:8px; padding:10px; font-size:11px; background:#7c3aed;" type="button" onclick="enablePushNotifications()">BİLDİRİMLERİ AÇ</button>
+      </div>
+
+      <div id="courier-login-card" class="card" style="border-color:rgba(56,189,248,0.4);">
+        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">KURYE OTURUMU</div>
+        <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Canlı konumu yayınlamak ve görevleri görmek için kurye hesabınızla giriş yapın.</div>
+        <a class="btn-main" style="display:block; text-align:center; text-decoration:none;" href="/login?return_to=/mobile-courier.html">KURYE GİRİŞİ</a>
       </div>
 
       <div class="card" style="border-color:rgba(56,189,248,0.4);">
-        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">YENİ GÖREV ATAMASI (AI DISPATCH)</div>
-        <div style="font-size:14px; font-weight:800;">Sultanahmet ➔ Maslak Plaza</div>
-        <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; font-weight:700;">
-          <span style="color:var(--accent-green);">Kazanç: ₺45.00</span>
-          <span style="color:var(--text-muted);">Mesafe: 4.2 km</span>
-        </div>
+        <div style="font-size:10px; color:var(--accent-cyan); font-weight:800; margin-bottom:4px;">AKTİF GÖREV</div>
+        <div id="task-route" style="font-size:14px; font-weight:800;">Görevler yükleniyor…</div>
+        <div id="task-meta" style="margin-top:8px; font-size:12px; color:var(--text-muted);">Oturumunuzdaki kurye için atanmış iş aranıyor.</div>
       </div>
 
-      <button class="btn-main">✅ GÖREVİ KABUL ET & NAVİGASYON</button>
+      <button id="btn-pickup" class="btn-main" onclick="startPickup()" disabled>TESLİM ALMAYA BAŞLA</button>
     </div>
 
     <!-- TAB 2: POD & DİJİTAL İMZA -->
     <div id="tab-pod" class="view-content">
       <div class="card">
         <div style="font-size:14px; font-weight:800; margin-bottom:10px;">Teslimat İspatı (POD)</div>
-        <button class="btn-main" style="background:#0284c7; margin-bottom:8px;"><i data-lucide="qr-code"></i> QR / Barkod Tara</button>
-        <button class="btn-main" style="background:#8b5cf6; margin-bottom:8px;"><i data-lucide="camera"></i> Fotoğraf Kanıtı Çek</button>
-        <div style="padding:16px; border:1px dashed var(--border-color); border-radius:12px; text-align:center; font-size:11px; color:var(--text-muted); margin-bottom:10px;">
-          Müşteri Dijital İmzası Alanı
-        </div>
-        <button class="btn-main">🏁 TESLİMATI TAMAMLA</button>
+        <p style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">Kamera tabanlı QR/barkod tarama ve fotoğraf kanıtı bu tarayıcı simülatöründe uygulanmadı — bunlar native iOS/Android uygulamalarında gerçek (ML Kit / VisionKit / CameraX). Burada dürüst bir alternatif olarak yalnızca manuel QR doğrulama onayı sunulur.</p>
+        <label for="pod-recipient" style="font-size:11px; color:var(--text-muted);">Teslim alan kişi</label>
+        <input id="pod-recipient" aria-required="true" placeholder="Teslim alan kişinin adı" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:10px;"><input id="pod-qr" type="checkbox"> QR / barkod doğrulandı</label>
+        <button id="btn-deliver" class="btn-main" type="button" onclick="completeDelivery()" disabled>🏁 TESLİMATI TAMAMLA</button>
       </div>
     </div>
 
     <!-- TAB 3: KAZANÇ & CÜZDAN -->
     <div id="tab-wallet" class="view-content">
       <div class="card">
-        <div style="font-size:12px; font-weight:700; color:var(--text-muted);">Bugünkü Kazanç</div>
-        <div style="font-size:26px; font-weight:800; color:var(--accent-green); margin:4px 0;">₺850.00</div>
-        <div style="font-size:11px; color:var(--accent-cyan); font-weight:700;">Haftalık Toplam: ₺5,200.00 💰</div>
+        <div style="font-size:12px; font-weight:700; color:var(--text-muted);">Bakiye</div>
+        <div id="wallet-balance" style="font-size:26px; font-weight:800; color:var(--accent-green); margin:4px 0;">—</div>
+        <div id="wallet-total" style="font-size:11px; color:var(--accent-cyan); font-weight:700;">Kazançlar yükleniyor…</div>
       </div>
       <div class="card">
-        <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Performans Skor Kartı</div>
-        <div style="font-size:16px; font-weight:800; color:var(--accent-purple);">⭐ 4.9 / 5.0 Rating</div>
-        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Zamanında Teslimat: %98.5</div>
+        <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Performans</div>
+        <div id="rating-summary" style="font-size:16px; font-weight:800; color:var(--accent-purple);">Puanlar yükleniyor…</div>
+        <div id="rating-count" style="font-size:10px; color:var(--text-muted); margin-top:2px;"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Son İşlemler</div>
+        <div id="wallet-transactions" style="font-size:11px; color:var(--text-muted);">—</div>
       </div>
     </div>
 
     <!-- TAB 4: PROFİL -->
     <div id="tab-profile" class="view-content">
       <div class="card">
-        <div style="font-size:14px; font-weight:800;">Ahmet Kurye</div>
-        <div style="font-size:11px; color:var(--text-muted);">Motosiklet • Plaka: 34 KRY 882</div>
-        <div style="font-size:11px; color:var(--accent-green); font-weight:700; margin-top:6px;">Ehliyet & Sigorta: Doğrulandı ✅</div>
+        <div id="courier-name" style="font-size:14px; font-weight:800;">Kurye profili yükleniyor…</div>
+        <div id="courier-meta" style="font-size:11px; color:var(--text-muted);"></div>
+        <div id="courier-status" style="font-size:11px; color:var(--accent-green); font-weight:700; margin-top:6px;"></div>
       </div>
     </div>
 
@@ -168,18 +177,178 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
+    const map = L.map('map', { zoomControl: false }).setView([0, 0], 2);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
     const courierIcon = L.divIcon({
       html: `<div style="background:#10b981; width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 15px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:12px; font-weight:bold;">🏍️</div>`,
       className: ''
     });
-    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+    let courierMarker;
+    let activeOrder;
+    let isOnline = false;
+    let locationWatchId = null;
 
-    let isOnline = true;
-    function toggleStatus() {
-      isOnline = !isOnline;
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
+      if (!response.ok) throw new Error(`API ${response.status}`);
+      return response.status === 204 ? null : response.json();
+    }
+
+    function showTask(order) {
+      activeOrder = order || null;
+      const route = document.getElementById('task-route');
+      const meta = document.getElementById('task-meta');
+      const pickup = document.getElementById('btn-pickup');
+      const deliver = document.getElementById('btn-deliver');
+      if (!order) {
+        route.textContent = 'Aktif görev yok';
+        meta.textContent = 'Yeni bir görev atandığında burada görünecek.';
+        pickup.disabled = true;
+        deliver.disabled = true;
+        return;
+      }
+      route.textContent = `${order.pickup.label || 'Alım noktası'} ➔ ${order.dropoff.label || 'Teslim noktası'}`;
+      meta.textContent = `Durum: ${order.status.replaceAll('_', ' ')} • Kazanç: ${(order.fare.amount_minor / 100).toFixed(2)} ${order.fare.currency}`;
+      pickup.disabled = order.status !== 'courier_assigned';
+      deliver.disabled = order.status !== 'in_transit';
+    }
+
+    function formatMoney(amountMinor, currency) {
+      try { return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amountMinor / 100); }
+      catch (_) { return `${(amountMinor / 100).toFixed(2)} ${currency}`; }
+    }
+
+    function renderWallet(wallet) {
+      document.getElementById('wallet-balance').textContent = formatMoney(wallet.balance_minor, wallet.currency);
+      document.getElementById('wallet-total').textContent = `Toplam kazanç: ${formatMoney(wallet.total_earned_minor, wallet.currency)} 💰`;
+      const transactionsEl = document.getElementById('wallet-transactions');
+      const recent = wallet.transactions.slice(-5).reverse();
+      transactionsEl.innerHTML = recent.length
+        ? recent.map(tx => `<div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${tx.description}</span><span>${formatMoney(tx.amount_minor, tx.currency)}</span></div>`).join('')
+        : 'Henüz işlem yok.';
+    }
+
+    function renderRatings(ratings) {
+      const summaryEl = document.getElementById('rating-summary');
+      const countEl = document.getElementById('rating-count');
+      if (!ratings.length) {
+        summaryEl.textContent = 'Henüz değerlendirme yok';
+        countEl.textContent = '';
+        return;
+      }
+      const average = ratings.reduce((sum, r) => sum + r.rating_stars, 0) / ratings.length;
+      summaryEl.textContent = `⭐ ${average.toFixed(1)} / 5.0`;
+      countEl.textContent = `${ratings.length} değerlendirme`;
+    }
+
+    async function loadCourierWorkspace() {
+      try {
+        const [courier, orders] = await Promise.all([api('/v1/courier/me', { method: 'GET' }), api('/v1/courier/orders', { method: 'GET' })]);
+        document.getElementById('courier-name').textContent = courier.name;
+        document.getElementById('courier-meta').textContent = `${courier.vehicle} • Kayıtlı kurye profili`;
+        document.getElementById('courier-status').textContent = `Durum: ${courier.status}`;
+        document.getElementById('courier-login-card').hidden = true;
+        isOnline = courier.status !== 'offline';
+        updateStatusButton();
+        showTask(orders[0]);
+        startLocationWatch();
+        const [wallet, ratings] = await Promise.all([api('/v1/courier/me/wallet', { method: 'GET' }), api('/v1/courier/me/ratings', { method: 'GET' })]);
+        renderWallet(wallet);
+        renderRatings(ratings);
+      } catch (_) {
+        document.getElementById('courier-login-card').hidden = false;
+        document.getElementById('btn-status').textContent = 'OTURUM YOK';
+        document.getElementById('btn-status').className = 'toggle-online';
+        document.getElementById('task-route').textContent = 'Kurye oturumu gerekli';
+        document.getElementById('task-meta').textContent = 'Giriş yaptıktan sonra görevleriniz güvenli olarak yüklenir.';
+        document.getElementById('gps-text').textContent = 'Kurye oturumu gerekli; konum yayınlanmıyor';
+      }
+    }
+
+    async function startPickup() {
+      if (!activeOrder) return;
+      try { showTask(await api(`/v1/courier/orders/${activeOrder.id}/pickup`, { method: 'POST' })); }
+      catch (_) { document.getElementById('task-meta').textContent = 'Teslim alma işlemi tamamlanamadı.'; }
+    }
+
+    async function completeDelivery() {
+      if (!activeOrder) return;
+      const recipient = document.getElementById('pod-recipient').value.trim();
+      const qrVerified = document.getElementById('pod-qr').checked;
+      if (!recipient || !qrVerified) { document.getElementById('task-meta').textContent = 'Teslim alan kişi ve QR doğrulaması zorunludur.'; return; }
+      try {
+        showTask(await api(`/v1/courier/orders/${activeOrder.id}/deliver`, { method: 'POST', body: JSON.stringify({ recipient_name: recipient, qr_barcode_verified: qrVerified }) }));
+        await loadCourierWorkspace();
+      }
+      catch (_) { document.getElementById('task-meta').textContent = 'Teslimat tamamlanamadı.'; }
+    }
+
+    function vapidKeyBytes(value) {
+      const padded = value.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(value.length / 4) * 4, '=');
+      const raw = atob(padded);
+      return Uint8Array.from(raw, char => char.charCodeAt(0));
+    }
+
+    async function enablePushNotifications() {
+      const gpsText = document.getElementById('gps-text');
+      try {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('unsupported');
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') throw new Error('permission');
+        const config = await api('/v1/push/config', { method: 'GET' });
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKeyBytes(config.vapid_public_key) });
+        await api('/v1/push/subscriptions', { method: 'POST', body: JSON.stringify(subscription) });
+        gpsText.textContent = 'Push bildirimleri etkinleştirildi';
+      } catch (_) { gpsText.textContent = 'Push bildirimi etkinleştirilemedi'; }
+    }
+
+    async function publishLocation(position) {
+      const gpsText = document.getElementById('gps-text');
+      if (!isOnline) {
+        gpsText.textContent = 'Kurye çevrimdışı; GPS yayınlanmıyor';
+        return;
+      }
+      const { latitude, longitude, speed } = position.coords;
+      try {
+        const response = await fetch('/v1/courier/me/location', {
+          method: 'POST',
+          headers: csrfHeaders(),
+          credentials: 'same-origin',
+          body: JSON.stringify({ latitude, longitude, speed_kmh: speed == null ? null : speed * 3.6, battery_pct: null })
+        });
+        if (!response.ok) throw new Error('publish failed');
+        const point = [latitude, longitude];
+        if (!courierMarker) courierMarker = L.marker(point, { icon: courierIcon }).addTo(map);
+        else courierMarker.setLatLng(point);
+        map.panTo(point, { animate: true });
+        gpsText.textContent = `Konum yayınlandı: ${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+      } catch (_) { gpsText.textContent = 'Konum sunucuya gönderilemedi'; }
+    }
+
+    function startLocationWatch() {
+      const gpsText = document.getElementById('gps-text');
+      if (locationWatchId !== null) return;
+      if (!window.isSecureContext) {
+        gpsText.textContent = 'Canlı konum için HTTPS bağlantısı gerekli';
+        return;
+      }
+      if (!navigator.geolocation) {
+        gpsText.textContent = 'Bu cihaz canlı konumu desteklemiyor';
+        return;
+      }
+      locationWatchId = navigator.geolocation.watchPosition(publishLocation, () => {
+        gpsText.textContent = 'Konum izni gerekli';
+      }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 });
+    }
+
+    function updateStatusButton() {
       const btn = document.getElementById('btn-status');
       if (isOnline) {
         btn.innerText = "ONLINE 🟢";
@@ -188,6 +357,20 @@
         btn.innerText = "OFFLINE 🔴";
         btn.className = "toggle-online";
       }
+    }
+
+    async function toggleStatus() {
+      if (document.getElementById('courier-login-card').hidden === false) {
+        location.assign('/login?return_to=/mobile-courier.html');
+        return;
+      }
+      try {
+        const courier = await api('/v1/courier/me/status', { method: 'POST', body: JSON.stringify({ online: !isOnline }) });
+        isOnline = courier.status !== 'offline';
+        document.getElementById('courier-status').textContent = `Durum: ${courier.status}`;
+        updateStatusButton();
+        if (isOnline) startLocationWatch();
+      } catch (_) { document.getElementById('gps-text').textContent = 'Kurye durumu değiştirilemedi'; }
     }
 
     function switchCourierTab(tabId, el) {
@@ -200,6 +383,9 @@
         setTimeout(() => map.invalidateSize(), 100);
       }
     }
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+    loadCourierWorkspace();
   </script>
 </body>
 </html>

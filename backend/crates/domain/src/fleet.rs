@@ -207,14 +207,9 @@ mod tests {
 
     #[test]
     fn rejects_blank_plate() {
-        assert!(Vehicle::register(
-            VehicleId::new(),
-            "  ",
-            VehicleType::Car,
-            None,
-            Utc::now()
-        )
-        .is_err());
+        assert!(
+            Vehicle::register(VehicleId::new(), "  ", VehicleType::Car, None, Utc::now()).is_err()
+        );
     }
 
     #[test]

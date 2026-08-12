@@ -1,344 +1,74 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qfs/QFS-000006-configuration-system.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qfs/QFS-000006-configuration-system.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon Foundation Specification for configuration system.
+Description:
+  Configuration is entirely environment variables, read once at startup
+  — no config file, no dynamic reconfiguration, no config service.
 
- Specification:
-   QMI-000000 and the applicable Qervon Foundation Specification
+Specification:
+  QFS-000003, QAS-000014.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QFS-000006 — Configuration System
 
-Configuration must be explicit, versioned, and validated.
+**Status: Implemented — deliberately minimal.**
 
-# Purpose
+## Mechanism
 
-This specification defines how the platform loads, validates, and applies configuration.
+Every configurable value is a `QERVON_*` environment variable, read once
+in `AppState::from_env()` (QFS-000003) at process startup. There is no
+config file format (no TOML/YAML config), no runtime config-reload, and
+no external configuration service (no Consul/etcd/AWS Parameter Store
+integration).
 
-# Rules
+## Real variables in active use
 
-- Configuration is data, not hidden behavior.
-- Configuration must be versioned and traceable.
-- Invalid configuration must fail fast.
-- Sensitive settings must never be exposed in clear text.
+| Variable | Purpose |
+| --- | --- |
+| `QERVON_STORAGE` | `memory` or `postgres` — selects the persistence backend (QAS-000006) |
+| `QERVON_LISTEN` | bind address, default `0.0.0.0:8080` |
+| `QERVON_TOKEN_SIGNING_SECRET` | HMAC key for access tokens (QAS-000004) |
+| `QERVON_API_ACCESS_TOKEN` | static bearer token for machine-to-machine API access |
+| `QERVON_CORS_ALLOWED_ORIGINS` | comma-separated allowed origins (QAS-000004) |
+| `QERVON_WEBHOOK_ENCRYPTION_KEY` | encrypts stored webhook secrets at rest |
+| `QERVON_WEB_PUSH_VAPID_PUBLIC_KEY` | web-push VAPID key (QLS-000010) |
+| `QERVON_INITIAL_SETUP_TOKEN` | gates the `/setup` bootstrap page in production |
+| `QERVON_WORKER_POLL_SECONDS` | the background worker's poll interval (QFS-000011) |
+| `QERVON_UPLOADS_DIR` | local-filesystem root for uploaded files (delivery-proof photos), default `./data/uploads` — must be a persistent, backed-up path in production (QLS-000013) |
+| `DATABASE_URL` | PostgreSQL connection string (when `QERVON_STORAGE=postgres`) |
+| `RUST_LOG` | `tracing` env-filter |
 
-# References
+See `/etc/qervon/qervon.env` in the deployment runbook (QAS-000014) for
+which of these are mandatory in production.
 
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
-- [docs/qas/QAS-000006-database-persistence-standard.md](/Users/irfangedik/Qervon_Platform/qervon/docs/qas/QAS-000006-database-persistence-standard.md)
+## Why not a config file
+
+At this system's current operational size, environment variables are
+sufficient and match how the systemd unit files
+(`infrastructure/systemd/qervon-api.service`) already inject
+configuration — adding a config-file parser would be a second mechanism
+solving the same problem, with no current need driving the added
+flexibility (e.g. nested/structured config) a file format would offer.
+
+## References
+
+- [QFS-000003](QFS-000003-runtime-lifecycle.md) (when these are read), [QAS-000014](../qas/QAS-000014-deployment-architecture.md) (deployment — where
+  these are actually set), [QAS-000004](../qas/QAS-000004-security-architecture.md) (security-relevant variables).
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned the configuration system to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real, complete list of active configuration variables. |
+| 0.3.0 | 2026-08-13 | Added `QERVON_UPLOADS_DIR` (delivery-photo upload storage root). |

@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000003, QES-000002.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use serde::{Deserialize, Serialize};
 
@@ -57,7 +58,7 @@ mod tests {
     #[test]
     fn detects_cold_chain_temperature_breach() {
         let order_id = uuid::Uuid::now_v7();
-        
+
         // Medical Vaccine requirement: +2°C to +8°C
         let normal = ColdChainTelemetry::new(order_id, "SENS-101", 5.0, 45.0, 2.0, 8.0);
         assert!(!normal.is_violation);

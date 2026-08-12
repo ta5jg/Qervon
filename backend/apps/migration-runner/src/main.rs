@@ -51,7 +51,7 @@ async fn run_migrations(pool: &PgPool, dir: &Path) -> Result<usize, sqlx::Error>
     .await?;
 
     let mut files = collect_sql_files(dir)?;
-    files.sort();
+    files.sort_by_key(|file| (migration_phase(file), file.clone()));
 
     let mut applied = 0;
     for file in files {
@@ -84,6 +84,31 @@ async fn run_migrations(pool: &PgPool, dir: &Path) -> Result<usize, sqlx::Error>
     Ok(applied)
 }
 
+fn migration_phase(file: &Path) -> u8 {
+    match file
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|name| name.to_str())
+    {
+        Some("identity") => 0,
+        Some("tenancy") => 1,
+        Some("couriers") => 2,
+        Some("orders") => 3,
+        Some("billing") => 4,
+        Some("delivery") => 5,
+        Some("dispatch") => 6,
+        Some("fleet") => 7,
+        Some("notifications") => 8,
+        Some("tracking") => 9,
+        Some("feedback") => 10,
+        Some("marketing") => 11,
+        Some("pricing") => 12,
+        Some("integrations") => 13,
+        Some("zz_cross_schema") => 14,
+        _ => 15,
+    }
+}
+
 fn collect_sql_files(dir: &Path) -> Result<Vec<PathBuf>, std::io::Error> {
     let mut files = Vec::new();
     for entry in std::fs::read_dir(dir)? {
@@ -112,5 +137,32 @@ mod tests {
         assert!(is_effectively_empty("-- hello\n-- world\n"));
         assert!(!is_effectively_empty("-- hello\nCREATE TABLE x (id int);"));
         assert!(is_effectively_empty("\n\n  \n"));
+    }
+
+    #[test]
+    fn orders_migrations_by_cross_schema_dependencies() {
+        let mut files = vec![
+            PathBuf::from("migrations/integrations/00000000000000_webhooks.sql"),
+            PathBuf::from("migrations/billing/00000000000002_courier_payouts.sql"),
+            PathBuf::from("migrations/couriers/00000000000000_initial.sql"),
+            PathBuf::from("migrations/identity/00000000000000_initial.sql"),
+            PathBuf::from("migrations/tenancy/00000000000000_initial.sql"),
+            PathBuf::from("migrations/zz_cross_schema/00000000000000_cross_schema_constraints.sql"),
+        ];
+        files.sort_by_key(|file| (migration_phase(file), file.clone()));
+
+        assert_eq!(
+            files,
+            vec![
+                PathBuf::from("migrations/identity/00000000000000_initial.sql"),
+                PathBuf::from("migrations/tenancy/00000000000000_initial.sql"),
+                PathBuf::from("migrations/couriers/00000000000000_initial.sql"),
+                PathBuf::from("migrations/billing/00000000000002_courier_payouts.sql"),
+                PathBuf::from("migrations/integrations/00000000000000_webhooks.sql"),
+                PathBuf::from(
+                    "migrations/zz_cross_schema/00000000000000_cross_schema_constraints.sql"
+                ),
+            ]
+        );
     }
 }

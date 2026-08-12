@@ -1,0 +1,8 @@
+{
+  "name": "Qervon Logistics",
+  "short_name": "Qervon",
+  "start_url": "/mobile-customer",
+  "display": "standalone",
+  "background_color": "#040711",
+  "theme_color": "#10b981"
+}

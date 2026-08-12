@@ -32,7 +32,11 @@ pub struct CourierShiftAssignment {
 }
 
 impl CourierShiftAssignment {
-    pub fn new(courier_id: uuid::Uuid, shift_date: impl Into<String>, shift_type: ShiftType) -> Self {
+    pub fn new(
+        courier_id: uuid::Uuid,
+        shift_date: impl Into<String>,
+        shift_type: ShiftType,
+    ) -> Self {
         Self {
             id: uuid::Uuid::now_v7(),
             courier_id,
@@ -54,7 +58,8 @@ mod tests {
     #[test]
     fn creates_and_toggles_shift_break() {
         let courier_id = uuid::Uuid::now_v7();
-        let mut shift = CourierShiftAssignment::new(courier_id, "2026-08-08", ShiftType::MorningShift);
+        let mut shift =
+            CourierShiftAssignment::new(courier_id, "2026-08-08", ShiftType::MorningShift);
 
         assert!(!shift.is_on_break);
         shift.set_break_status(true);

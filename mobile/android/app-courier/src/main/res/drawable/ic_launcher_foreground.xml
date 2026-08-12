@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Simple courier/box motif: a rounded package glyph on a transparent
+    layer, composited over the colored background layer by the adaptive
+    icon system. Not a designed brand mark — a placeholder honestly
+    described as such in mobile/android/README.md. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,40 L76,40 L76,78 L32,78 Z" />
+    <path
+        android:fillColor="#0F62FE"
+        android:pathData="M32,40 L54,28 L76,40 L54,52 Z" />
+    <path
+        android:fillColor="#D9E4FF"
+        android:pathData="M32,40 L54,52 L54,78 L32,78 Z" />
+</vector>

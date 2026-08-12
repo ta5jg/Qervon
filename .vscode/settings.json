@@ -1,5 +1,8 @@
 {
     "workbench.externalBrowser": "chrome",
+    "markdownlint.config": {
+        "extends": ".markdownlint.json"
+    },
     "livePreview.customExternalBrowser": "Chrome",
     "workbench.experimental.cloudChanges.partialMatches.enabled": true,
     "workbench.secondarySideBar.forceMaximized": true,

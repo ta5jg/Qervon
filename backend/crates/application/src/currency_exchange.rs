@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000006, QES-000006.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use serde::{Deserialize, Serialize};
 
@@ -20,7 +21,11 @@ pub struct CurrencyExchangeEngine;
 
 impl CurrencyExchangeEngine {
     /// Convert minor currency amounts between TRY, USD, EUR, GBP
-    pub fn convert_amount(amount_minor: i64, from_currency: &str, to_currency: &str) -> Result<i64, String> {
+    pub fn convert_amount(
+        amount_minor: i64,
+        from_currency: &str,
+        to_currency: &str,
+    ) -> Result<i64, String> {
         if from_currency == to_currency {
             return Ok(amount_minor);
         }
@@ -60,6 +65,9 @@ mod tests {
         assert_eq!(in_try, 330000);
 
         // Same currency returns identical amount
-        assert_eq!(CurrencyExchangeEngine::convert_amount(5000, "EUR", "EUR").unwrap(), 5000);
+        assert_eq!(
+            CurrencyExchangeEngine::convert_amount(5000, "EUR", "EUR").unwrap(),
+            5000
+        );
     }
 }

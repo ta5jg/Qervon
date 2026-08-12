@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000004, QES-000006.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use serde::{Deserialize, Serialize};
 
@@ -30,7 +31,9 @@ pub struct CourierLeaderboardEngine;
 
 impl CourierLeaderboardEngine {
     /// Calculate composite performance score and rank couriers
-    pub fn calculate_leaderboard(mut entries: Vec<CourierLeaderboardEntry>) -> Vec<CourierLeaderboardEntry> {
+    pub fn calculate_leaderboard(
+        mut entries: Vec<CourierLeaderboardEntry>,
+    ) -> Vec<CourierLeaderboardEntry> {
         for entry in entries.iter_mut() {
             // Formula: (Completed * 10) + (OnTime% * 5) + (Rating * 50)
             entry.total_score = (entry.completed_deliveries as f64 * 10.0)

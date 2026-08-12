@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
 
   <style>
     :root {
@@ -98,19 +98,19 @@
     <div class="metrics-grid">
       <div class="metric-card glass">
         <span style="font-size:11px; color:var(--text-muted); font-weight:700;">SİZE ATANAN KURYE</span>
-        <span style="font-size:16px; font-weight:800; color:var(--accent-green);">Ahmet Kurye (Motor 🏍️)</span>
+        <span id="assigned-courier" style="font-size:16px; font-weight:800; color:var(--accent-green);">Atama bekleniyor</span>
       </div>
       <div class="metric-card glass">
         <span style="font-size:11px; color:var(--text-muted); font-weight:700;">TAHMİNİ VARIŞ (ETA)</span>
-        <span style="font-size:18px; font-weight:800; color:var(--accent-cyan);">3 Dakika</span>
+        <span id="customer-eta" style="font-size:18px; font-weight:800; color:var(--accent-cyan);">—</span>
       </div>
       <div class="metric-card glass">
         <span style="font-size:11px; color:var(--text-muted); font-weight:700;">CANLI GPS DURUMU</span>
-        <span style="font-size:14px; font-weight:700; color:var(--accent-green);">Bağlandı (Hardware GPS 🟢)</span>
+        <span id="customer-gps" style="font-size:14px; font-weight:700; color:var(--accent-green);">Konum bekleniyor</span>
       </div>
       <div class="metric-card glass">
         <span style="font-size:11px; color:var(--text-muted); font-weight:700;">SİPARİŞ DURUMU</span>
-        <span style="font-size:14px; font-weight:700; color:var(--accent-green);">Yolda (In Transit)</span>
+        <span id="customer-order-status" style="font-size:14px; font-weight:700; color:var(--accent-green);">Aktif sipariş yok</span>
       </div>
     </div>
 
@@ -123,24 +123,31 @@
           
           <div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Alım Adresi (Nereden?)</label>
-            <input type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-pickup" aria-label="Alım adresi" type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
           </div>
 
           <div>
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslimat Adresi (Nereye?)</label>
-            <input type="text" value="Maslak Plaza No:14, Sarıyer" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-dropoff" aria-label="Teslimat adresi" type="text" value="Maslak Plaza No:14, Sarıyer" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
           </div>
 
           <div>
-            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Paket Tipi Seçimi</label>
-            <div class="package-grid">
-              <div class="package-card selected" onclick="selectPkg(this, 45)"><i data-lucide="file-text"></i> <span style="font-size:12px; font-weight:700;">Evrak</span> <span style="font-size:10px; color:var(--text-muted);">₺45</span></div>
-              <div class="package-card" onclick="selectPkg(this, 65)"><i data-lucide="utensils"></i> <span style="font-size:12px; font-weight:700;">Gıda</span> <span style="font-size:10px; color:var(--text-muted);">₺65</span></div>
-              <div class="package-card" onclick="selectPkg(this, 120)"><i data-lucide="box"></i> <span style="font-size:12px; font-weight:700;">Koli</span> <span style="font-size:10px; color:var(--text-muted);">₺120</span></div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Ödeme Yöntemi</label>
+            <div class="package-grid" id="payment-method-grid">
+              <div class="package-card selected" data-method="cash" onclick="selectPaymentMethod(this)"><i data-lucide="banknote"></i> <span style="font-size:12px; font-weight:700;">Nakit</span></div>
+              <div class="package-card" data-method="card" onclick="selectPaymentMethod(this)"><i data-lucide="credit-card"></i> <span style="font-size:12px; font-weight:700;">Kart</span></div>
+              <div class="package-card" data-method="qr" onclick="selectPaymentMethod(this)"><i data-lucide="qr-code"></i> <span style="font-size:12px; font-weight:700;">QR</span></div>
             </div>
           </div>
 
-          <button class="btn-action" id="btn-call">⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺45.00)</button>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Kupon Kodu (opsiyonel)</label>
+            <input id="customer-coupon" aria-label="Kupon kodu" type="text" placeholder="Kupon kodu" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+          </div>
+
+          <div id="fare-quote-preview" style="font-size:11px; color:var(--text-muted);">Ücret, adresler girildikten sonra sunucudan gerçek mesafeye göre hesaplanır.</div>
+          <button class="btn-action" id="btn-call" onclick="createCustomerOrder()">⚡ KURYEYİ ÇAĞIR & TAKİP ET</button>
+          <div id="customer-message" role="status" aria-live="polite" style="min-height:18px; font-size:12px; color:var(--text-muted);"></div>
         </div>
 
         <div id="map" style="border-radius:20px; border:1px solid var(--border-color);"></div>
@@ -152,15 +159,11 @@
     <div id="tab-addresses" class="view-section">
       <div class="glass" style="border-radius:20px; padding:20px;">
         <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">Kayıtlı Adres Defteri</h3>
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;">
-          <div style="padding:16px; border-radius:14px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);">
-            <div style="font-size:14px; font-weight:700; color:var(--accent-cyan);">🏢 Merkez Ofis</div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Maslak Plaza Kat 12, Sarıyer / İstanbul</div>
-          </div>
-          <div style="padding:16px; border-radius:14px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);">
-            <div style="font-size:14px; font-weight:700; color:var(--accent-green);">🏭 Ana Depo (Hub)</div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:6px;">Yıldıztabya Caddesi No:45, Gaziosmanpaşa</div>
-          </div>
+        <div id="addresses-list" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:16px;"></div>
+        <div style="display:grid; grid-template-columns: 1fr 2fr auto; gap:10px;">
+          <input id="address-label" aria-label="Adres etiketi" placeholder="Etiket (Ev, Ofis)" style="padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white;">
+          <input id="address-full" aria-label="Açık adres" placeholder="Açık adres" style="padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white;">
+          <button class="btn-action" style="width:auto;" onclick="saveAddress()">Adresi kaydet</button>
         </div>
       </div>
     </div>
@@ -170,8 +173,8 @@
       <div class="glass" style="border-radius:20px; padding:30px; text-align:center;">
         <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-cyan);"></i>
         <h3 style="font-size:18px; font-weight:800; margin-top:12px;">Toplu Excel / CSV Sipariş Dosyası Yükle</h3>
-        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Binlerce teslimatı tek tıkla sisteme aktarmak için .xlsx veya .csv dosyanızı buraya sürükleyin.</p>
-        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto;"><i data-lucide="file-plus"></i> Excel Dosyası Seç</button>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Bu özellik henüz uygulanmadı — backend'de toplu sipariş içe aktarma endpoint'i yok. Bkz. BACKEND_BACKLOG.md. Şimdilik siparişleri "Yeni Kurye Çağır" sekmesinden tek tek oluşturun.</p>
+        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto; opacity:0.5; cursor:not-allowed;" disabled title="Henüz uygulanmadı"><i data-lucide="file-plus"></i> Yakında</button>
       </div>
     </div>
 
@@ -189,15 +192,7 @@
               <th style="padding:10px;">e-Fatura</th>
             </tr>
           </thead>
-          <tbody>
-            <tr style="font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04);">
-              <td style="padding:12px; font-family:'JetBrains Mono'; font-weight:700;">#ORD-8810</td>
-              <td style="padding:12px;">08.08.2026</td>
-              <td style="padding:12px;">Ahmet Kurye</td>
-              <td style="padding:12px;">₺45.00</td>
-              <td style="padding:12px;"><a href="#" style="color:var(--accent-cyan); text-decoration:none; font-weight:700;">PDF İndir 📄</a></td>
-            </tr>
-          </tbody>
+          <tbody id="customer-orders-body"><tr><td colspan="5" style="padding:12px;">Siparişler yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -207,20 +202,160 @@
   <script>
     lucide.createIcons();
 
-    const map = L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-
-    const courierIcon = L.divIcon({
+    const map = window.L ? L.map('map', { zoomControl: false }).setView([41.0638, 28.9351], 15) : null;
+    if (map) L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+    const courierIcon = window.L ? L.divIcon({
       html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
       className: ''
-    });
+    }) : null;
+    let courierMarker;
+    let trackedOrder;
+    let selectedPaymentMethod = 'cash';
 
-    L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
-
-    function selectPkg(card, price) {
-      document.querySelectorAll('.package-card').forEach(c => c.classList.remove('selected'));
+    function selectPaymentMethod(card) {
+      document.querySelectorAll('#payment-method-grid .package-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      document.getElementById('btn-call').innerText = `⚡ KURYEYİ ÇAĞIR & TAKİP ET (₺${price}.00)`;
+      selectedPaymentMethod = card.dataset.method;
+    }
+
+    // Demo coordinates only — this portal has no real geocoding, unlike the
+    // native iOS/Android apps' osmdroid/MapKit address pickers.
+    function demoPickupAddress(label) { return { latitude: 41.0638, longitude: 28.9351, label }; }
+    function demoDropoffAddress(label) { return { latitude: 41.1120, longitude: 29.0210, label }; }
+
+    async function refreshFareQuotePreview() {
+      const preview = document.getElementById('fare-quote-preview');
+      const pickupLabel = document.getElementById('customer-pickup')?.value.trim();
+      const dropoffLabel = document.getElementById('customer-dropoff')?.value.trim();
+      if (!pickupLabel || !dropoffLabel || !preview) return;
+      const pickup = demoPickupAddress(pickupLabel);
+      const dropoff = demoDropoffAddress(dropoffLabel);
+      try {
+        const quote = await api(`/v1/customer/fare-quote?pickup_latitude=${pickup.latitude}&pickup_longitude=${pickup.longitude}&dropoff_latitude=${dropoff.latitude}&dropoff_longitude=${dropoff.longitude}`, { method: 'GET' });
+        preview.textContent = `Tahmini ücret: ${formatMoney(quote.fare_amount_minor, quote.currency)} (${quote.distance_km.toFixed(1)} km) — bağlayıcı değildir, kesin ücret sipariş oluşturulduğunda sunucuda hesaplanır.`;
+      } catch (_) { preview.textContent = 'Ücret hesaplanamadı — giriş yapmış olduğunuzdan emin olun.'; }
+    }
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        const error = new Error(problem.detail || `API ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+      return response.status === 204 ? null : response.json();
+    }
+
+    function showCustomerError(target, error) {
+      if ([401, 403].includes(error?.status)) {
+        target.innerHTML = 'Müşteri oturumu gerekli. <a href="/login?return_to=/customer" style="color:var(--accent-cyan);font-weight:800;">Giriş yap</a>';
+      } else {
+        target.textContent = `İşlem tamamlanamadı: ${error?.message || 'bilinmeyen hata'}`;
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+    }
+
+    function formatMoney(amountMinor, currency) {
+      return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amountMinor / 100);
+    }
+
+    function updateCustomerSummary(order) {
+      trackedOrder = order || null;
+      document.getElementById('customer-order-status').textContent = order ? order.status.replaceAll('_', ' ') : 'Aktif sipariş yok';
+      document.getElementById('assigned-courier').textContent = order?.assigned_courier_id ? `Kurye #${order.assigned_courier_id.slice(0, 8)}` : 'Atama bekleniyor';
+      document.getElementById('customer-eta').textContent = order?.assigned_courier_id ? 'Canlı takip' : '—';
+    }
+
+    function renderOrders(orders) {
+      const body = document.getElementById('customer-orders-body');
+      body.innerHTML = orders.length ? orders.map(order => `<tr style="font-size:13px; border-bottom:1px solid rgba(255,255,255,0.04);"><td style="padding:12px; font-family:'JetBrains Mono'; font-weight:700;">#${order.id.slice(0, 8)}</td><td style="padding:12px;">${new Date(order.created_at).toLocaleDateString('tr-TR')}</td><td style="padding:12px;">${order.assigned_courier_id ? '#' + order.assigned_courier_id.slice(0, 8) : 'Atama bekliyor'}</td><td style="padding:12px;">${formatMoney(order.fare.amount_minor, order.fare.currency)}</td><td style="padding:12px;"><button class="btn-action" style="padding:7px 10px;" onclick="showInvoice('${order.id}')">Fatura / POD</button></td></tr>`).join('') : '<tr><td colspan="5" style="padding:12px;">Henüz sipariş yok.</td></tr>';
+      updateCustomerSummary(orders.find(order => !['delivered', 'cancelled'].includes(order.status)) || null);
+    }
+
+    function renderAddresses(profile) {
+      const target = document.getElementById('addresses-list');
+      const addresses = profile?.addresses || [];
+      target.innerHTML = addresses.length ? addresses.map(address => `<div style="padding:16px; border-radius:14px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color);"><div style="font-size:14px; font-weight:700; color:var(--accent-cyan);">${escapeHtml(address.label)}${address.is_default ? ' • Varsayılan' : ''}</div><div style="font-size:12px; color:var(--text-muted); margin-top:6px;">${escapeHtml(address.full_address)}</div></div>`).join('') : '<div style="font-size:12px;color:var(--text-muted);">Kayıtlı adres yok.</div>';
+    }
+
+    async function loadCustomerWorkspace() {
+      try {
+        const [orders, profile] = await Promise.all([api('/v1/customer/orders'), api('/v1/customer/profile')]);
+        renderOrders(orders);
+        renderAddresses(profile);
+      } catch (error) {
+        showCustomerError(document.getElementById('customer-message'), error);
+      }
+    }
+
+    async function createCustomerOrder() {
+      const message = document.getElementById('customer-message');
+      const pickupLabel = document.getElementById('customer-pickup').value.trim();
+      const dropoffLabel = document.getElementById('customer-dropoff').value.trim();
+      if (!pickupLabel || !dropoffLabel) { message.textContent = 'Alım ve teslimat adresleri zorunludur.'; return; }
+      try {
+        const order = await api('/v1/customer/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            pickup: demoPickupAddress(pickupLabel),
+            dropoff: demoDropoffAddress(dropoffLabel),
+            coupon_code: document.getElementById('customer-coupon')?.value.trim() || null,
+            payment_method: selectedPaymentMethod,
+            delivery_note: null,
+            contact_phone: null,
+          }),
+        });
+        message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)} • ${formatMoney(order.fare.amount_minor, order.fare.currency)}`;
+        await loadCustomerWorkspace();
+      } catch (error) { showCustomerError(message, error); }
+    }
+
+    async function saveAddress() {
+      const label = document.getElementById('address-label').value.trim();
+      const fullAddress = document.getElementById('address-full').value.trim();
+      if (!label || !fullAddress) return;
+      try {
+        const profile = await api('/v1/customer/profile/addresses', { method: 'POST', body: JSON.stringify({ label, full_address: fullAddress, latitude: 41.0638, longitude: 28.9351 }) });
+        renderAddresses(profile);
+        document.getElementById('address-label').value = '';
+        document.getElementById('address-full').value = '';
+      } catch (error) { showCustomerError(document.getElementById('customer-message'), error); }
+    }
+
+    async function showInvoice(orderId) {
+      const message = document.getElementById('customer-message');
+      try {
+        const invoice = await api(`/v1/customer/orders/${orderId}/invoice`);
+        message.textContent = `Fatura durumu: ${invoice.status} • ${formatMoney(invoice.amount.amount_minor, invoice.amount.currency)}`;
+      } catch (_) {
+        try {
+          const proof = await api(`/v1/customer/orders/${orderId}/proof-of-delivery`);
+          message.textContent = `Teslim kanıtı: ${proof.recipient_name}`;
+        } catch (_) { message.textContent = 'Fatura veya teslim kanıtı henüz hazır değil.'; }
+      }
+    }
+
+    async function refreshTracking() {
+      if (!trackedOrder?.assigned_courier_id) return;
+      try {
+        const location = await api(`/v1/orders/${trackedOrder.id}/tracking`);
+        if (map && courierIcon) {
+          const point = [location.latitude, location.longitude];
+          if (!courierMarker) courierMarker = L.marker(point, { icon: courierIcon }).addTo(map);
+          else courierMarker.setLatLng(point);
+          map.panTo(point, { animate: true });
+        }
+        document.getElementById('customer-gps').textContent = `Konum güncellendi • ${new Date(location.timestamp).toLocaleTimeString('tr-TR')}`;
+      } catch (_) { document.getElementById('customer-gps').textContent = 'Kurye konumu bekleniyor'; }
     }
 
     function switchTab(tabId) {
@@ -230,9 +365,12 @@
       event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
       if (tabId === 'new-order') {
-        setTimeout(() => map.invalidateSize(), 100);
+        setTimeout(() => map?.invalidateSize(), 100);
       }
     }
+
+    loadCustomerWorkspace();
+    setInterval(refreshTracking, 5000);
   </script>
 </body>
 </html>

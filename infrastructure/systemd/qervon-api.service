@@ -1,0 +1,37 @@
+# =============================================================================
+# File:           infrastructure/systemd/qervon-api.service
+# Project:        Qervon Logistics Operating System (LOS)
+# Description:    Production systemd unit for the direct Qervon API binary.
+# =============================================================================
+
+[Unit]
+Description=Qervon API Gateway
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=qervon
+Group=qervon
+EnvironmentFile=/etc/qervon/qervon.env
+WorkingDirectory=/opt/qervon
+ExecStart=/opt/qervon/bin/qervon-api-gateway
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/qervon
+
+[Install]
+WantedBy=multi-user.target

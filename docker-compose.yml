@@ -2,47 +2,35 @@
 # File:           docker-compose.yml
 # Project:        Qervon Logistics Operating System (LOS)
 # Author:         USDTG GROUP TECHNOLOGY LLC / Irfan Gedik
-# Description:    Docker Compose Orchestration for Qervon Backend, PostgreSQL & Redis
+# Description:    Optional local PostgreSQL and Redis services for Qervon development.
 # =============================================================================
 
-version: '3.8'
-
 services:
-  qervon-api-gateway:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: qervon_api_gateway
-    ports:
-      - "8080:8080"
-    environment:
-      - RUST_LOG=info
-      - DATABASE_URL=postgres://qervon_user:qervon_password@postgres:5432/qervon_db
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - postgres
-      - redis
-    restart: always
-
   postgres:
     image: postgres:16-alpine
-    container_name: qervon_postgres
     environment:
       POSTGRES_USER: qervon_user
-      POSTGRES_PASSWORD: qervon_password
+      POSTGRES_PASSWORD: ${QERVON_POSTGRES_PASSWORD:?Set QERVON_POSTGRES_PASSWORD in .env.local}
       POSTGRES_DB: qervon_db
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qervon_user -d qervon_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   redis:
     image: redis:7-alpine
-    container_name: qervon_redis
     ports:
-      - "6379:6379"
-    restart: always
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
 volumes:
   postgres_data:

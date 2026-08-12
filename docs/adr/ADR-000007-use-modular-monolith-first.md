@@ -1,338 +1,89 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/adr/ADR-000007-use-modular-monolith-first.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/adr/ADR-000007-use-modular-monolith-first.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Provides a concise orientation for the adr area aligned with the Qervon source PDFs.
+Description:
+  Architecture Decision Record: ship one deployable Rust binary
+  (api-gateway) built from many internal crates/modules, rather than
+  splitting into independently-deployed microservices.
 
- Specification:
-   QMI-000000 and the Qervon source PDFs
+Specification:
+  QMI-000000, QAS-000001, QFS-000004.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# ADR-000007 — Use Modular Monolith First
+# ADR-000007 — Modular Monolith First
 
-This page orients readers to the adr area and keeps the repository vocabulary aligned with the source PDFs.
+- **Status:** Accepted — implemented.
+- **Date:** 2026-08-05.
+- **Deciders:** Irfan Gedik.
 
-# Purpose
+## Context
 
-The goal is to explain what belongs here, what does not belong here, and which governing documents should be consulted first.
+The source PDFs frame Qervon as eventually running "Delivery / Fleet /
+Warehouse / Dispatch / Field Service / Retail / Medical Logistics"
+modules, which could be read as a microservices architecture. Actually
+operating N independently-deployed services requires N sets of health
+checks, N deployment pipelines, and (per ADR-000006) a real event bus —
+overhead this project's single-VPS, small-team reality does not justify
+today.
 
-# What belongs here
+## Decision
 
-- Area-specific implementation or guidance
-- Cross-links to the relevant QAS/QFS/QES/QMI documents
-- Clear ownership and boundaries
+Structure the backend as a **modular monolith**: one Cargo workspace,
+many crates, one deployable binary (`apps/api-gateway`).
 
-# References
+- `crates/domain`, `crates/application`, `crates/infrastructure`,
+  `crates/api-contracts` — the shared DDD core, compiled into every
+  binary in the workspace.
+- `modules/{orders,dispatch,couriers,customers,fleet,billing,
+  notifications,tracking,identity}` — one crate per bounded context,
+  each a thin façade over the application-layer services it needs,
+  giving the *shape* of independent modules (clear crate boundaries,
+  explicit dependencies) without the *cost* of independent deployment.
+- `apps/api-gateway` depends on all of the above and is the only
+  network-facing process; `apps/migration-runner`, `apps/bootstrap-admin`,
+  and `apps/worker` are separate small binaries for operational tasks,
+  sharing the same core crates.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Consequences
+
+- **Positive:** one binary to deploy, one health check, one log stream;
+  crate boundaries still force explicit dependencies between bounded
+  contexts (a compile error, not a runtime surprise, if `couriers`
+  reaches into `orders`' internals); splitting a `modules/*` crate out
+  into its own deployed service later is a much smaller step than
+  starting from an undifferentiated monolith, because the module
+  boundary already exists.
+- **Negative:** cannot scale or deploy one bounded context independently
+  of the others today; a bug in one module can still crash the whole
+  `api-gateway` process (mitigated by Rust's panic-per-request-task
+  isolation in Axum/Tokio, and to a lesser extent by comprehensive
+  integration tests in `backend/apps/api-gateway/tests/`).
+- **Neutral:** the AI Fraud Guard, AI Dispatcher, and ETA engine run
+  in-process as plain Rust function calls (see QAS-000009), not as a
+  separate "AI service" — consistent with this decision.
+
+## Alternatives Considered
+
+- **Microservices from day one** (per the source PDF's module list):
+  rejected as premature for current team size and deployment budget (one
+  VPS, no Kubernetes).
+- **A single undifferentiated binary with no internal crate boundaries:**
+  rejected — the DDD layering (domain/application/infrastructure) and
+  per-bounded-context `modules/*` crates were kept specifically so a
+  future split into real services stays plausible without a rewrite.
+
+## References
+
+- [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (architecture philosophy), [QFS-000004](../qfs/QFS-000004-module-system.md) (module system).
+- [backend/Cargo.toml](../../backend/Cargo.toml) workspace member list.
 
 ---
 
@@ -340,4 +91,5 @@ The goal is to explain what belongs here, what does not belong here, and which g
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned area overview to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the actual crate structure and rationale. |

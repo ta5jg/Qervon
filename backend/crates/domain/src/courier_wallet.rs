@@ -14,16 +14,52 @@
 //   QAS-000004, QES-000006.
 // =============================================================================
 
-use crate::{DomainError, Money};
+use crate::DomainError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum WalletTransactionType {
     DeliveryEarning,
     PerformanceBonus,
     Tip,
     PenaltyDeduction,
     PayoutWithdrawal,
+}
+
+impl WalletTransactionType {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::DeliveryEarning => "delivery_earning",
+            Self::PerformanceBonus => "performance_bonus",
+            Self::Tip => "tip",
+            Self::PenaltyDeduction => "penalty_deduction",
+            Self::PayoutWithdrawal => "payout_withdrawal",
+        }
+    }
+}
+
+impl std::str::FromStr for WalletTransactionType {
+    type Err = DomainError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "delivery_earning" => Ok(Self::DeliveryEarning),
+            "performance_bonus" => Ok(Self::PerformanceBonus),
+            "tip" => Ok(Self::Tip),
+            "penalty_deduction" => Ok(Self::PenaltyDeduction),
+            "payout_withdrawal" => Ok(Self::PayoutWithdrawal),
+            other => Err(DomainError::validation(format!(
+                "unknown wallet transaction type: {other}"
+            ))),
+        }
+    }
+}
+
+impl std::fmt::Display for WalletTransactionType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -63,7 +99,9 @@ impl CourierWallet {
     /// Add delivery earning to courier wallet
     pub fn add_earning(&mut self, amount_minor: i64, order_ref: &str) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Earning amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Earning amount must be positive".into(),
+            ));
         }
 
         self.balance_minor += amount_minor;
@@ -84,7 +122,9 @@ impl CourierWallet {
     /// Add performance bonus (e.g. 100+ delivery milestone or 5-star rating bonus)
     pub fn add_bonus(&mut self, amount_minor: i64, bonus_reason: &str) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Bonus amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Bonus amount must be positive".into(),
+            ));
         }
 
         self.balance_minor += amount_minor;
@@ -103,9 +143,15 @@ impl CourierWallet {
     }
 
     /// Apply penalty deduction (e.g. late delivery penalty or package damage)
-    pub fn apply_penalty(&mut self, amount_minor: i64, penalty_reason: &str) -> Result<(), DomainError> {
+    pub fn apply_penalty(
+        &mut self,
+        amount_minor: i64,
+        penalty_reason: &str,
+    ) -> Result<(), DomainError> {
         if amount_minor <= 0 {
-            return Err(DomainError::Validation("Penalty amount must be positive".into()));
+            return Err(DomainError::Validation(
+                "Penalty amount must be positive".into(),
+            ));
         }
 
         self.balance_minor -= amount_minor;
@@ -142,5 +188,21 @@ mod tests {
         assert_eq!(wallet.total_bonus_minor, 500);
         assert_eq!(wallet.total_penalties_minor, 200);
         assert_eq!(wallet.transactions.len(), 3);
+    }
+
+    #[test]
+    fn transaction_type_string_round_trip() {
+        for variant in [
+            WalletTransactionType::DeliveryEarning,
+            WalletTransactionType::PerformanceBonus,
+            WalletTransactionType::Tip,
+            WalletTransactionType::PenaltyDeduction,
+            WalletTransactionType::PayoutWithdrawal,
+        ] {
+            assert_eq!(
+                variant.as_str().parse::<WalletTransactionType>(),
+                Ok(variant)
+            );
+        }
     }
 }

@@ -219,9 +219,7 @@ impl User {
 
     pub fn soft_delete(&mut self) -> Result<(), DomainError> {
         if self.status == UserStatus::Deleted {
-            return Err(DomainError::invalid_transition(
-                "user is already deleted",
-            ));
+            return Err(DomainError::invalid_transition("user is already deleted"));
         }
         self.status = UserStatus::Deleted;
         Ok(())
@@ -304,7 +302,10 @@ mod tests {
 
     #[test]
     fn role_round_trip() {
-        assert_eq!("super_admin".parse::<UserRole>().unwrap(), UserRole::SuperAdmin);
+        assert_eq!(
+            "super_admin".parse::<UserRole>().unwrap(),
+            UserRole::SuperAdmin
+        );
         assert_eq!(UserRole::FleetManager.as_str(), "fleet_manager");
     }
 }

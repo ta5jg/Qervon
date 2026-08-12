@@ -61,10 +61,7 @@ where
             .ok_or(ApplicationError::NotFound)
     }
 
-    pub async fn get_by_user(
-        &self,
-        user_id: UserId,
-    ) -> Result<CustomerProfile, ApplicationError> {
+    pub async fn get_by_user(&self, user_id: UserId) -> Result<CustomerProfile, ApplicationError> {
         self.customers
             .find_by_user(user_id)
             .await?

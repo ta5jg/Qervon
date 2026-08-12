@@ -31,7 +31,7 @@ secret_patterns=(
     '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
     'AKIA[0-9A-Z]{16}'
     '(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)\s*[:=]\s*["'\'' ]?[^"'\'' ]+'
-    '(password|passwd|secret|api[_-]?key|token)\s*[:=]\s*["'\''][^"'\'']{8,}'
+    '(^|[[:space:]])(password|passwd|secret|api[_-]?key|token)[[:space:]]*[:=][[:space:]]*["'\''][^"'\''[:space:]]{8,}'
 )
 
 for pattern in "${secret_patterns[@]}"; do

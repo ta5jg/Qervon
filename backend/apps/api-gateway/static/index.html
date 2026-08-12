@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
 
   <style>
     :root {
@@ -217,6 +217,7 @@
       <div class="nav-item" onclick="switchTab('orders')"><i data-lucide="shopping-bag"></i> Sipariş Yönetimi</div>
       <div class="nav-item" onclick="switchTab('couriers')"><i data-lucide="bike"></i> Kurye Filosu</div>
       <div class="nav-item" onclick="switchTab('finance')"><i data-lucide="wallet"></i> Finans & Cüzdan</div>
+      <div class="nav-item" onclick="switchTab('pricing')"><i data-lucide="tag"></i> Fiyatlandırma</div>
       <div class="nav-item" onclick="switchTab('ai')"><i data-lucide="cpu"></i> AI Dispatcher & Fraud Guard</div>
     </div>
   </sidebar>
@@ -228,7 +229,11 @@
         <h2 id="page-title" style="font-size:18px; font-weight:800;">Genel Bakış Dashboard</h2>
         <div class="status-badge"><div class="pulse-dot"></div> RUST BACKEND CANLI</div>
       </div>
-      <div style="display:flex; gap:12px;">
+      <div id="auth-controls" style="display:flex; gap:12px; align-items:center;">
+        <a id="login-link" class="btn-action" style="text-decoration:none;" href="/login">Giriş</a>
+        <a id="setup-link" class="btn-action" style="text-decoration:none; background:linear-gradient(135deg,#2563eb,#1d4ed8);" href="/setup">İlk kurulum</a>
+        <span id="session-user" style="display:none; font-size:12px; font-weight:800; color:var(--accent-green);"></span>
+        <button id="logout-button" class="btn-action" style="display:none; background:linear-gradient(135deg,#475569,#334155);" type="button">Çıkış yap</button>
         <button class="btn-action" onclick="switchTab('map')"><i data-lucide="flame"></i> 🔥 Canlı Isı Haritası</button>
       </div>
     </header>
@@ -237,33 +242,33 @@
     <div class="metrics-grid">
       <div class="metric-card glass">
         <span class="metric-title">Anlık Sipariş</span>
-        <span class="metric-value" id="val-orders">142</span>
-        <span class="metric-sub">▲ %12 Bugün</span>
+        <span class="metric-value" id="val-orders">—</span>
+        <span class="metric-sub">Aktif iş</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Online Kurye</span>
-        <span class="metric-value" id="val-couriers">18</span>
-        <span class="metric-sub">Sahada Aktif 🟢</span>
+        <span class="metric-value" id="val-couriers">—</span>
+        <span class="metric-sub">Müsait 🟢</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Bekleyen Teslimat</span>
-        <span class="metric-value">5</span>
-        <span class="metric-sub" style="color:var(--accent-orange)">AI Atama Yapılıyor</span>
+        <span class="metric-value" id="val-pending">—</span>
+        <span class="metric-sub" style="color:var(--accent-orange)">Atama bekliyor</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Günlük Gelir</span>
-        <span class="metric-value">₺14,850</span>
-        <span class="metric-sub">Net Ciro 💰</span>
+        <span class="metric-value" id="val-revenue">—</span>
+        <span class="metric-sub">Teslim edilmiş ciro</span>
       </div>
       <div class="metric-card glass">
-        <span class="metric-title">Kurye Hakediş</span>
-        <span class="metric-value">₺9,420</span>
-        <span class="metric-sub" style="color:var(--accent-purple)">Primler Dahil</span>
+        <span class="metric-title">Görevde Kurye</span>
+        <span class="metric-value" id="val-busy">—</span>
+        <span class="metric-sub" style="color:var(--accent-purple)">Aktif teslimat</span>
       </div>
       <div class="metric-card glass">
         <span class="metric-title">Ortalama ETA</span>
-        <span class="metric-value">11.4 Dk</span>
-        <span class="metric-sub">AI Dynamic ETA ⚡</span>
+        <span class="metric-value" id="val-transit">—</span>
+        <span class="metric-sub">Yoldaki sipariş</span>
       </div>
     </div>
 
@@ -306,26 +311,7 @@
               <th>Durum</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9021</td>
-              <td>Lezzet Restoranı</td>
-              <td><span class="tag tag-blue">Gıda</span></td>
-              <td>Yıldıztabya ➔ Maslak Plaza</td>
-              <td>Ahmet Kurye (Motor)</td>
-              <td>₺65.00</td>
-              <td><span class="tag tag-green">Yolda (In Transit)</span></td>
-            </tr>
-            <tr>
-              <td style="font-family:'JetBrains Mono'; font-weight:700;">#ORD-9022</td>
-              <td>Medikal Eczane</td>
-              <td><span class="tag tag-purple">Soğuk Zincir (+4°C)</span></td>
-              <td>Gaziosmanpaşa ➔ Kadıköy Hub</td>
-              <td>Mehmet Kurye (Araba)</td>
-              <td>₺120.00</td>
-              <td><span class="tag tag-orange">Kurye Atanacak</span></td>
-            </tr>
-          </tbody>
+          <tbody id="orders-body"><tr><td colspan="7">Siparişler yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -346,26 +332,7 @@
               <th>Durum</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:700;">Ahmet Kurye</td>
-              <td>Motosiklet 🏍️</td>
-              <td>34 KRY 882</td>
-              <td>%92 🔋</td>
-              <td>18 Paket</td>
-              <td>⭐ 4.9 / 5.0</td>
-              <td><span class="tag tag-green">Aktif / Görevde</span></td>
-            </tr>
-            <tr>
-              <td style="font-weight:700;">Mehmet Kurye</td>
-              <td>Otomobil 🚗</td>
-              <td>34 QER 102</td>
-              <td>%85 🔋</td>
-              <td>12 Paket</td>
-              <td>⭐ 4.8 / 5.0</td>
-              <td><span class="tag tag-blue">Mola Saatinde</span></td>
-            </tr>
-          </tbody>
+          <tbody id="couriers-body"><tr><td colspan="7">Kuryeler yükleniyor…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -385,26 +352,81 @@
               <th>Ödeme Durumu</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Ahmet Kurye</td>
-              <td>₺4,500.00</td>
-              <td>+₺500.00 (5 Yıldız Primi)</td>
-              <td>-₺0.00</td>
-              <td style="font-weight:800; color:var(--accent-green);">₺5,000.00</td>
-              <td><span class="tag tag-green">Hakediş Ödendi</span></td>
-            </tr>
-          </tbody>
+          <tbody id="finance-body"><tr><td colspan="6">Finans verileri yükleniyor…</td></tr></tbody>
         </table>
+      </div>
+      <div class="table-card glass" style="margin-top:20px;">
+        <h3 id="company-title" style="font-size:16px; font-weight:800; margin-bottom:6px;">Firma ve Operasyon Ekibi</h3>
+        <p id="company-meta" style="font-size:12px; color:var(--text-muted); margin:0 0 16px;">Firma bilgileri yükleniyor…</p>
+        <table>
+          <thead><tr><th>Üye</th><th>E-posta</th><th>Tenant Rolü</th><th>Katılım</th></tr></thead>
+          <tbody id="company-members-body"><tr><td colspan="4">Üyeler yükleniyor…</td></tr></tbody>
+        </table>
+        <form id="courier-provision-form" onsubmit="provisionCourier(event)" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:8px; margin-top:18px; align-items:end;">
+          <label style="font-size:11px; color:var(--text-muted);">Ad soyad<input id="courier-provision-name" required placeholder="Kurye adı" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">E-posta<input id="courier-provision-email" required type="email" placeholder="kurye@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="courier-provision-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Araç<select id="courier-provision-vehicle" style="display:block; width:100%; margin-top:5px;"><option value="motorcycle">Motosiklet</option><option value="bicycle">Bisiklet</option><option value="car">Otomobil</option><option value="van">Panelvan</option></select></label>
+          <button class="btn-action" type="submit">Kurye hesabı oluştur</button>
+        </form>
+        <p id="courier-provision-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Tenant yöneticisi oluştur</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Bu firmada kurye hesabı, sipariş ve ekip yönetebilecek yeni bir yönetici ekler.</p>
+          <form id="tenant-admin-form" onsubmit="provisionCompanyAdmin(event)" style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)) auto; gap:8px; align-items:end;">
+            <label style="font-size:11px; color:var(--text-muted);">Ad soyad<input id="tenant-admin-name" required placeholder="Yönetici adı" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">E-posta<input id="tenant-admin-email" required type="email" placeholder="yonetici@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="tenant-admin-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+            <button class="btn-action" type="submit">Yönetici oluştur</button>
+          </form>
+          <p id="tenant-admin-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        </div>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Yeni firma / tenant oluştur</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Yalnız platform yöneticisi yeni tenant ve o tenant’ın ilk yöneticisini oluşturabilir.</p>
+          <form id="tenant-provision-form" onsubmit="provisionTenant(event)" style="display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; align-items:end;">
+            <label style="font-size:11px; color:var(--text-muted);">Firma adı<input id="tenant-provision-name" required placeholder="Firma adı" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Tenant kodu<input id="tenant-provision-slug" required pattern="[a-z0-9-]{3,63}" placeholder="firma-kodu" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Yönetici adı<input id="tenant-provision-admin-name" required placeholder="Ad soyad" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">Yönetici e-posta<input id="tenant-provision-admin-email" required type="email" placeholder="yonetici@firma.com" style="display:block; width:100%; margin-top:5px;"></label>
+            <label style="font-size:11px; color:var(--text-muted);">İlk parola<input id="tenant-provision-admin-password" required minlength="12" type="password" autocomplete="new-password" placeholder="En az 12 karakter" style="display:block; width:100%; margin-top:5px;"></label>
+            <button class="btn-action" type="submit">Tenant oluştur</button>
+          </form>
+          <p id="tenant-provision-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: DELIVERY PRICING -->
+    <div id="tab-pricing" class="view-section">
+      <div class="table-card glass">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:6px;">Teslimat Fiyatlandırması</h3>
+        <p style="margin:0 0 16px; color:var(--text-muted); font-size:12px;">Bu tenant için mesafeye bağlı ücret formülü: <b>ücret = taban ücret + (mesafe km × km ücreti)</b>, asgari ücretin altına düşmez. Müşteri siparişi oluşturduğunda sunucu bu değerlerle ücreti kendisi hesaplar — istemci ücreti belirleyemez. Sadece <b>Admin</b>/<b>SuperAdmin</b> rolü kaydedebilir; diğer roller salt-okunur görür.</p>
+        <p id="pricing-updated-at" style="margin:0 0 16px; color:var(--text-muted); font-size:11px;"></p>
+        <form id="pricing-form" onsubmit="savePricing(event)" style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:8px; align-items:end;">
+          <label style="font-size:11px; color:var(--text-muted);">Taban ücret<input id="pricing-base-fare" required type="number" step="0.01" min="0" placeholder="10.00" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Km başı ücret<input id="pricing-per-km" required type="number" step="0.01" min="0" placeholder="2.50" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Asgari ücret<input id="pricing-min-fare" required type="number" step="0.01" min="0" placeholder="15.00" style="display:block; width:100%; margin-top:5px;"></label>
+          <label style="font-size:11px; color:var(--text-muted);">Para birimi<input id="pricing-currency" required maxlength="3" pattern="[A-Z]{3}" placeholder="TRY" style="display:block; width:100%; margin-top:5px; text-transform:uppercase;"></label>
+          <button class="btn-action" type="submit" id="pricing-save-button">Kaydet</button>
+        </form>
+        <p id="pricing-message" style="min-height:18px; margin:10px 0 0; font-size:12px; color:var(--text-muted);"></p>
+        <div style="border-top:1px solid var(--border-color); margin-top:18px; padding-top:18px;">
+          <h4 style="margin:0 0 8px; font-size:14px;">Canlı ücret önizlemesi</h4>
+          <p style="margin:0 0 10px; color:var(--text-muted); font-size:12px;">Örnek mesafe girip yukarıdaki (kaydedilmiş) formülle hesaplanan ücreti gör.</p>
+          <label style="font-size:11px; color:var(--text-muted); display:inline-block; max-width:220px;">Mesafe (km)<input id="pricing-preview-km" type="number" step="0.1" min="0" value="5" oninput="renderPricingPreview()" style="display:block; width:100%; margin-top:5px;"></label>
+          <p id="pricing-preview-result" style="margin-top:10px; font-size:14px; font-weight:800; color:var(--accent-green);"></p>
+        </div>
       </div>
     </div>
 
     <!-- TAB 6: AI DISPATCHER & FRAUD GUARD -->
     <div id="tab-ai" class="view-section">
       <div class="table-card glass">
-        <h3 style="font-size:16px; font-weight:800; margin-bottom:16px;">AI Fraud Guard & Anomali Tespiti</h3>
-        <div style="padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#fca5a5; font-size:13px;">
-          🛡️ <b>AI Fraud Guard Aktif:</b> Fiziksel hız limiti 160 km/s olarak ayarlandı. Sahte GPS / Teleportation anomalisi tespit edilmedi.
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:6px;">AI Fraud Guard & Anomali Tespiti</h3>
+        <p style="margin:0 0 16px; color:var(--text-muted); font-size:12px;">Fiziksel hız limiti 160 km/s — bunu aşan ardışık konum sıçramaları burada canlı olarak listelenir (kayıt reddedilmez, yalnızca işaretlenir).</p>
+        <div id="fraud-alerts-body">
+          <div style="padding:16px; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); border-radius:12px; color:var(--text-muted); font-size:13px;">Canlı veriler yükleniyor…</div>
         </div>
       </div>
     </div>
@@ -415,7 +437,305 @@
     lucide.createIcons();
 
     let map, heatLayer;
+    const liveMarkers = new Map();
     let mainMapInitialized = false;
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function adminApi(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: 'same-origin',
+        ...options,
+        headers: { ...csrfHeaders(), ...(options.headers || {}) }
+      });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        throw new Error(problem.detail || `API ${response.status}`);
+      }
+      return response.status === 204 ? null : response.json();
+    }
+
+    function formatRole(role) {
+      return ({ super_admin: 'Platform yöneticisi', admin: 'Tenant yöneticisi', operator: 'Operasyon', dispatcher: 'Dispatcher', courier: 'Kurye', customer: 'Müşteri' }[role] || role);
+    }
+
+    async function refreshSessionControls() {
+      const login = document.getElementById('login-link');
+      const setup = document.getElementById('setup-link');
+      const user = document.getElementById('session-user');
+      const logout = document.getElementById('logout-button');
+      try {
+        const session = await adminApi('/v1/auth/session');
+        login.style.display = 'none';
+        setup.style.display = 'none';
+        user.textContent = `${session.display_name} · ${formatRole(session.role)}`;
+        user.style.display = 'inline';
+        logout.style.display = 'inline-flex';
+        return session;
+      } catch (_) {
+        login.style.display = 'inline-flex';
+        setup.style.display = 'inline-flex';
+        user.style.display = 'none';
+        logout.style.display = 'none';
+        return null;
+      }
+    }
+
+    async function logout() {
+      const button = document.getElementById('logout-button');
+      button.disabled = true;
+      try {
+        await adminApi('/v1/browser/auth/logout', { method: 'POST' });
+      } finally {
+        location.assign('/login');
+      }
+    }
+
+    document.getElementById('logout-button').addEventListener('click', logout);
+
+    function formatMoney(amountMinor, currency) {
+      return new Intl.NumberFormat('tr-TR', { style: 'currency', currency }).format(amountMinor / 100);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+    }
+
+    function renderOrders(orders, couriers) {
+      const body = document.getElementById('orders-body');
+      const availableCourier = couriers.find(courier => courier.status === 'available');
+      body.innerHTML = orders.length ? orders.map(order => {
+        let action = '—';
+        if (order.status === 'pending') {
+          action = availableCourier
+            ? `<button class="btn-action" onclick="assignCourier('${order.id}', '${availableCourier.id}')">Kurye ata</button>`
+            : '<span class="tag tag-orange">Uygun kurye yok</span>';
+        } else if (order.status === 'courier_assigned') {
+          action = `<button class="btn-action" onclick="startTransit('${order.id}')">Teslimata başlat</button>`;
+        }
+        return `<tr><td style="font-family:'JetBrains Mono'; font-weight:700;">#${order.id.slice(0, 8)}</td><td>${order.customer_id.slice(0, 8)}</td><td><span class="tag tag-blue">Teslimat</span></td><td>${escapeHtml(order.pickup.label || 'Alım')} ➔ ${escapeHtml(order.dropoff.label || 'Teslim')}</td><td>${order.assigned_courier_id ? order.assigned_courier_id.slice(0, 8) : 'Atanmadı'}</td><td>${formatMoney(order.fare.amount_minor, order.fare.currency)}</td><td><span class="tag tag-green">${order.status.replaceAll('_', ' ')}</span> ${action}</td></tr>`;
+      }).join('') : '<tr><td colspan="7">Bu tenant için sipariş yok.</td></tr>';
+    }
+
+    function renderCouriers(couriers, vehicles) {
+      const body = document.getElementById('couriers-body');
+      const vehicleByCourier = new Map((vehicles || []).filter(vehicle => vehicle.assigned_courier_id).map(vehicle => [vehicle.assigned_courier_id, vehicle]));
+      body.innerHTML = couriers.length ? couriers.map(courier => {
+        const vehicle = vehicleByCourier.get(courier.id);
+        const plate = vehicle ? escapeHtml(vehicle.plate_number) : '<span style="color:var(--text-muted);">Araç atanmadı</span>';
+        return `<tr><td style="font-weight:700;">${escapeHtml(courier.name)}</td><td>${escapeHtml(courier.vehicle)}</td><td>${plate}</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-green">${escapeHtml(courier.status)}</span></td></tr>`;
+      }).join('') : '<tr><td colspan="7">Bu tenant için kurye yok.</td></tr>';
+    }
+
+    function renderFinance(summary, invoices) {
+      const body = document.getElementById('finance-body');
+      const invoiceTotals = new Map((summary.invoiced_by_currency || []).map(item => [item.currency, item.amount_minor]));
+      const payoutTotals = new Map((summary.approved_payouts_by_currency || []).map(item => [item.currency, item.amount_minor]));
+      const currencies = new Set([...invoiceTotals.keys(), ...payoutTotals.keys()]);
+      body.innerHTML = currencies.size ? [...currencies].map(currency => {
+        const gross = invoiceTotals.get(currency) || 0;
+        const payouts = payoutTotals.get(currency) || 0;
+        const net = gross - payouts;
+        const invoiceCount = invoices.filter(invoice => invoice.currency === currency).length;
+        return `<tr><td>${currency} operasyonu</td><td>${formatMoney(gross, currency)}</td><td>${invoiceCount} fatura</td><td>-${formatMoney(payouts, currency)}</td><td style="font-weight:800; color:var(--accent-green);">${formatMoney(net, currency)}</td><td><span class="tag tag-green">Güncel</span></td></tr>`;
+      }).join('') : '<tr><td colspan="6">Henüz tahakkuk oluşmadı.</td></tr>';
+    }
+
+    function renderCompany(company, members) {
+      document.getElementById('company-title').textContent = company.name || 'Firma ve Operasyon Ekibi';
+      document.getElementById('company-meta').textContent = `${company.status || 'active'} · ${members.length} ekip üyesi`;
+      document.getElementById('company-members-body').innerHTML = members.length ? members.map(member =>
+        `<tr><td style="font-weight:700;">${escapeHtml(member.display_name)}</td><td>${escapeHtml(member.email)}</td><td><span class="tag tag-blue">${escapeHtml(member.role)}</span></td><td>${new Date(member.joined_at).toLocaleDateString('tr-TR')}</td></tr>`
+      ).join('') : '<tr><td colspan="4">Bu firmada üye bulunmuyor.</td></tr>';
+    }
+
+    async function refreshOperations() {
+      const results = await Promise.allSettled([
+        adminApi('/v1/operations/overview'),
+        adminApi('/v1/orders'),
+        adminApi('/v1/couriers'),
+        adminApi('/v1/finance/summary'),
+        adminApi('/v1/finance/invoices'),
+        adminApi('/v1/company'),
+        adminApi('/v1/company/members'),
+        adminApi('/v1/fleet/vehicles')
+      ]);
+      const value = (index, fallback) => results[index].status === 'fulfilled' ? results[index].value : fallback;
+      const overview = value(0, null);
+      if (!overview) {
+        document.getElementById('orders-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
+        document.getElementById('couriers-body').innerHTML = '<tr><td colspan="7">Yönetim oturumu gerekli.</td></tr>';
+        document.getElementById('finance-body').innerHTML = '<tr><td colspan="6">Finans için yönetim oturumu gerekli.</td></tr>';
+        document.getElementById('company-members-body').innerHTML = '<tr><td colspan="4">Firma bilgileri için yönetim oturumu gerekli.</td></tr>';
+        return;
+      }
+      const orders = value(1, []);
+      const couriers = value(2, []);
+      const finance = value(3, { invoiced_by_currency: [], approved_payouts_by_currency: [] });
+      const invoices = value(4, []);
+      const company = value(5, { name: 'Yerel geliştirme tenantı', status: 'memory' });
+      const members = value(6, []);
+      const vehicles = value(7, []);
+      document.getElementById('val-orders').textContent = overview.active_orders;
+      document.getElementById('val-couriers').textContent = overview.available_couriers;
+      document.getElementById('val-pending').textContent = overview.pending_orders;
+      document.getElementById('val-busy').textContent = overview.busy_couriers;
+      document.getElementById('val-transit').textContent = overview.in_transit_orders;
+      const revenue = overview.delivered_revenue_by_currency[0];
+      document.getElementById('val-revenue').textContent = revenue ? formatMoney(revenue.amount_minor, revenue.currency) : '—';
+      renderOrders(orders, couriers);
+      renderCouriers(couriers, vehicles);
+      renderFinance(finance, invoices);
+      renderCompany(company, members);
+    }
+
+    async function assignCourier(orderId, courierId) {
+      try {
+        await adminApi(`/v1/orders/${orderId}/assign`, { method: 'POST', body: JSON.stringify({ courier_id: courierId }) });
+        await refreshOperations();
+      } catch (_) { alert('Kurye ataması tamamlanamadı.'); }
+    }
+
+    async function startTransit(orderId) {
+      try {
+        await adminApi(`/v1/orders/${orderId}/transit`, { method: 'POST', body: JSON.stringify({}) });
+        await refreshOperations();
+      } catch (_) { alert('Teslimat başlatılamadı.'); }
+    }
+
+    async function provisionCourier(event) {
+      event.preventDefault();
+      const message = document.getElementById('courier-provision-message');
+      message.textContent = 'Kurye hesabı oluşturuluyor…';
+      try {
+        const courier = await adminApi('/v1/couriers/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            display_name: document.getElementById('courier-provision-name').value.trim(),
+            email: document.getElementById('courier-provision-email').value.trim(),
+            password: document.getElementById('courier-provision-password').value,
+            vehicle: document.getElementById('courier-provision-vehicle').value
+          })
+        });
+        document.getElementById('courier-provision-form').reset();
+        message.textContent = `${courier.name} için kurye hesabı oluşturuldu. Kurye /mobile-courier.html ekranından giriş yapabilir.`;
+        await refreshOperations();
+      } catch (error) {
+        message.textContent = `Kurye hesabı oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    async function provisionCompanyAdmin(event) {
+      event.preventDefault();
+      const message = document.getElementById('tenant-admin-message');
+      message.textContent = 'Tenant yöneticisi oluşturuluyor…';
+      try {
+        const user = await adminApi('/v1/company/admins/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            display_name: document.getElementById('tenant-admin-name').value.trim(),
+            email: document.getElementById('tenant-admin-email').value.trim(),
+            password: document.getElementById('tenant-admin-password').value
+          })
+        });
+        document.getElementById('tenant-admin-form').reset();
+        message.textContent = `${user.display_name} bu tenant için yönetici olarak oluşturuldu.`;
+        await refreshOperations();
+      } catch (error) {
+        message.textContent = `Yönetici oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    async function provisionTenant(event) {
+      event.preventDefault();
+      const message = document.getElementById('tenant-provision-message');
+      message.textContent = 'Yeni tenant oluşturuluyor…';
+      try {
+        const created = await adminApi('/v1/tenants/provision', {
+          method: 'POST',
+          body: JSON.stringify({
+            tenant_name: document.getElementById('tenant-provision-name').value.trim(),
+            tenant_slug: document.getElementById('tenant-provision-slug').value.trim(),
+            admin_name: document.getElementById('tenant-provision-admin-name').value.trim(),
+            admin_email: document.getElementById('tenant-provision-admin-email').value.trim(),
+            admin_password: document.getElementById('tenant-provision-admin-password').value
+          })
+        });
+        document.getElementById('tenant-provision-form').reset();
+        message.textContent = `${created.tenant_slug} tenant’ı ve ilk yöneticisi oluşturuldu.`;
+      } catch (error) {
+        message.textContent = `Tenant oluşturulamadı: ${error.message}`;
+      }
+    }
+
+    let currentPricing = null;
+    let currentSession = null;
+
+    async function loadPricing() {
+      const message = document.getElementById('pricing-message');
+      const canEdit = currentSession && ['admin', 'super_admin'].includes(currentSession.role);
+      document.getElementById('pricing-save-button').style.display = canEdit ? 'inline-flex' : 'none';
+      ['pricing-base-fare', 'pricing-per-km', 'pricing-min-fare', 'pricing-currency'].forEach(id => {
+        document.getElementById(id).disabled = !canEdit;
+      });
+      if (!canEdit) {
+        message.textContent = 'Bu değerleri yalnızca tenant yöneticisi (Admin/SuperAdmin) değiştirebilir — salt-okunur görüntüleniyor.';
+      }
+      try {
+        const pricing = await adminApi('/v1/pricing');
+        currentPricing = pricing;
+        document.getElementById('pricing-base-fare').value = (pricing.base_fare_minor / 100).toFixed(2);
+        document.getElementById('pricing-per-km').value = (pricing.per_km_rate_minor / 100).toFixed(2);
+        document.getElementById('pricing-min-fare').value = (pricing.minimum_fare_minor / 100).toFixed(2);
+        document.getElementById('pricing-currency').value = pricing.currency;
+        document.getElementById('pricing-updated-at').textContent =
+          `Son güncelleme: ${new Date(pricing.updated_at).toLocaleString('tr-TR')}`;
+        if (canEdit) message.textContent = '';
+        renderPricingPreview();
+      } catch (error) {
+        message.textContent = `Fiyatlandırma yüklenemedi: ${error.message}`;
+      }
+    }
+
+    function renderPricingPreview() {
+      const result = document.getElementById('pricing-preview-result');
+      if (!currentPricing || !result) return;
+      const km = Number(document.getElementById('pricing-preview-km').value) || 0;
+      const raw = currentPricing.base_fare_minor + Math.round(km * currentPricing.per_km_rate_minor);
+      const fare = Math.max(raw, currentPricing.minimum_fare_minor);
+      result.textContent = `${km} km için tahmini ücret: ${formatMoney(fare, currentPricing.currency)}`;
+    }
+
+    async function savePricing(event) {
+      event.preventDefault();
+      const message = document.getElementById('pricing-message');
+      const button = document.getElementById('pricing-save-button');
+      button.disabled = true;
+      message.textContent = 'Kaydediliyor…';
+      try {
+        const pricing = await adminApi('/v1/pricing', {
+          method: 'PUT',
+          body: JSON.stringify({
+            base_fare_minor: Math.round(Number(document.getElementById('pricing-base-fare').value) * 100),
+            per_km_rate_minor: Math.round(Number(document.getElementById('pricing-per-km').value) * 100),
+            minimum_fare_minor: Math.round(Number(document.getElementById('pricing-min-fare').value) * 100),
+            currency: document.getElementById('pricing-currency').value.trim().toUpperCase()
+          })
+        });
+        currentPricing = pricing;
+        document.getElementById('pricing-updated-at').textContent =
+          `Son güncelleme: ${new Date(pricing.updated_at).toLocaleString('tr-TR')}`;
+        message.textContent = 'Fiyatlandırma güncellendi. Yeni siparişler bu değerlerle hesaplanacak.';
+        renderPricingPreview();
+      } catch (error) {
+        message.textContent = `Fiyatlandırma kaydedilemedi: ${error.message}`;
+      } finally {
+        button.disabled = false;
+      }
+    }
 
     function initMap() {
       if (mainMapInitialized) return;
@@ -428,8 +748,52 @@
         html: `<div style="background:#10b981; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #10b981; display:flex; align-items:center; justify-content:center; color:#000; font-size:14px; font-weight:bold;">🏍️</div>`,
         className: ''
       });
+      const fraudCourierIcon = L.divIcon({
+        html: `<div style="background:#ef4444; width:30px; height:30px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 20px #ef4444; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-weight:bold;">⚠️</div>`,
+        className: ''
+      });
 
-      L.marker([41.0638, 28.9351], { icon: courierIcon }).addTo(map);
+      window.qervonCourierIcon = courierIcon;
+      window.qervonFraudCourierIcon = fraudCourierIcon;
+    }
+
+    function renderFraudAlerts(locations) {
+      const container = document.getElementById('fraud-alerts-body');
+      if (!container) return;
+      const flagged = locations.filter(location => location.fraud_flagged);
+      if (!flagged.length) {
+        container.innerHTML = '<div style="padding:16px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:12px; color:#6ee7b7; font-size:13px;">🛡️ AI Fraud Guard aktif: fiziksel hız limiti (160 km/s) aşan bir anomali tespit edilmedi.</div>';
+        return;
+      }
+      container.innerHTML = flagged.map(location => `<div style="padding:16px; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:12px; color:#fca5a5; font-size:13px; margin-bottom:10px;">⚠️ <b>Şüpheli GPS sıçraması:</b> Kurye ${escapeHtml(location.courier_id.slice(0, 8))} — risk skoru ${(location.fraud_risk_score * 100).toFixed(0)}% • ${new Date(location.timestamp).toLocaleTimeString('tr-TR')}</div>`).join('');
+    }
+
+    async function refreshLiveLocations() {
+      const coords = document.getElementById('live-coords');
+      try {
+        const response = await fetch('/v1/tracking/live', { credentials: 'same-origin' });
+        if (!response.ok) throw new Error('tracking unavailable');
+        const locations = await response.json();
+        locations.forEach(location => {
+          const icon = location.fraud_flagged ? window.qervonFraudCourierIcon : window.qervonCourierIcon;
+          let marker = liveMarkers.get(location.courier_id);
+          if (!marker) {
+            marker = L.marker([location.latitude, location.longitude], { icon }).addTo(map);
+            liveMarkers.set(location.courier_id, marker);
+          } else {
+            marker.setLatLng([location.latitude, location.longitude]);
+            marker.setIcon(icon);
+          }
+          marker.bindPopup(location.fraud_flagged
+            ? `⚠️ Şüpheli hareket — risk skoru ${(location.fraud_risk_score * 100).toFixed(0)}%`
+            : 'Kurye konumu güncel');
+        });
+        const latest = locations[0];
+        coords.textContent = latest
+          ? `${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)} • ${new Date(latest.timestamp).toLocaleTimeString('tr-TR')}`
+          : 'Bu tenant için aktif konum yok';
+        renderFraudAlerts(locations);
+      } catch (_) { coords.textContent = 'Canlı konum bağlantısı kurulamadı'; }
     }
 
     function toggleHeatmap() {
@@ -457,10 +821,31 @@
       if (tabId === 'dashboard' || tabId === 'map') {
         setTimeout(initMap, 100);
       }
+      if (tabId === 'pricing') {
+        loadPricing();
+      }
     }
 
     window.onload = () => {
       initMap();
+    async function bootDashboard() {
+      const session = await refreshSessionControls();
+      currentSession = session;
+      if (session?.role === 'courier') {
+        location.replace('/mobile-courier.html');
+        return;
+      }
+      if (session?.role === 'customer') {
+        location.replace('/customer');
+        return;
+      }
+      await refreshOperations();
+    }
+
+    bootDashboard();
+      refreshLiveLocations();
+      setInterval(refreshOperations, 10000);
+      setInterval(refreshLiveLocations, 5000);
     };
   </script>
 </body>

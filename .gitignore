@@ -32,6 +32,7 @@ dist/
 
 # Android / Gradle build artifacts
 .gradle/
+.kotlin/
 build/
 *.apk
 *.aab
@@ -41,6 +42,17 @@ local.properties
 DerivedData/
 xcuserdata/
 *.xcuserstate
+*.xcresult
+
+# iOS: XcodeGen-generated project (Project.yml is the source of truth --
+# regenerate with `xcodegen generate`, see mobile/ios/README.md)
+mobile/ios/*.xcodeproj/
+mobile/ios/*.xcworkspace/
+
+# Swift Package Manager local build/resolution caches
+.swiftpm/
+.build/
+mobile/ios/.build-artifacts/
 
 # Local machine-specific agent settings
 .claude/settings.local.json

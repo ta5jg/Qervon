@@ -1,341 +1,99 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qas/QAS-000008-web-platform-architecture.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qas/QAS-000008-web-platform-architecture.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon architecture standard for web platform architecture.
+Description:
+  The web platform's real architecture: vanilla HTML/CSS/JS served
+  directly by the Rust backend. Supersedes the originally-planned
+  React/TypeScript platform (ADR-000004).
 
- Specification:
-   QMI-000000 and applicable QAS/QFS/QES standards
+Specification:
+  ADR-000004, QAS-000005.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QAS-000008 — Web Platform Architecture
 
-# Purpose
+**Status: Implemented.** See ADR-000004 for the full history of how this
+diverged from the originally-planned React/TypeScript platform.
 
-This standard aligns web platform architecture with the Qervon source PDFs.
+## Structure
 
-# Requirements
+Every web page is a single `.html` file under
+`backend/apps/api-gateway/static/`, embedded into the `api-gateway`
+binary at compile time via `include_str!` and served by a dedicated Axum
+handler (`serve_dashboard`, `serve_customer_portal`, ...). There is no
+separate build step, bundler, or `node_modules` — the page ships inside
+the same binary as the API it calls.
 
-- Use React, TypeScript, and a thin client architecture.
-- Keep the web UI aligned with the same backend contract.
-- Treat accessibility and PWA behavior as part of the platform.
+| File | Route | Audience |
+| --- | --- | --- |
+| `index.html` | `/`, `/index.html` | Tenant admin dashboard |
+| `customer.html` | `/customer`, `/customer.html` | Corporate customer portal |
+| `mobile-customer.html` | `/mobile-customer.html` | Customer mobile-web simulator |
+| `mobile-courier.html` | `/mobile-courier.html` | Courier mobile-web simulator |
+| `login.html` | `/login` | Login + customer self-registration |
+| `setup.html` | `/setup` | First-time platform bootstrap |
 
-# References
+Each page is self-contained: its own `<style>` block, its own small
+vanilla-JS `api()`/`adminApi()` fetch wrapper, no shared JS module system
+across pages (the closest thing to a shared piece is
+`qervon-client.js`, a small standalone helper not currently wired as a
+`<script src>` on any page).
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+## Per-page conventions (established during the 2026-08-12 audit)
+
+- **`escapeHtml()`** — every page that renders API data via `innerHTML`
+  defines this helper and must use it on every string field that could
+  contain user input (an address label, a display name, an email). This
+  is the fix for the one real XSS gap found in this codebase
+  (`mobile-customer.html`'s order-history render was missing it on
+  pickup/dropoff labels).
+- **CSRF** — every page's fetch wrapper attaches `X-Csrf-Token` from the
+  `qervon_csrf_token` cookie on every request (see QAS-000004); harmless
+  on GETs, required on mutating requests.
+- **Fare display** — no page hardcodes a price. Every order-creation flow
+  calls `GET /v1/customer/fare-quote` for a live estimate and displays
+  whatever `POST /v1/customer/orders` actually returns as the
+  authoritative fare — the backend, never the client, decides the charge.
+- **Third-party CDN scripts** (`Leaflet`, `lucide`) are pinned to an exact
+  version, never `@latest` — an unpinned CDN script is a supply-chain
+  risk (a compromised or unexpectedly-changed "latest" build runs with
+  full page privileges).
+
+## What is deliberately not built (rather than faked)
+
+- **Bulk Excel/CSV order import** — the "Toplu Excel Yükle" tab exists in
+  `customer.html` but is a disabled button with an honest "not yet
+  implemented" note; there is no backend upload endpoint (see
+  BACKEND_BACKLOG.md).
+- **Browser-based camera QR/photo capture** — `mobile-courier.html`'s POD
+  tab offers a manual "QR doğrulandı" checkbox instead of a fake
+  camera-scan button; a real implementation would need `getUserMedia()`
+  plus a JS barcode-detection library, which the native iOS/Android apps
+  already do for real (see QAS-000007).
+- **A React/TypeScript SPA** — see ADR-000004. If ever revisited, this
+  would be a larger undertaking than the entire mobile phase, since it
+  means re-implementing pages that already work.
+
+## References
+
+- [ADR-000004](../adr/ADR-000004-use-react-typescript-for-web.md) (the full decision history), [QAS-000004](QAS-000004-security-architecture.md) (security controls
+  these pages rely on), [QAS-000005](QAS-000005-api-integration-standard.md) (the API contract they call).
+- Root [README.md](../../README.md) "Web Platformu Kararı" section.
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned web platform architecture to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs, describing a React/TypeScript platform. |
+| 0.2.0 | 2026-08-12 | Rewritten to describe the real vanilla HTML/JS architecture. |
+| 0.3.0 | 2026-08-12 | Added the per-page conventions established during the security/functionality audit. |

@@ -1,347 +1,88 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/qes/QES-000011-dependency-policy.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/qes/QES-000011-dependency-policy.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.3.0
 
- Description:
-   Defines the Qervon engineering standard for dependency policy.
+Description:
+  Rules for adding new dependencies and how versions are pinned, across
+  Cargo, Gradle, SPM, and CDN scripts.
 
- Specification:
-   QMI-000000 and QES governance
+Specification:
+  QES-000002, QES-000003, QES-000004, QES-000010.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
 # QES-000011 — Dependency Policy
 
-# Purpose
+## Version pinning
 
-This engineering standard defines how the Qervon team should implement and review dependency policy.
+- **Rust** (`backend/Cargo.toml`): workspace-level `[workspace.dependencies]`
+  so every crate uses the same version of a shared dependency; `Cargo.lock`
+  is committed.
+- **Kotlin/Gradle** (`mobile/android/gradle/libs.versions.toml`): a
+  single version catalog, no per-module hardcoded version strings — a new
+  dependency is added to the catalog once and referenced by alias
+  everywhere it's needed.
+- **Swift/SPM**: exact or range versions in each `Package.swift`;
+  `Package.resolved` is committed.
+- **CDN scripts** (the shipped web pages, see QAS-000008): always an
+  exact version in the URL (`lucide@1.31.0`, `leaflet@1.9.4`), never
+  `@latest` — an unpinned CDN script is a supply-chain risk found and
+  fixed during the 2026-08-12 web audit.
 
-# Requirements
+## Adding a new dependency
 
-- Use approved dependencies only.
-- Track updates and vulnerabilities carefully.
-- Prefer minimal and well-maintained packages.
+Before adding one, check: is there already a dependency in this
+workspace doing something close enough? (e.g. don't add a second HTTP
+client to the Rust backend when `reqwest`/direct `axum` usage already
+covers the need). Prefer a well-maintained crate/library with a real
+release history over a marginally-more-elegant one with few users — this
+is production infrastructure, not a demo.
 
-# Common Rules
+## Automated update tracking
 
-- Prefer clear, testable implementations.
-- Keep the architecture contract-first and observable.
-- Do not introduce placeholder behavior.
+**Not currently implemented.** `.github/dependabot.yml` exists but is an
+empty placeholder with no `updates:` configuration — despite its
+presence, no automated dependency-update PRs are being generated (see
+QES-000010). Until this is filled in, dependency updates are a manual,
+periodic task with no tooling reminder.
 
-# References
+## Vulnerability scanning
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+**Implemented for the backend, not for mobile.** `.github/workflows/security.yml`
+runs `rustsec/audit-check` against `backend/Cargo.lock` on every relevant
+push/PR and weekly on a schedule (see QES-000010). No equivalent
+Gradle/SPM dependency-vulnerability scan exists yet for either mobile
+platform.
+
+`backend/.cargo/audit.toml` ignores exactly one advisory,
+**RUSTSEC-2023-0071** (a timing side-channel in the `rsa` crate, pulled in
+transitively via `web-push -> jwt-simple -> rsa` for `apps/worker`'s real
+VAPID Web Push sender). It has no fixed upgrade from its maintainers as of
+this writing, and the exposed surface — `jwt-simple`'s optional RSA JWT
+support — is not code path Qervon uses (Qervon's own tokens are a custom
+HMAC scheme; see `backend/apps/api-gateway/src/auth.rs`). This is the
+*only* advisory ignored; every other advisory found by `cargo audit` must
+fail CI, and this entry must be revisited if `jwt-simple`/`web-push` ship
+a fix.
+
+## References
+
+- [QES-000002](QES-000002-rust-engineering-standard.md) through [QES-000004](QES-000004-swift-engineering-standard.md) (per-language dependency conventions),
+  [QES-000010](QES-000010-ci-cd-standard.md) (the CI gaps this document's "not implemented" sections
+  point back to).
 
 ---
 
 # Revision History
 
 | Version | Date | Description |
-|---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned dependency policy to the source PDFs. |
+| --------- | ------ | ------------- |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the real per-ecosystem pinning conventions and the honest gap in automated scanning. |
+| 0.3.0 | 2026-08-13 | `cargo audit` is now real and CI-enforced (see QES-000010); documented the one ignored advisory (RUSTSEC-2023-0071) and why. |

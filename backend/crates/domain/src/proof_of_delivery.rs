@@ -39,7 +39,9 @@ impl ProofOfDeliveryRecord {
     ) -> Result<Self, DomainError> {
         let recipient = recipient_name.into();
         if recipient.trim().is_empty() {
-            return Err(DomainError::Validation("Recipient name cannot be empty".into()));
+            return Err(DomainError::Validation(
+                "Recipient name cannot be empty".into(),
+            ));
         }
 
         Ok(Self {
@@ -71,7 +73,8 @@ mod tests {
             true,
             Some("data:image/png;base64,iVBORw...".into()),
             Some("https://storage.qervon.com/pod/123.jpg".into()),
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(pod.recipient_name, "Ali Yılmaz");
         assert!(pod.qr_barcode_verified);

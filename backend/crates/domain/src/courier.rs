@@ -176,6 +176,17 @@ impl Courier {
         Ok(())
     }
 
+    pub fn go_online(&mut self) -> Result<(), DomainError> {
+        if !matches!(self.status, CourierStatus::Offline) {
+            return Err(DomainError::invalid_transition(format!(
+                "courier {} is not offline (status {:?})",
+                self.id, self.status
+            )));
+        }
+        self.status = CourierStatus::Available;
+        Ok(())
+    }
+
     pub fn distance_to(&self, target: &Location) -> Result<f64, DomainError> {
         self.current_location
             .map(|origin| origin.distance_km(target))
@@ -225,6 +236,14 @@ mod tests {
         courier.go_offline().expect("offline");
         let err = courier.go_busy().unwrap_err();
         assert!(matches!(err, DomainError::InvalidTransition(_)));
+    }
+
+    #[test]
+    fn offline_courier_can_return_online() {
+        let mut courier = sample_courier();
+        courier.go_offline().expect("offline");
+        courier.go_online().expect("online");
+        assert_eq!(courier.status, CourierStatus::Available);
     }
 
     #[test]

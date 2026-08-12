@@ -64,8 +64,14 @@ mod tests {
 
         let desi = ParcelSizingEngine::calculate_desi(&box_small);
         assert_eq!(desi, 1.6);
-        assert!(ParcelSizingEngine::is_compatible_with_vehicle(&box_small, VehicleType::Motorcycle));
-        assert!(ParcelSizingEngine::is_compatible_with_vehicle(&box_small, VehicleType::Bicycle));
+        assert!(ParcelSizingEngine::is_compatible_with_vehicle(
+            &box_small,
+            VehicleType::Motorcycle
+        ));
+        assert!(ParcelSizingEngine::is_compatible_with_vehicle(
+            &box_small,
+            VehicleType::Bicycle
+        ));
 
         let box_large = ParcelDimensions {
             width_cm: 60.0,
@@ -74,7 +80,13 @@ mod tests {
             actual_weight_kg: 10.0,
         };
 
-        assert!(!ParcelSizingEngine::is_compatible_with_vehicle(&box_large, VehicleType::Motorcycle));
-        assert!(ParcelSizingEngine::is_compatible_with_vehicle(&box_large, VehicleType::Car));
+        assert!(!ParcelSizingEngine::is_compatible_with_vehicle(
+            &box_large,
+            VehicleType::Motorcycle
+        ));
+        assert!(ParcelSizingEngine::is_compatible_with_vehicle(
+            &box_large,
+            VehicleType::Car
+        ));
     }
 }

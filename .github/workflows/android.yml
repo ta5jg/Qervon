@@ -4,14 +4,68 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Builds real debug APKs for both native Android apps and runs the JVM
+#   unit test suite. Genuinely fails on a build or test regression — see
+#   QES-000010 for why this replaced the previous mobile-build.yml, whose
+#   "verification" step never actually invoked Gradle.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QAS-000007, QES-000003, QES-000006, QES-000010.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/android/**"
+      - ".github/workflows/android.yml"
+  pull_request:
+    paths:
+      - "mobile/android/**"
+      - ".github/workflows/android.yml"
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile/android
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: JVM unit tests (core:common, core:network)
+        run: ./gradlew :core:common:test :core:network:test --console=plain
+
+      - name: Assemble debug APKs (app-courier, app-customer)
+        run: ./gradlew :app-courier:assembleDebug :app-customer:assembleDebug --console=plain
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apks
+          path: |
+            mobile/android/app-courier/build/outputs/apk/debug/*.apk
+            mobile/android/app-customer/build/outputs/apk/debug/*.apk
+          retention-days: 14

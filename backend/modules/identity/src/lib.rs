@@ -43,10 +43,7 @@ where
         self.service.register(input).await
     }
 
-    pub async fn get_user(
-        &self,
-        id: UserId,
-    ) -> Result<User, qervon_application::ApplicationError> {
+    pub async fn get_user(&self, id: UserId) -> Result<User, qervon_application::ApplicationError> {
         self.service.get(id).await
     }
 
@@ -77,5 +74,13 @@ where
         new_role: UserRole,
     ) -> Result<User, qervon_application::ApplicationError> {
         self.service.change_role(id, new_role).await
+    }
+
+    pub async fn set_user_phone(
+        &self,
+        id: UserId,
+        phone: String,
+    ) -> Result<User, qervon_application::ApplicationError> {
+        self.service.set_phone(id, phone).await
     }
 }

@@ -35,6 +35,8 @@ pub fn sample_order() -> Order {
         sample_address("dropoff"),
         Money::new(1_500, "TRY").expect("valid money"),
         Utc::now(),
+        None,
+        None,
     )
     .expect("valid order")
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Qervon Kurye</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>comgooglemaps</string>
+		<string>yandexnavi</string>
+	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Teslim alma/verme sırasında QR/barkod okutmak ve teslimat fotoğrafı çekmek için kameraya erişim gerekir.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Oturumunuzu Face ID ile hızlıca açmanız için kullanılır. Bu, yalnızca cihazınızda saklanan oturumun kilidini açar; sunucu tarafında biyometrik bir kimlik doğrulama yapılmaz.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Görev kabul ettiğinizde Qervon, uygulama arka plandayken de konumunuzu müşteriye ve operasyon ekibine canlı olarak iletir.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Qervon, size en yakın teslimatları önerebilmek ve müşterilere canlı konumunuzu gösterebilmek için konumunuzu kullanır.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+</dict>
+</plist>

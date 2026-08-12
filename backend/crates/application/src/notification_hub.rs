@@ -42,7 +42,7 @@ impl NotificationHubManager {
         }
 
         let dispatch_id = uuid::Uuid::now_v7().to_string();
-        
+
         match msg.channel {
             ChannelType::PushNotification => {
                 // Firebase Cloud Messaging (FCM) & Apple Push Notification service (APNs) dispatch

@@ -1,338 +1,93 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/adr/ADR-000001-use-rust-for-backend.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/adr/ADR-000001-use-rust-for-backend.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Provides a concise orientation for the adr area aligned with the Qervon source PDFs.
+Description:
+  Architecture Decision Record: use Rust for the Qervon backend.
 
- Specification:
-   QMI-000000 and the Qervon source PDFs
+Specification:
+  QMI-000000, QAS-000001, QES-000002.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# ADR-000001 — Use Rust For Backend
+# ADR-000001 — Use Rust for the Backend
 
-This page orients readers to the adr area and keeps the repository vocabulary aligned with the source PDFs.
+- **Status:** Accepted — implemented.
+- **Date:** 2026-08-05.
+- **Deciders:** Irfan Gedik.
 
-# Purpose
+## Context
 
-The goal is to explain what belongs here, what does not belong here, and which governing documents should be consulted first.
+Qervon's backend is the load-bearing part of the product: it holds
+multi-tenant order/dispatch state, streams live courier locations to
+potentially many concurrent viewers, and must run affordably on a single
+VPS rather than a large managed-services bill. The language choice needed
+to give predictable latency under concurrent load, a memory-safety
+guarantee strong enough to trust with financial data (wallets, invoices),
+and a realistic path to a single, small, statically-linked deployment
+artifact.
 
-# What belongs here
+## Decision
 
-- Area-specific implementation or guidance
-- Cross-links to the relevant QAS/QFS/QES/QMI documents
-- Clear ownership and boundaries
+Build the entire backend in Rust, structured as a Cargo workspace
+(`backend/`) with:
 
-# References
+- `crates/domain`, `crates/application`, `crates/infrastructure`,
+  `crates/api-contracts` — the Domain-Driven Design core (see
+  QAS-000001, QAS-000002).
+- `modules/*` — vertical slices (`orders`, `dispatch`, `couriers`,
+  `customers`, `fleet`, `billing`, `notifications`, `tracking`,
+  `identity`) that depend on the core crates (see QFS-000004).
+- `apps/api-gateway` — the Axum-based HTTP server, the only network-facing
+  binary.
+- `apps/migration-runner`, `apps/bootstrap-admin`, `apps/worker` —
+  operational binaries sharing the same core crates.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+Key crates actually in the dependency tree today: `axum` 0.8 (HTTP),
+`tokio` (async runtime), `sqlx` (PostgreSQL, compile-time checked queries),
+`tower`/`tower-http` (CORS, tracing, rate limiting via `tower_governor`),
+`serde`/`serde_json` (wire format), `utoipa`/`utoipa-swagger-ui` (OpenAPI
+generation and the `/swagger-ui` route), `argon2` (password hashing),
+`hmac`/`sha2` (the custom `qv1.<payload>.<signature>` access token —
+see QAS-000004), `uuid` with the `v7` feature (see ADR-000009), `chrono`
+(timestamps), `tracing`/`tracing-subscriber` (structured logs).
+
+## Consequences
+
+- **Positive:** a single `cargo build --release` produces one dependency-free
+  binary per app; the compiler rejects most concurrency and null-pointer
+  bugs at compile time; `sqlx::query!`/`query_as!` catch SQL/schema
+  mismatches at compile time against a real database, not at runtime; the
+  same core crates run against either an in-memory store (fast local dev,
+  see QAS-000006) or PostgreSQL (production) with no code duplication.
+- **Negative:** slower iteration speed than a dynamically-typed stack for
+  small UI-adjacent changes (mitigated by pushing all UI logic into the
+  vanilla-HTML/JS web layer and native mobile apps, never into the Rust
+  binary); Rust's learning curve is real and this is a small team.
+- **Neutral:** no async runtime other than Tokio was seriously evaluated;
+  no non-Rust backend framework was evaluated once the language was fixed.
+
+## Alternatives Considered
+
+- **Node.js/TypeScript**: faster initial velocity, but weaker guarantees
+  around the concurrent GPS-stream and wallet-ledger code paths, and a much
+  heavier runtime footprint on a budget VPS.
+- **Go**: a reasonable alternative with similar deployment properties;
+  Rust was preferred for its stronger type system (no `nil` panics) and
+  `sqlx`'s compile-time query checking, which Go's ecosystem does not
+  match as directly.
+
+## References
+
+- [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (architecture philosophy), [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model),
+  [QES-000002](../qes/QES-000002-rust-engineering-standard.md) (Rust engineering standard).
+- [backend/README.md](../../backend/README.md), [root README.md](../../README.md).
 
 ---
 
@@ -340,4 +95,5 @@ The goal is to explain what belongs here, what does not belong here, and which g
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned area overview to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
+| 0.2.0 | 2026-08-12 | Rewritten with the actual decision, rationale, and implemented crate structure. |

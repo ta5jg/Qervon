@@ -28,7 +28,7 @@ name = "qervon-api-gateway"
 path = "src/main.rs"
 
 [dependencies]
-axum = { workspace = true, features = ["ws"] }
+axum = { workspace = true, features = ["ws", "multipart"] }
 qervon-api-contracts = { path = "../../crates/api-contracts" }
 qervon-application = { path = "../../crates/application" }
 qervon-billing-module = { path = "../../modules/billing" }
@@ -43,14 +43,23 @@ qervon-notifications-module = { path = "../../modules/notifications" }
 qervon-orders-module = { path = "../../modules/orders" }
 qervon-tracking-module = { path = "../../modules/tracking" }
 serde_json = { workspace = true }
+sqlx = { workspace = true }
 serde = { workspace = true }
 chrono = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 uuid = { workspace = true }
+base64 = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
 utoipa = { version = "4.2", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-swagger-ui = { version = "6.0", features = ["axum"] }
+argon2 = "0.5"
+aes-gcm = { workspace = true }
+tower-http = { workspace = true, features = ["cors"] }
+tower_governor = { version = "0.8.0", default-features = false, features = ["axum"] }
+governor = "0.10.4"
 
 [dev-dependencies]
 http-body-util = { workspace = true }

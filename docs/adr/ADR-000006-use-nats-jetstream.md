@@ -1,338 +1,102 @@
----
-Bu dosya Qervon projesi dokümantasyonu, `qervon-1.pdf` ve `qervon-2.pdf` içeriklerine dayalı olarak güncellenmiştir.
-
-**PDF 1 özeti:**
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir (yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).Ben olsam sistemi 5 ana parçaya ayırırım.1. Yönetim Paneli (Admin)Burası şirketin be...
-
-**PDF 2 özeti:**
-Qervon Architecture SpeciﬁcationVersion 0.1 Foundation Draft1. PurposeQervon, modern lojistik ve saha operasyonları için geliştirilen, yüksek performanslı, güvenli, modüler ve çok kiracılı (Multi-Tenant) bir Logistics Operating System'dir.Sistem;•küçük işletmeler,•kurumsal ﬁrmalar,•uluslararası lojistik şirketleriiçin tek platform sunacaktır.Qervon yalnızca bir kurye yazılımı değildir.Qervon;•Delivery•Fleet•Warehouse•Dispatch•Field Service•Retail•Medical Logisticsgibi modüllerin çalışacağı ortak...
-
-*Bu kısım otomatik olarak oluşturulmuştur.*
----
-
-## PDF Belgelerinden Gelen Özet
-
-— Bir kurye programı; Admin panel, Web Uygulama Müşteri tarafı, Kurye ve Müşteri için mobil 
-uygulama. Çok kolay kullanılabilir ve çok gelişmiş olmalı.
-Bu tip bir sistemi sıradan bir "kurye uygulaması" olarak değil, lojistik işletim sistemi (Logistics 
-Operating System - LOS) olarak tasarlarsak yıllarca geliştirilebilir ve farklı sektörlere de satılabilir 
-(yemek, e-ticaret, kargo, teknik servis, eczane, market vb.).
-Ben olsam sistemi 5 ana parçaya ayırırım.
-1. Yönetim Paneli (Admin)
-Burası şirketin beyni olacak.
-Dashboard
-•
-Anlık sipariş sayısı
-•
-Online kurye sayısı
-•
-Bekleyen teslimatlar
-•
-Günlük gelir
-•
-Haftalık gelir
-•
-Aylık gelir
-•
-Aktif müşteriler
-•
-Isı haritası
-•
-Canlı harita
-Sipariş Yönetimi
-•
-Yeni Sipariş
-•
-Bekleyen
-•
-Kurye Atanacak
-•
-Kurye Yolda
-•
-Teslim Edildi
-•
-İptal
-•
-İade
-Filtreleme
-•
-Tarih
-•
-Kurye
-•
-Bölge
-•
-Firma
-•
-Durum
-Kurye Yönetimi
-Her kurye için
-•
-Profil
-Sayfa  / 
-1
-67
-•
-Fotoğraf
-•
-Kimlik
-•
-Ehliyet
-•
-Araç Bilgisi
-•
-Motor/Bisiklet/Otomobil
-•
-Plaka
-•
-Sigorta
-Canlı
-•
-Konumu
-•
-Hızı
-•
-Batarya
-•
-Son Görülme
-•
-Günlük teslimat
-•
-Performans
-Firma Yönetimi
-Şirketler
-Market
-Restoran
-Eczane
-Kargo
-Mağaza
-Kurye firmaları
-Müşteri Yönetimi
-•
-Profil
-•
-Adresler
-•
-Favoriler
-•
-Geçmiş Siparişler
-•
-Puan
-•
-Şikayetler
-Finans
-•
-Tahsilatlar
-•
-Kurye Hakedişleri
-•
-Komisyonlar
-•
-Primler
-•
-Cezalar
-•
-İadeler
-Sayfa  / 
-2
-67
-Kampanyalar
-Kupon
-İndirim
-Promosyon
-Referans
-Sadakat
-Bildirim Merkezi
-SMS
-Push
-WhatsApp
-Mail
-Toplu Bildirim
-Raporlar
-Kurye Performansı
-Gelir
-Harita
-Yoğunluk
-Teslim Süresi
-Yetkilendirme
-Rol sistemi
-Admin
-Operator
-Muhasebe
-Çağrı Merkezi
-Bölge Müdürü
-Sayfa  / 
-3
-67
-Super Admin
-2. Web Müşteri Paneli
-Kurumsal müşteriler için.
-Sipariş oluşturma
-Adres defteri
-Toplu sipariş
-Excel yükleme
-Takip ekranı
-Canlı harita
-Teslim geçmişi
-Fatura
-Raporlar
-API anahtarları
-Webhook yönetimi
-3. Mobil Müşteri Uygulaması
-Android
-iPhone
-Ana ekran
-Yeni Kurye Çağır
-Haritada Konum
-Yakındaki Kurye
-Tahmini Süre
-Sipariş
-Alım Adresi
-Sayfa  / 
-4
-67
-Teslim Adresi
-Fotoğraf
-Not
-Telefon
-Teslimat tipi
-Ödeme
-Kart
-Nakit
-QR
-Cüzdan
-Canlı Takip
-Harita
-Kurye Nerede
-ETA
-Bildirimler
-Geçmiş
-Tekrar Sipariş
-Favoriler
-4. Kurye Mobil
-Bu uygulama çok kritik.
-Giriş
-Telefon
-OTP
-Biometrik
-Sayfa  / 
-5
-67
-Online / Offline
-Tek tuş
-Yeni İş
-Bildirim
-Reddet
-Kabul Et
-Navigasyon
-Google Maps
-Apple Maps
-Yandex
-Teslim Alma
-QR
-Barkod
-Fotoğraf
-İmza
-Teslim
-Fotoğraf
-İmza
-PIN
-QR
-Kazanç
-Bugün
-Hafta
-Ay
-İstatistik
-Sayfa  / 
-6
-67
-Puan
-Performans
-Teslim
-Mesafe
-5. API
-REST
-GraphQL
-WebSocket
-Webhook
-SDK
-Canlı Harita
-En önemli bölüm.
-Gösterilecekler
-Tüm kuryeler
-Online
-Offline
-Siparişler
-Yoğunluk
-Isı Haritası
-Gerçek Zamanlı
-WebSocket
-Socket.io
-Redis Pub/Sub
-Kafka (çok büyük sistemlerde)
-Sayfa  / 
-7
-67
-Bildirimler
-Firebase Push
-APNs
-SMS
-WhatsApp
-Mail
-Yapay Zeka
-Bence en büyük fark burada olmalı.
-AI Dispatcher
-En uygun kuryeyi otomatik seçer.
-AI ETA
-Trafik
-Yağmur
-Yoğunluk
-Motor tipi
-Teslim süresini hesaplar.
-AI Route
-Bir kuryeye 5–10 teslimatı en verimli sırayla planlar.
-AI Fraud Detection
-Sahte teslimat
-Konum sahtecili
-
----
-
 <!-- =============================================================================
- File:           docs/adr/ADR-000006-use-nats-jetstream.md
- Project:        Qervon
- Author:         USDTG GROUP TECHNOLOGY LLC
- Developer:      Irfan Gedik
- Created Date:   2026-08-05
- Version:        0.1.0
+File:           docs/adr/ADR-000006-use-nats-jetstream.md
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-05
+Version:        0.2.0
 
- Description:
-   Provides a concise orientation for the adr area aligned with the Qervon source PDFs.
+Description:
+  Architecture Decision Record: NATS JetStream was planned as the
+  cross-service event bus but was never adopted. The system instead uses
+  PostgreSQL LISTEN/NOTIFY plus an in-process Tokio broadcast channel for
+  its one real streaming use case (live courier location).
 
- Specification:
-   QMI-000000 and the Qervon source PDFs
+Specification:
+  QMI-000000, QAS-000003.
 
- License:
-   Qervon License v1.0 — see LICENSE in the repository root.
+License:
+  Qervon License v1.0 — see LICENSE in the repository root.
 ============================================================================= -->
 
-# ADR-000006 — Use Nats Jetstream
+# ADR-000006 — Event Bus: NATS JetStream (Not Adopted)
 
-This page orients readers to the adr area and keeps the repository vocabulary aligned with the source PDFs.
+- **Status:** Not Adopted — superseded by a simpler mechanism, described
+  below.
+- **Date:** original intent 2026-08-05; corrected 2026-08-12.
+- **Deciders:** Irfan Gedik.
 
-# Purpose
+## Original Context and Intent
 
-The goal is to explain what belongs here, what does not belong here, and which governing documents should be consulted first.
+The source architecture PDFs describe a "hybrid event architecture"
+(see ADR-000010) with NATS JetStream as the durable, cross-service event
+bus connecting a future set of independently-deployable services
+(Delivery, Fleet, Warehouse, Dispatch, ...).
 
-# What belongs here
+## What Actually Exists
 
-- Area-specific implementation or guidance
-- Cross-links to the relevant QAS/QFS/QES/QMI documents
-- Clear ownership and boundaries
+There is exactly one real, live streaming requirement implemented today:
+propagating a courier's location update to whoever is watching that
+courier's order (the admin dashboard's live map, a customer's tracking
+screen). This is implemented with two much simpler primitives, no message
+broker at all:
 
-# References
+- **PostgreSQL `pg_notify`** (`SELECT pg_notify('qervon_location_updates', $1)`,
+  see `backend/apps/api-gateway/src/state.rs`) fires whenever a location
+  update is persisted to PostgreSQL, for durability across multiple
+  `api-gateway` instances sharing one database.
+- **An in-process `tokio::sync::broadcast` channel** fans that same event
+  out to every open `/ws/tracking` WebSocket connection on that instance
+  without a second network hop.
 
-- [qervon-1.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-1.pdf)
-- [qervon-2.pdf](/Users/irfangedik/Qervon_Platform/qervon/docs/sources/qervon-2.pdf)
+There is no NATS server anywhere in this codebase's dependency tree, no
+JetStream stream/consumer configuration, and no multi-service deployment
+today for an event bus to connect — `api-gateway` is presently the only
+network-facing binary (see ADR-000007, modular monolith).
+
+## Decision (Correcting the Record)
+
+Do not adopt NATS/JetStream at this stage. Continue using
+PostgreSQL `LISTEN`/`NOTIFY` + an in-process broadcast channel for the
+one real streaming use case, until a genuine multi-service deployment or
+a durable-replay requirement (e.g. event sourcing, cross-service sagas)
+actually exists to justify the operational cost of running and monitoring
+a message broker.
+
+## Consequences
+
+- **Positive:** one fewer stateful service to deploy, monitor, and secure
+  on a budget single-VPS deployment; `pg_notify` piggybacks on a database
+  connection the system already needs, so there's no additional network
+  surface.
+- **Negative:** `pg_notify` payloads are capped at 8000 bytes and are
+  **not durable** — a notification sent while no one is listening is
+  lost; this is acceptable for "best-effort live position updates" but
+  would not be acceptable for financial events (which are instead written
+  directly to the PostgreSQL ledger tables, not sent as fire-and-forget
+  notifications). If Qervon ever needs guaranteed-delivery events between
+  independently-deployed services, this decision should be revisited.
+- **Neutral:** nothing here blocks introducing NATS JetStream later for a
+  specific, concrete need — it is additive, not a rearchitecture, of the
+  modular monolith's internals.
+
+## Alternatives Considered
+
+- **NATS JetStream** (originally planned): deferred — no current need for
+  durable cross-service event replay, since there is currently one
+  service.
+- **Redis Pub/Sub** (mentioned in the source PDFs as a live-map option):
+  would add a second stateful dependency for a problem `pg_notify` +
+  in-process broadcast already solves at this scale.
+- **Apache Kafka** (mentioned in the source PDFs "for very large
+  systems"): explicitly out of scope at current scale; revisit only if
+  event volume or replay/audit requirements genuinely demand it.
+
+## References
+
+- [QAS-000003](../qas/QAS-000003-event-architecture.md) (event architecture, rewritten to match this decision).
+- [ADR-000007](ADR-000007-use-modular-monolith-first.md) (modular monolith), [ADR-000010](ADR-000010-use-hybrid-event-architecture.md) (hybrid event architecture).
+- `backend/apps/api-gateway/src/state.rs` (the real `pg_notify` call site).
 
 ---
 
@@ -340,4 +104,5 @@ The goal is to explain what belongs here, what does not belong here, and which g
 
 | Version | Date | Description |
 |---------|------|-------------|
-| 0.1.0 | 2026-08-05 | Aligned area overview to the source PDFs. |
+| 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs, assuming NATS JetStream. |
+| 0.2.0 | 2026-08-12 | Corrected: NATS was never adopted; documented the real pg_notify + broadcast-channel mechanism. |

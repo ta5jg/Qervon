@@ -55,6 +55,13 @@ where
         self.service.get_invoice(id).await
     }
 
+    pub async fn find_invoice_for_order(
+        &self,
+        order_id: qervon_domain::OrderId,
+    ) -> Result<Option<Invoice>, qervon_application::ApplicationError> {
+        self.service.find_invoice_for_order(order_id).await
+    }
+
     pub async fn issue_invoice(
         &self,
         id: InvoiceId,

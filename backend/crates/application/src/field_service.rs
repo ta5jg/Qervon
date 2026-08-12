@@ -12,6 +12,7 @@
 // Specification:
 //   QAS-000004, QES-000006.
 // =============================================================================
+// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
 
 use serde::{Deserialize, Serialize};
 

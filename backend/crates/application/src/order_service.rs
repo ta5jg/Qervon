@@ -17,7 +17,7 @@
 // =============================================================================
 
 use chrono::Utc;
-use qervon_domain::{Address, Money, Order, OrderId, OrderRepository};
+use qervon_domain::{Address, Money, Order, OrderId, OrderRepository, PaymentMethod};
 use uuid::Uuid;
 
 use crate::error::ApplicationError;
@@ -28,6 +28,9 @@ pub struct CreateOrderInput {
     pub pickup: Address,
     pub dropoff: Address,
     pub fare: Money,
+    pub payment_method: Option<PaymentMethod>,
+    pub delivery_note: Option<String>,
+    pub contact_phone: Option<String>,
 }
 
 pub struct OrderService<R>
@@ -46,14 +49,19 @@ where
     }
 
     pub async fn create(&self, input: CreateOrderInput) -> Result<Order, ApplicationError> {
-        let order = Order::create(
+        let mut order = Order::create(
             OrderId::new(),
             input.customer_id,
             input.pickup,
             input.dropoff,
             input.fare,
             Utc::now(),
+            input.delivery_note,
+            input.contact_phone,
         )?;
+        if let Some(method) = input.payment_method {
+            order.set_payment_method(method);
+        }
         self.orders.create(&order).await?;
         Ok(order)
     }
@@ -67,5 +75,14 @@ where
 
     pub async fn list_all(&self) -> Result<Vec<Order>, ApplicationError> {
         Ok(self.orders.list_all().await?)
+    }
+
+    /// Confirms the fare has been collected for an order (e.g. cash handed
+    /// over at drop-off).
+    pub async fn mark_payment_collected(&self, id: OrderId) -> Result<Order, ApplicationError> {
+        let mut order = self.get(id).await?;
+        order.mark_payment_collected()?;
+        self.orders.update(&order).await?;
+        Ok(order)
     }
 }
