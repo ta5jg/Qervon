@@ -69,7 +69,7 @@ mostly sequential (append-like) rather than random.
 
 ## References
 
-- QAS-000006 (database/persistence standard).
+- [QAS-000006](../qas/QAS-000006-database-persistence-standard.md) (database/persistence standard).
 - [backend/Cargo.toml](../../backend/Cargo.toml) (`uuid` dependency line).
 
 ---

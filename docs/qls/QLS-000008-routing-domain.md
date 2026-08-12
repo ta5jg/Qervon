@@ -59,8 +59,8 @@ onto a single courier run or sequencing stops.
 
 ## References
 
-- QAS-000009 (what AI Dispatcher actually does today), QLS-000001
-  (overview of which domains are real vs. vision), BACKEND_BACKLOG.md.
+- [QAS-000009](../qas/QAS-000009-ai-architecture.md) (what AI Dispatcher actually does today), [QLS-000001](QLS-000001-logistics-domain-overview.md)
+  (overview of which domains are real vs. vision), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

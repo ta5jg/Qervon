@@ -61,7 +61,7 @@ vision rather than shipped code.
 
 ## References
 
-- QAS-000001 (the real layering), ADR-000007 (modular monolith), QFS-000002
+- [QAS-000001](QAS-000001-architecture-philosophy.md) (the real layering), [ADR-000007](../adr/ADR-000007-use-modular-monolith-first.md) (modular monolith), [QFS-000002](../qfs/QFS-000002-kernel-architecture.md)
   (the foundation-series kernel vision this document sits alongside).
 
 ---

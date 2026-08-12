@@ -55,7 +55,7 @@ profiling infrastructure exists yet.**
 
 ## References
 
-- ADR-000009 (UUIDv7), QAS-000003 (event architecture), QAS-000013
+- [ADR-000009](../adr/ADR-000009-use-uuid-v7.md) (UUIDv7), [QAS-000003](../qas/QAS-000003-event-architecture.md) (event architecture), [QAS-000013](../qas/QAS-000013-resilience-architecture.md)
   (resilience — the closely related "what happens under load" document).
 
 ---

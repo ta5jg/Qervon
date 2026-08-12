@@ -85,8 +85,8 @@ see QAS-000004), `uuid` with the `v7` feature (see ADR-000009), `chrono`
 
 ## References
 
-- QAS-000001 (architecture philosophy), QAS-000002 (domain model),
-  QES-000002 (Rust engineering standard).
+- [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (architecture philosophy), [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model),
+  [QES-000002](../qes/QES-000002-rust-engineering-standard.md) (Rust engineering standard).
 - [backend/README.md](../../backend/README.md), [root README.md](../../README.md).
 
 ---

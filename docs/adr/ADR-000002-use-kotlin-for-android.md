@@ -80,8 +80,8 @@ real implementation to preserve.
 
 ## References
 
-- QAS-000007 (mobile platform architecture), QES-000003 (Kotlin engineering
-  standard), ADR-000003 (Swift for iOS, the sibling decision).
+- [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (mobile platform architecture), [QES-000003](../qes/QES-000003-kotlin-engineering-standard.md) (Kotlin engineering
+  standard), [ADR-000003](ADR-000003-use-swift-for-ios.md) (Swift for iOS, the sibling decision).
 - [mobile/android/README.md](../../mobile/android/README.md).
 
 ---

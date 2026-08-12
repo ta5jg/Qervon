@@ -78,7 +78,7 @@ Rust struct → OpenAPI doc, not the reverse.
 
 ## References
 
-- QAS-000005 (API/integration standard).
+- [QAS-000005](../qas/QAS-000005-api-integration-standard.md) (API/integration standard).
 - [backend/crates/api-contracts/src/lib.rs](../../backend/crates/api-contracts/src/lib.rs).
 
 ---

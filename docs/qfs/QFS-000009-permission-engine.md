@@ -58,8 +58,8 @@ hasn't been generalized into a data-driven policy engine.
 
 ## References
 
-- QAS-000004 (the fuller security-architecture context), QAS-000011
-  (multi-tenant/ownership rules), QFS-000008 (why there's no generic
+- [QAS-000004](../qas/QAS-000004-security-architecture.md) (the fuller security-architecture context), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md)
+  (multi-tenant/ownership rules), [QFS-000008](QFS-000008-policy-engine.md) (why there's no generic
   engine above this).
 
 ---

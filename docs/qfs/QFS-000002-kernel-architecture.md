@@ -26,8 +26,8 @@ in two places that could drift out of sync with each other.
 
 ## References
 
-- QAS-000010 (the actual content), QFS-000001 (this series' overview),
-  QFS-000004 (module system — what exists instead of a kernel).
+- [QAS-000010](../qas/QAS-000010-kernel-architecture.md) (the actual content), [QFS-000001](QFS-000001-foundation-overview.md) (this series' overview),
+  [QFS-000004](QFS-000004-module-system.md) (module system — what exists instead of a kernel).
 
 ---
 

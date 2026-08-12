@@ -53,9 +53,9 @@ driving it (see QES-000001's principle on this).
 
 ## References
 
-- QLS-000009 (billing/pricing — the one place with real
-  configurability), QAS-000009 (AI Dispatcher — the hardcoded scoring
-  formula), QFS-000007/QFS-000008 (the sibling "no generic engine"
+- [QLS-000009](../qls/QLS-000009-billing-domain.md) (billing/pricing — the one place with real
+  configurability), [QAS-000009](../qas/QAS-000009-ai-architecture.md) (AI Dispatcher — the hardcoded scoring
+  formula), [QFS-000007](QFS-000007-workflow-engine.md)/[QFS-000008](QFS-000008-policy-engine.md) (the sibling "no generic engine"
   documents for workflow/policy).
 
 ---

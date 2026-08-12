@@ -49,7 +49,7 @@ future addition once releases are cut on a defined cadence.
 
 ## References
 
-- QAS-000014 (deployment architecture/topology), QMI-000002 (versioning
+- [QAS-000014](../qas/QAS-000014-deployment-architecture.md) (deployment architecture/topology), [QMI-000002](../qmi/QMI-000002-versioning-policy.md) (versioning
   policy), [docs/operations/deployment-runbook.md](../operations/deployment-runbook.md),
   [docs/operations/mobile-release-runbook.md](../operations/mobile-release-runbook.md).
 

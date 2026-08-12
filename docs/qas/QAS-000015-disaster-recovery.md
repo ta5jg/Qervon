@@ -68,8 +68,8 @@ Full procedure: [docs/operations/backup-restore-runbook.md](../operations/backup
 ## References
 
 - [docs/operations/backup-restore-runbook.md](../operations/backup-restore-runbook.md)
-  (the real, current procedure), QAS-000006 (what's being backed up),
-  QAS-000014 (the deployment topology this recovers).
+  (the real, current procedure), [QAS-000006](QAS-000006-database-persistence-standard.md) (what's being backed up),
+  [QAS-000014](QAS-000014-deployment-architecture.md) (the deployment topology this recovers).
 
 ---
 

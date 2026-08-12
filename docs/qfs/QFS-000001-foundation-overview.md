@@ -62,8 +62,8 @@ this reason.
 
 ## References
 
-- QMI-000000 (the honesty policy this series follows most carefully),
-  QAS-000001/QAS-000010 (the real architecture vs. this vision).
+- [QMI-000000](../qmi/QMI-000000-master-architecture-index.md) (the honesty policy this series follows most carefully),
+  [QAS-000001](../qas/QAS-000001-architecture-philosophy.md)/[QAS-000010](../qas/QAS-000010-kernel-architecture.md) (the real architecture vs. this vision).
 
 ---
 

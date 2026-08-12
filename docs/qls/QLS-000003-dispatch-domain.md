@@ -69,8 +69,8 @@ out-of-band knowledge of courier availability).
 
 ## References
 
-- QAS-000009 (AI Dispatcher scoring that picks the offered courier),
-  QLS-000002 (order lifecycle this flow drives), QLS-000004 (courier
+- [QAS-000009](../qas/QAS-000009-ai-architecture.md) (AI Dispatcher scoring that picks the offered courier),
+  [QLS-000002](QLS-000002-order-domain.md) (order lifecycle this flow drives), [QLS-000004](QLS-000004-courier-domain.md) (courier
   domain — the `Available`/`Busy`/`Offline` states this flow reads).
 
 ---

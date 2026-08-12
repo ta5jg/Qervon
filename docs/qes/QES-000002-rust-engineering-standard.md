@@ -77,8 +77,8 @@ formula, not just "computes a score".
 
 ## References
 
-- ADR-000001 (why Rust), QAS-000001 (the layering this enforces),
-  QES-000006 (testing standard, the fuller version of the section above).
+- [ADR-000001](../adr/ADR-000001-use-rust-for-backend.md) (why Rust), [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (the layering this enforces),
+  [QES-000006](QES-000006-testing-standard.md) (testing standard, the fuller version of the section above).
 
 ---
 

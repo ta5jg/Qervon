@@ -61,8 +61,8 @@ jurisdiction, etc.) is not implemented.
 
 ## References
 
-- QLS-000002 (order — fare computation this depends on), QLS-000004
-  (courier wallet — the other side of a payout), BACKEND_BACKLOG.md.
+- [QLS-000002](QLS-000002-order-domain.md) (order — fare computation this depends on), [QLS-000004](QLS-000004-courier-domain.md)
+  (courier wallet — the other side of a payout), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

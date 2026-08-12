@@ -55,8 +55,8 @@ kind of premature architecture this project's engineering principles
 
 ## References
 
-- QFS-000001 (series overview), QFS-000004 (the real module system this
-  would extend), ADR-000007 (modular monolith).
+- [QFS-000001](QFS-000001-foundation-overview.md) (series overview), [QFS-000004](QFS-000004-module-system.md) (the real module system this
+  would extend), [ADR-000007](../adr/ADR-000007-use-modular-monolith-first.md) (modular monolith).
 
 ---
 

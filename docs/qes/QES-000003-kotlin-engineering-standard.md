@@ -73,7 +73,7 @@ new DTOs.
 
 ## References
 
-- ADR-000002 (why Kotlin/Compose), QAS-000007 (the real module
+- [ADR-000002](../adr/ADR-000002-use-kotlin-for-android.md) (why Kotlin/Compose), [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (the real module
   architecture this codifies).
 
 ---

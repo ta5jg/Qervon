@@ -50,8 +50,8 @@ already communicates.
 
 ## References
 
-- QES-000001 (the principles this enforces), QES-000007 (git workflow),
-  QES-000009 (the header format reviewers check for).
+- [QES-000001](QES-000001-engineering-principles.md) (the principles this enforces), [QES-000007](QES-000007-git-workflow.md) (git workflow),
+  [QES-000009](QES-000009-documentation-standard.md) (the header format reviewers check for).
 
 ---
 

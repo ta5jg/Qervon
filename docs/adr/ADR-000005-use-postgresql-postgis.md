@@ -80,7 +80,7 @@ needed yet.
 
 ## References
 
-- QAS-000006 (database/persistence standard).
+- [QAS-000006](../qas/QAS-000006-database-persistence-standard.md) (database/persistence standard).
 - [backend/migrations/](../../backend/migrations/), `qervon_domain::delivery_pricing`.
 
 ---

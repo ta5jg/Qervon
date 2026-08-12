@@ -50,8 +50,8 @@ API) is actually introduced.
 
 ## References
 
-- QAS-000009 (the real AI Dispatcher/ETA/Fraud Guard implementation),
-  ADR-000007 (modular monolith — the same reasoning applies here).
+- [QAS-000009](../qas/QAS-000009-ai-architecture.md) (the real AI Dispatcher/ETA/Fraud Guard implementation),
+  [ADR-000007](../adr/ADR-000007-use-modular-monolith-first.md) (modular monolith — the same reasoning applies here).
 
 ---
 

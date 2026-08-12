@@ -82,7 +82,7 @@ many crates, one deployable binary (`apps/api-gateway`).
 
 ## References
 
-- QAS-000001 (architecture philosophy), QFS-000004 (module system).
+- [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (architecture philosophy), [QFS-000004](../qfs/QFS-000004-module-system.md) (module system).
 - [backend/Cargo.toml](../../backend/Cargo.toml) workspace member list.
 
 ---

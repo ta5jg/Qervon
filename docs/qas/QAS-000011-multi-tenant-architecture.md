@@ -78,7 +78,7 @@ tenant-scoped.
 
 ## References
 
-- QAS-000004 (auth this relies on), QAS-000006 (the data-layer
+- [QAS-000004](QAS-000004-security-architecture.md) (auth this relies on), [QAS-000006](QAS-000006-database-persistence-standard.md) (the data-layer
   implementation), [docs/operations/deployment-runbook.md](../operations/deployment-runbook.md)
   (tenant bootstrap procedure).
 

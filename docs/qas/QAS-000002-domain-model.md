@@ -61,8 +61,8 @@ License:
 
 ## References
 
-- QAS-000001 (layering these entities live inside), QAS-000006
-  (how they're persisted), QLS-000001 through QLS-000015 (per-domain
+- [QAS-000001](QAS-000001-architecture-philosophy.md) (layering these entities live inside), [QAS-000006](QAS-000006-database-persistence-standard.md)
+  (how they're persisted), [QLS-000001](../qls/QLS-000001-logistics-domain-overview.md) through [QLS-000015](../qls/QLS-000015-command-center.md) (per-domain
   detail).
 
 ---

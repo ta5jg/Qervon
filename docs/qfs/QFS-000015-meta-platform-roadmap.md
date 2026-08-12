@@ -50,8 +50,8 @@ real" reference.
 
 ## References
 
-- Every QFS-000002 through QFS-000014 document (each states its own
-  trigger condition in more detail than the table above), BACKEND_BACKLOG.md.
+- Every [QFS-000002](QFS-000002-kernel-architecture.md) through [QFS-000014](QFS-000014-integration-runtime.md) document (each states its own
+  trigger condition in more detail than the table above), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

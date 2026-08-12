@@ -82,7 +82,7 @@ set itself was rewritten, and it applies equally to code:
 
 ## References
 
-- ADR-000001 (Rust), ADR-000007 (modular monolith), QAS-000002 (domain
+- [ADR-000001](../adr/ADR-000001-use-rust-for-backend.md) (Rust), [ADR-000007](../adr/ADR-000007-use-modular-monolith-first.md) (modular monolith), [QAS-000002](QAS-000002-domain-model.md) (domain
   model, the concrete result of this layering).
 
 ---

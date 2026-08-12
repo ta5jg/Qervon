@@ -57,8 +57,8 @@ was actually done instead.
 
 ## References
 
-- QLS-000001 (overview, listing every domain's real status),
-  BACKEND_BACKLOG.md (the authoritative, current v2-backlog list).
+- [QLS-000001](QLS-000001-logistics-domain-overview.md) (overview, listing every domain's real status),
+  [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md) (the authoritative, current v2-backlog list).
 
 ---
 

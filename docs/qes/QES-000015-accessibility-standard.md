@@ -66,7 +66,7 @@ verification against WCAG).
 
 ## References
 
-- QAS-000007 (mobile platform architecture), QAS-000008 (web platform
+- [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (mobile platform architecture), [QAS-000008](../qas/QAS-000008-web-platform-architecture.md) (web platform
   architecture) — both describe the UI surfaces this document assesses.
 
 ---

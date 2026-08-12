@@ -76,8 +76,8 @@ the real behavior.
 
 ## References
 
-- ADR-000008 (contract-first via `api-contracts`), QAS-000004 (auth on
-  top of this transport), QAS-000007 (mobile client conventions).
+- [ADR-000008](../adr/ADR-000008-use-contract-first-apis.md) (contract-first via `api-contracts`), [QAS-000004](QAS-000004-security-architecture.md) (auth on
+  top of this transport), [QAS-000007](QAS-000007-mobile-platform-architecture.md) (mobile client conventions).
 
 ---
 

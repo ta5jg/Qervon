@@ -69,8 +69,8 @@ place the courier wallet gets credited) is a small, well-scoped follow-up
 
 ## References
 
-- QAS-000002 (domain model), QAS-000011 (tenant/provisioning rules),
-  QLS-000014 (customer experience — ratings/support/notifications this
+- [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md) (tenant/provisioning rules),
+  [QLS-000014](QLS-000014-customer-experience.md) (customer experience — ratings/support/notifications this
   profile connects to).
 
 ---

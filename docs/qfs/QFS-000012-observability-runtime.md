@@ -26,7 +26,7 @@ drift apart.
 
 ## References
 
-- QAS-000012 (the actual content), QFS-000001 (this series' overview).
+- [QAS-000012](../qas/QAS-000012-observability-architecture.md) (the actual content), [QFS-000001](QFS-000001-foundation-overview.md) (this series' overview).
 
 ---
 

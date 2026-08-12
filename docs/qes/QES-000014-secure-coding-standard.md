@@ -72,8 +72,8 @@ existing pattern in `api_flow.rs`.
 
 ## References
 
-- QAS-000004 (the security architecture these rules protect), QES-000010
-  (CI gaps — no automated scanning yet), QES-000011 (dependency policy).
+- [QAS-000004](../qas/QAS-000004-security-architecture.md) (the security architecture these rules protect), [QES-000010](QES-000010-ci-cd-standard.md)
+  (CI gaps — no automated scanning yet), [QES-000011](QES-000011-dependency-policy.md) (dependency policy).
 
 ---
 

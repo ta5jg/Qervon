@@ -82,8 +82,8 @@ Security policy doing this implicitly. See QAS-000011.
 
 ## References
 
-- ADR-000005 (PostgreSQL, PostGIS not adopted), ADR-000009 (UUIDv7),
-  QAS-000011 (multi-tenant architecture),
+- [ADR-000005](../adr/ADR-000005-use-postgresql-postgis.md) (PostgreSQL, PostGIS not adopted), [ADR-000009](../adr/ADR-000009-use-uuid-v7.md) (UUIDv7),
+  [QAS-000011](QAS-000011-multi-tenant-architecture.md) (multi-tenant architecture),
   [docs/operations/database-migration-runbook.md](../operations/database-migration-runbook.md).
 
 ---

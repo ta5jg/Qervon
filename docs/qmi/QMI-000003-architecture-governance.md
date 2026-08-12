@@ -66,7 +66,7 @@ reviewed like any other pull request.
 
 ## References
 
-- QMI-000000 (master index), QMI-000001 (document governance),
+- [QMI-000000](QMI-000000-master-architecture-index.md) (master index), [QMI-000001](QMI-000001-document-governance.md) (document governance),
   `docs/adr/README.md` (the ADR index and template).
 
 ---

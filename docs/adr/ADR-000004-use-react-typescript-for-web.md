@@ -92,11 +92,11 @@ architecture of this layer.
 
 ## References
 
-- QAS-000008 (web platform architecture, rewritten to match this
-  decision), QES-000005 (originally the TypeScript/React standard; see
+- [QAS-000008](../qas/QAS-000008-web-platform-architecture.md) (web platform architecture, rewritten to match this
+  decision), [QES-000005](../qes/QES-000005-typescript-react-standard.md) (originally the TypeScript/React standard; see
   its own file for how it now applies, or doesn't, to this codebase).
 - Root [README.md](../../README.md) "Web Platformu Kararı" section,
-  `BACKEND_BACKLOG.md` "Web platform boundary notes" section.
+  `[BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md)` "Web platform boundary notes" section.
 
 ---
 

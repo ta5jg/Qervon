@@ -66,8 +66,8 @@ another tenant's (see QAS-000011).
 
 ## References
 
-- QAS-000002 (domain model), QLS-000003 (dispatch domain — how an order
-  gets from Pending to CourierAssigned), QLS-000013 (proof of delivery —
+- [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model), [QLS-000003](QLS-000003-dispatch-domain.md) (dispatch domain — how an order
+  gets from Pending to CourierAssigned), [QLS-000013](QLS-000013-proof-of-delivery.md) (proof of delivery —
   the InTransit → Delivered evidence).
 
 ---

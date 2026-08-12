@@ -61,8 +61,8 @@ retry policy, single points of failure at the VPS/database level.**
 
 ## References
 
-- QAS-000004 (rate limiting detail), QAS-000009 (Fraud Guard's
-  flag-and-accept design), QAS-000015 (disaster recovery).
+- [QAS-000004](QAS-000004-security-architecture.md) (rate limiting detail), [QAS-000009](QAS-000009-ai-architecture.md) (Fraud Guard's
+  flag-and-accept design), [QAS-000015](QAS-000015-disaster-recovery.md) (disaster recovery).
 
 ---
 

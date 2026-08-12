@@ -73,8 +73,8 @@ a fix.
 
 ## References
 
-- QES-000002 through QES-000004 (per-language dependency conventions),
-  QES-000010 (the CI gaps this document's "not implemented" sections
+- [QES-000002](QES-000002-rust-engineering-standard.md) through [QES-000004](QES-000004-swift-engineering-standard.md) (per-language dependency conventions),
+  [QES-000010](QES-000010-ci-cd-standard.md) (the CI gaps this document's "not implemented" sections
   point back to).
 
 ---

@@ -51,8 +51,8 @@ express (e.g. a tenant-configurable approval workflow).
 
 ## References
 
-- QFS-000009 (permission engine — the real RBAC implementation),
-  QAS-000004 (security architecture), QAS-000011 (multi-tenant
+- [QFS-000009](QFS-000009-permission-engine.md) (permission engine — the real RBAC implementation),
+  [QAS-000004](../qas/QAS-000004-security-architecture.md) (security architecture), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md) (multi-tenant
   enforcement, the other half of "who can access what").
 
 ---

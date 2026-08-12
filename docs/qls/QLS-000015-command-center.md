@@ -50,8 +50,8 @@ architecture).
 
 ## References
 
-- QAS-000008 (the page's technical architecture and security controls),
-  QAS-000009 (the AI Fraud Guard tab), QAS-000011 (the tenant-scoping
+- [QAS-000008](../qas/QAS-000008-web-platform-architecture.md) (the page's technical architecture and security controls),
+  [QAS-000009](../qas/QAS-000009-ai-architecture.md) (the AI Fraud Guard tab), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md) (the tenant-scoping
   every view in this dashboard respects).
 
 ---

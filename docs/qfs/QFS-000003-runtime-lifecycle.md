@@ -65,8 +65,8 @@ well-understood change.
 
 ## References
 
-- QFS-000006 (configuration — what `from_env()` reads), QAS-000014
-  (deployment — how this process is supervised by systemd), QFS-000011
+- [QFS-000006](QFS-000006-configuration-system.md) (configuration — what `from_env()` reads), [QAS-000014](../qas/QAS-000014-deployment-architecture.md)
+  (deployment — how this process is supervised by systemd), [QFS-000011](QFS-000011-scheduler.md)
   (the worker's lifecycle).
 
 ---

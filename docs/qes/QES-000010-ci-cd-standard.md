@@ -72,8 +72,8 @@ otherwise. See QES-000011.
 
 ## References
 
-- QES-000002 through QES-000006 (what each workflow enforces),
-  QES-000001 (the honesty principle this document follows in recording
+- [QES-000002](QES-000002-rust-engineering-standard.md) through [QES-000006](QES-000006-testing-standard.md) (what each workflow enforces),
+  [QES-000001](QES-000001-engineering-principles.md) (the honesty principle this document follows in recording
   both the fix and what's still missing).
 
 ---

@@ -54,8 +54,8 @@ the fraud flag to the customer (only to operators).
 
 ## References
 
-- QAS-000003 (the pg_notify/broadcast pipeline), QAS-000009 (ETA/fraud
-  math), QAS-000011 (the tenant/ownership rules this enforces).
+- [QAS-000003](../qas/QAS-000003-event-architecture.md) (the pg_notify/broadcast pipeline), [QAS-000009](../qas/QAS-000009-ai-architecture.md) (ETA/fraud
+  math), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md) (the tenant/ownership rules this enforces).
 
 ---
 

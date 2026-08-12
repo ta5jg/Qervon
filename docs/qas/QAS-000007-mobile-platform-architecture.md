@@ -89,7 +89,7 @@ tracking map + ETA polling, cancel, rate, open a support ticket → profile.
 
 ## References
 
-- ADR-000002 (Kotlin/Android), ADR-000003 (Swift/iOS), QAS-000005 (the
+- [ADR-000002](../adr/ADR-000002-use-kotlin-for-android.md) (Kotlin/Android), [ADR-000003](../adr/ADR-000003-use-swift-for-ios.md) (Swift/iOS), [QAS-000005](QAS-000005-api-integration-standard.md) (the
   API contract both platforms consume).
 - [mobile/ios/README.md](../../mobile/ios/README.md),
   [mobile/android/README.md](../../mobile/android/README.md).

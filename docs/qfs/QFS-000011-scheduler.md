@@ -59,9 +59,9 @@ that could be lost if the API process restarts.
 
 ## References
 
-- QFS-000003 (the worker's startup lifecycle, same shape as api-gateway),
-  QFS-000014 (webhooks — the concrete outbox this worker drains),
-  QLS-000010 (notifications — another candidate consumer of this
+- [QFS-000003](QFS-000003-runtime-lifecycle.md) (the worker's startup lifecycle, same shape as api-gateway),
+  [QFS-000014](QFS-000014-integration-runtime.md) (webhooks — the concrete outbox this worker drains),
+  [QLS-000010](../qls/QLS-000010-notification-domain.md) (notifications — another candidate consumer of this
   pattern).
 
 ---

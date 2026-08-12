@@ -64,8 +64,8 @@ is deliberate.
 
 ## References
 
-- ADR-000006 (why NATS was not adopted), ADR-000010 (the hybrid
-  decision), QAS-000009 (AI Fraud Guard, which sits in this pipeline).
+- [ADR-000006](../adr/ADR-000006-use-nats-jetstream.md) (why NATS was not adopted), [ADR-000010](../adr/ADR-000010-use-hybrid-event-architecture.md) (the hybrid
+  decision), [QAS-000009](QAS-000009-ai-architecture.md) (AI Fraud Guard, which sits in this pipeline).
 
 ---
 

@@ -95,8 +95,8 @@ left to a human reviewing the dashboard today.
 
 ## References
 
-- QAS-000002 (the `Courier`/`Location` types these functions operate on),
-  QAS-000003 (the location-update pipeline this feeds), QLS-000003
+- [QAS-000002](QAS-000002-domain-model.md) (the `Courier`/`Location` types these functions operate on),
+  [QAS-000003](QAS-000003-event-architecture.md) (the location-update pipeline this feeds), [QLS-000003](../qls/QLS-000003-dispatch-domain.md)
   (dispatch domain, the offer flow this scoring drives).
 
 ---

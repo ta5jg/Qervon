@@ -79,9 +79,9 @@ a real scan wasn't implemented — see QAS-000008.
 
 ## References
 
-- QAS-000001 (architecture philosophy, the fuller version of #1/#3),
-  QES-000002 through QES-000005 (per-language application of these
-  principles), QES-000009 (documentation standard, the header format).
+- [QAS-000001](../qas/QAS-000001-architecture-philosophy.md) (architecture philosophy, the fuller version of #1/#3),
+  [QES-000002](QES-000002-rust-engineering-standard.md) through [QES-000005](QES-000005-typescript-react-standard.md) (per-language application of these
+  principles), [QES-000009](QES-000009-documentation-standard.md) (documentation standard, the header format).
 
 ---
 

@@ -67,8 +67,8 @@ backend, not the `{"url": "..."}` client-side contract.
 
 ## References
 
-- QAS-000007 (mobile platform, the per-platform capture detail),
-  QLS-000002 (order lifecycle this evidence completes), BACKEND_BACKLOG.md.
+- [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (mobile platform, the per-platform capture detail),
+  [QLS-000002](QLS-000002-order-domain.md) (order lifecycle this evidence completes), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

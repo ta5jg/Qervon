@@ -66,7 +66,7 @@ follows and new tests should match.
 
 ## References
 
-- QES-000002 (Rust testing conventions), QES-000010 (CI/CD standard —
+- [QES-000002](QES-000002-rust-engineering-standard.md) (Rust testing conventions), [QES-000010](QES-000010-ci-cd-standard.md) (CI/CD standard —
   which workflows are real vs. placeholder).
 
 ---

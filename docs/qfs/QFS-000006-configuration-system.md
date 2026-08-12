@@ -60,8 +60,8 @@ flexibility (e.g. nested/structured config) a file format would offer.
 
 ## References
 
-- QFS-000003 (when these are read), QAS-000014 (deployment — where
-  these are actually set), QAS-000004 (security-relevant variables).
+- [QFS-000003](QFS-000003-runtime-lifecycle.md) (when these are read), [QAS-000014](../qas/QAS-000014-deployment-architecture.md) (deployment — where
+  these are actually set), [QAS-000004](../qas/QAS-000004-security-architecture.md) (security-relevant variables).
 
 ---
 

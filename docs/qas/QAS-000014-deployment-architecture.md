@@ -75,7 +75,7 @@ to running in a container if that becomes the right call later.
 ## References
 
 - [docs/operations/deployment-runbook.md](../operations/deployment-runbook.md)
-  (the actual procedure), QAS-000006 (migrations), QES-000012 (release
+  (the actual procedure), [QAS-000006](QAS-000006-database-persistence-standard.md) (migrations), [QES-000012](../qes/QES-000012-release-engineering.md) (release
   engineering practices).
 
 ---

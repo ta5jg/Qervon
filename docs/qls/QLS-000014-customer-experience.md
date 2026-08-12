@@ -48,8 +48,8 @@ in either shipped mobile app or the web pages today.
 
 ## References
 
-- QLS-000005 (customer domain — the profile/address book underneath
-  this), QLS-000010 (notifications), BACKEND_BACKLOG.md.
+- [QLS-000005](QLS-000005-customer-domain.md) (customer domain — the profile/address book underneath
+  this), [QLS-000010](QLS-000010-notification-domain.md) (notifications), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

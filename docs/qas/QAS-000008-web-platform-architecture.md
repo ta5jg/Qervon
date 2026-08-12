@@ -84,8 +84,8 @@ across pages (the closest thing to a shared piece is
 
 ## References
 
-- ADR-000004 (the full decision history), QAS-000004 (security controls
-  these pages rely on), QAS-000005 (the API contract they call).
+- [ADR-000004](../adr/ADR-000004-use-react-typescript-for-web.md) (the full decision history), [QAS-000004](QAS-000004-security-architecture.md) (security controls
+  these pages rely on), [QAS-000005](QAS-000005-api-integration-standard.md) (the API contract they call).
 - Root [README.md](../../README.md) "Web Platformu Kararı" section.
 
 ---

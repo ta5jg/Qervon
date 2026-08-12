@@ -98,7 +98,7 @@ real gap here (an unescaped order-address label in
 
 ## References
 
-- QAS-000011 (multi-tenant isolation), QES-000014 (secure coding
+- [QAS-000011](QAS-000011-multi-tenant-architecture.md) (multi-tenant isolation), [QES-000014](../qes/QES-000014-secure-coding-standard.md) (secure coding
   standard), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md) (OTP/SMS gap).
 
 ---

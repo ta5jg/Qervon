@@ -60,7 +60,7 @@ Service domain, QLS-000012) is built and the duplication becomes real.
 
 ## References
 
-- QLS-000002, QLS-000003 (the two real state machines), QFS-000001
+- [QLS-000002](../qls/QLS-000002-order-domain.md), [QLS-000003](../qls/QLS-000003-dispatch-domain.md) (the two real state machines), [QFS-000001](QFS-000001-foundation-overview.md)
   (series overview).
 
 ---

@@ -53,8 +53,8 @@ exists to fix — see QMI-000000's honesty policy.
 
 ## References
 
-- ADR-000004 (the decision this document's status follows from),
-  QAS-000008 (the real web architecture), QES-000010 (CI/CD standard,
+- [ADR-000004](../adr/ADR-000004-use-react-typescript-for-web.md) (the decision this document's status follows from),
+  [QAS-000008](../qas/QAS-000008-web-platform-architecture.md) (the real web architecture), [QES-000010](QES-000010-ci-cd-standard.md) (CI/CD standard,
   noting `web.yml`'s placeholder state).
 
 ---

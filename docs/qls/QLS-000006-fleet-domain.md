@@ -54,8 +54,8 @@ dispatch.
 
 ## References
 
-- QAS-000002 (domain model), QAS-000011 (the tenant-binding pattern this
-  followed), QLS-000004 (courier — the relationship above).
+- [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model), [QAS-000011](../qas/QAS-000011-multi-tenant-architecture.md) (the tenant-binding pattern this
+  followed), [QLS-000004](QLS-000004-courier-domain.md) (courier — the relationship above).
 
 ---
 

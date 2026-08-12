@@ -69,8 +69,8 @@ reference to the governance document explaining a business rule.
 
 ## References
 
-- QMI-000001 (the governance-specific rules this document details),
-  QES-000001 (the header-format principle).
+- [QMI-000001](../qmi/QMI-000001-document-governance.md) (the governance-specific rules this document details),
+  [QES-000001](QES-000001-engineering-principles.md) (the header-format principle).
 
 ---
 

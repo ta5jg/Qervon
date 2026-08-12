@@ -63,7 +63,7 @@ for the operator-facing runbook using these endpoints.
 
 ## References
 
-- QAS-000014 (deployment — how logs/metrics reach an operator in
+- [QAS-000014](QAS-000014-deployment-architecture.md) (deployment — how logs/metrics reach an operator in
   practice), [docs/operations/api-observability.md](../operations/api-observability.md).
 
 ---

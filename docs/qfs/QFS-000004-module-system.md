@@ -54,8 +54,8 @@ that nothing currently needs (see QFS-000002/QFS-000005).
 
 ## References
 
-- ADR-000007 (modular monolith, the decision this implements), QAS-000001
-  (the layering rules modules must respect), QFS-000002 (why there's no
+- [ADR-000007](../adr/ADR-000007-use-modular-monolith-first.md) (modular monolith, the decision this implements), [QAS-000001](../qas/QAS-000001-architecture-philosophy.md)
+  (the layering rules modules must respect), [QFS-000002](QFS-000002-kernel-architecture.md) (why there's no
   kernel above this).
 
 ---

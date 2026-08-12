@@ -72,8 +72,8 @@ Every governance document must have:
 
 ## References
 
-- QMI-000000 (master index and honesty policy), QMI-000002 (versioning),
-  QMI-000003 (architecture governance / ADR process).
+- [QMI-000000](QMI-000000-master-architecture-index.md) (master index and honesty policy), [QMI-000002](QMI-000002-versioning-policy.md) (versioning),
+  [QMI-000003](QMI-000003-architecture-governance.md) (architecture governance / ADR process).
 
 ---
 

@@ -74,8 +74,8 @@ DerivedData path.
 
 ## References
 
-- QAS-000007 (mobile platform architecture), QES-000004 (Swift
-  engineering standard), ADR-000002 (Kotlin for Android, the sibling
+- [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (mobile platform architecture), [QES-000004](../qes/QES-000004-swift-engineering-standard.md) (Swift
+  engineering standard), [ADR-000002](ADR-000002-use-kotlin-for-android.md) (Kotlin for Android, the sibling
   decision).
 - [mobile/ios/README.md](../../mobile/ios/README.md).
 

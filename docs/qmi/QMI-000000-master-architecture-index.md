@@ -72,8 +72,8 @@ should.
 
 ## References
 
-- QMI-000001 (document governance — how these files are maintained),
-  QMI-000002 (versioning policy), QMI-000003 (architecture governance —
+- [QMI-000001](QMI-000001-document-governance.md) (document governance — how these files are maintained),
+  [QMI-000002](QMI-000002-versioning-policy.md) (versioning policy), [QMI-000003](QMI-000003-architecture-governance.md) (architecture governance —
   when a change needs an ADR).
 - Root [README.md](../../README.md), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 

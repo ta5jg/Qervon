@@ -75,7 +75,7 @@ their DTOs the same way.
 
 ## References
 
-- ADR-000003 (why Swift/SwiftUI), QAS-000007 (the real project
+- [ADR-000003](../adr/ADR-000003-use-swift-for-ios.md) (why Swift/SwiftUI), [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (the real project
   architecture this codifies).
 
 ---

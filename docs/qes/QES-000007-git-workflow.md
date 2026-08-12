@@ -59,7 +59,7 @@ required (passing CI, N approvals, etc.) rather than left silent on it.
 
 ## References
 
-- QES-000008 (code review standard), QES-000010 (CI/CD — what actually
+- [QES-000008](QES-000008-code-review-standard.md) (code review standard), [QES-000010](QES-000010-ci-cd-standard.md) (CI/CD — what actually
   gates a merge today).
 
 ---

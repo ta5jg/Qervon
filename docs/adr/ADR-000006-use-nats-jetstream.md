@@ -94,8 +94,8 @@ a message broker.
 
 ## References
 
-- QAS-000003 (event architecture, rewritten to match this decision).
-- ADR-000007 (modular monolith), ADR-000010 (hybrid event architecture).
+- [QAS-000003](../qas/QAS-000003-event-architecture.md) (event architecture, rewritten to match this decision).
+- [ADR-000007](ADR-000007-use-modular-monolith-first.md) (modular monolith), [ADR-000010](ADR-000010-use-hybrid-event-architecture.md) (hybrid event architecture).
 - `backend/apps/api-gateway/src/state.rs` (the real `pg_notify` call site).
 
 ---

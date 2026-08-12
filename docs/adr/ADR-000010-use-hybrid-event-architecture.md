@@ -86,8 +86,8 @@ Use a **hybrid** approach:
 
 ## References
 
-- QAS-000003 (event architecture), ADR-000006 (NATS JetStream, not
-  adopted), ADR-000007 (modular monolith).
+- [QAS-000003](../qas/QAS-000003-event-architecture.md) (event architecture), [ADR-000006](ADR-000006-use-nats-jetstream.md) (NATS JetStream, not
+  adopted), [ADR-000007](ADR-000007-use-modular-monolith-first.md) (modular monolith).
 
 ---
 

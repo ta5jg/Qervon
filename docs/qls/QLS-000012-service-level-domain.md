@@ -55,8 +55,8 @@ repository/migration/route/UI.
 
 ## References
 
-- QLS-000001 (overview), QLS-000003 (dispatch — the on-demand flow field
-  service would need to relate to), BACKEND_BACKLOG.md.
+- [QLS-000001](QLS-000001-logistics-domain-overview.md) (overview), [QLS-000003](QLS-000003-dispatch-domain.md) (dispatch — the on-demand flow field
+  service would need to relate to), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md).
 
 ---
 

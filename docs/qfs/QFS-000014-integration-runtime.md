@@ -59,8 +59,8 @@ uptime).
 
 ## References
 
-- QFS-000011 (the scheduler/outbox mechanism delivery uses), QAS-000005
-  (API conventions), QES-000014 (secure coding — the HTTPS-only/secret-hash
+- [QFS-000011](QFS-000011-scheduler.md) (the scheduler/outbox mechanism delivery uses), [QAS-000005](../qas/QAS-000005-api-integration-standard.md)
+  (API conventions), [QES-000014](../qes/QES-000014-secure-coding-standard.md) (secure coding — the HTTPS-only/secret-hash
   validation rules above).
 
 ---

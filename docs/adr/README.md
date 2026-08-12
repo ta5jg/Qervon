@@ -50,7 +50,7 @@ replaced it (see ADR-000004, ADR-000006), rather than a silent rewrite.
 
 ## References
 
-- QMI-000003 (architecture governance) for when an ADR is required.
+- [QMI-000003](../qmi/QMI-000003-architecture-governance.md) (architecture governance) for when an ADR is required.
 
 ---
 

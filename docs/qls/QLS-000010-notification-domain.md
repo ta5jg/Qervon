@@ -58,8 +58,8 @@ exists.
 
 ## References
 
-- QAS-000005 (API conventions), QAS-000007 (mobile push-token capture),
-  BACKEND_BACKLOG.md (the SMS/push-sending gap).
+- [QAS-000005](../qas/QAS-000005-api-integration-standard.md) (API conventions), [QAS-000007](../qas/QAS-000007-mobile-platform-architecture.md) (mobile push-token capture),
+  [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md) (the SMS/push-sending gap).
 
 ---
 

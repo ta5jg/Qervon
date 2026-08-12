@@ -57,7 +57,7 @@ Software components version independently of the documentation:
 
 ## References
 
-- QMI-000001 (document governance), QES-000012 (release engineering).
+- [QMI-000001](QMI-000001-document-governance.md) (document governance), [QES-000012](../qes/QES-000012-release-engineering.md) (release engineering).
 
 ---
 

@@ -71,8 +71,8 @@ QLS-000006.
 
 ## References
 
-- QAS-000002 (domain model), QLS-000003 (dispatch — how a courier
-  receives work), QLS-000006 (fleet — the vehicle asset relationship).
+- [QAS-000002](../qas/QAS-000002-domain-model.md) (domain model), [QLS-000003](QLS-000003-dispatch-domain.md) (dispatch — how a courier
+  receives work), [QLS-000006](QLS-000006-fleet-domain.md) (fleet — the vehicle asset relationship).
 
 ---
 

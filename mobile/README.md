@@ -38,8 +38,8 @@ removed once native iOS and Android replaced it (see ADR-000002).
 
 ## References
 
-- QAS-000007 (mobile platform architecture).
-- ADR-000002 (Kotlin for Android), ADR-000003 (Swift for iOS).
+- [QAS-000007](../docs/qas/QAS-000007-mobile-platform-architecture.md) (mobile platform architecture).
+- [ADR-000002](../docs/adr/ADR-000002-use-kotlin-for-android.md) (Kotlin for Android), [ADR-000003](../docs/adr/ADR-000003-use-swift-for-ios.md) (Swift for iOS).
 
 ---
 

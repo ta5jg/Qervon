@@ -59,7 +59,7 @@ could become a real feature later without restructuring anything.
 
 ## References
 
-- QAS-000002 (the domain model these all extend), BACKEND_BACKLOG.md
+- [QAS-000002](../qas/QAS-000002-domain-model.md) (the domain model these all extend), [BACKEND_BACKLOG.md](../../BACKEND_BACKLOG.md)
   (the current, authoritative v2-backlog list).
 
 ---
