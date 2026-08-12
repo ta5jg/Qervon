@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Placeholder mark (a location pin), honestly described as such in
+    mobile/android/README.md — not a designed brand asset. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,24 C40,24 30,34 30,48 C30,66 54,86 54,86 C54,86 78,66 78,48 C78,34 68,24 54,24 Z" />
+    <path
+        android:fillColor="#00B894"
+        android:pathData="M54,38 C47,38 42,43 42,50 C42,57 47,62 54,62 C61,62 66,57 66,50 C66,43 61,38 54,38 Z" />
+</vector>

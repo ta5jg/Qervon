@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    Only the pre-Compose window background/status-bar color matters here
+    — MainActivity replaces the actual UI with QervonTheme (Compose
+    Material3) immediately in setContent {}.
+    -->
+    <style name="Theme.Qervon" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#0F62FE</item>
+        <item name="android:windowBackground">#F5F7FA</item>
+    </style>
+</resources>

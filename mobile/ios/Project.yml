@@ -4,10 +4,16 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines a governed component of the Qervon platform repository.
+#   XcodeGen project specification for the native Qervon iOS apps: the
+#   Courier app (Faz-2.2) and the Customer app (Faz-2.3), sharing the
+#   Packages/QervonKit infrastructure and part of Features/QervonFeatures.
+#   This YAML file is the source of truth; the generated
+#   `QervonCourierApp.xcodeproj` (name kept for historical continuity — it
+#   now contains both app targets) is a build artifact (regenerate it with
+#   `xcodegen generate` after any change here — see mobile/ios/README.md).
 #
 # Specification:
 #   QAS-000004, QAS-000005, QAS-000007, QES-000003, QES-000004.
@@ -15,3 +21,151 @@
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: QervonCourierApp
+options:
+  bundleIdPrefix: com.qervon.ios
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+
+packages:
+  QervonKit:
+    path: Packages/QervonKit
+  QervonFeatures:
+    path: Features/QervonFeatures
+
+targets:
+  QervonCourierApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: QervonCourierApp
+    dependencies:
+      - package: QervonKit
+        product: QervonCore
+      - package: QervonKit
+        product: QervonNetworking
+      - package: QervonKit
+        product: QervonSecurity
+      - package: QervonKit
+        product: QervonLocation
+      - package: QervonKit
+        product: QervonDesignSystem
+      - package: QervonFeatures
+        product: AuthFeature
+      - package: QervonFeatures
+        product: DispatchFeature
+      - package: QervonFeatures
+        product: OrdersFeature
+      - package: QervonFeatures
+        product: MapsFeature
+      - package: QervonFeatures
+        product: ProofOfDeliveryFeature
+      - package: QervonFeatures
+        product: EarningsFeature
+      - package: QervonFeatures
+        product: ProfileFeature
+    info:
+      path: QervonCourierApp/Info.plist
+      properties:
+        CFBundleDisplayName: Qervon Kurye
+        UILaunchScreen: {}
+        UIBackgroundModes:
+          - location
+        NSLocationWhenInUseUsageDescription: >-
+          Qervon, size en yakın teslimatları önerebilmek ve müşterilere canlı
+          konumunuzu gösterebilmek için konumunuzu kullanır.
+        NSLocationAlwaysAndWhenInUseUsageDescription: >-
+          Görev kabul ettiğinizde Qervon, uygulama arka plandayken de
+          konumunuzu müşteriye ve operasyon ekibine canlı olarak iletir.
+        NSCameraUsageDescription: >-
+          Teslim alma/verme sırasında QR/barkod okutmak ve teslimat fotoğrafı
+          çekmek için kameraya erişim gerekir.
+        NSFaceIDUsageDescription: >-
+          Oturumunuzu Face ID ile hızlıca açmanız için kullanılır. Bu, yalnızca
+          cihazınızda saklanan oturumun kilidini açar; sunucu tarafında
+          biyometrik bir kimlik doğrulama yapılmaz.
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationQueriesSchemes:
+          - comgooglemaps
+          - yandexnavi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.courier
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: NO
+
+  QervonCustomerApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: QervonCustomerApp
+    dependencies:
+      - package: QervonKit
+        product: QervonCore
+      - package: QervonKit
+        product: QervonNetworking
+      - package: QervonKit
+        product: QervonSecurity
+      - package: QervonKit
+        product: QervonDesignSystem
+      - package: QervonFeatures
+        product: AuthFeature
+      - package: QervonFeatures
+        product: AddressBookFeature
+      - package: QervonFeatures
+        product: CustomerOrderFeature
+      - package: QervonFeatures
+        product: CustomerProfileFeature
+    info:
+      path: QervonCustomerApp/Info.plist
+      properties:
+        CFBundleDisplayName: Qervon
+        UILaunchScreen: {}
+        NSLocationWhenInUseUsageDescription: >-
+          Qervon, alım adresinizi kolayca seçebilmeniz ve kuryenizin
+          konumunu haritada gösterebilmek için konumunuzu kullanır.
+        NSFaceIDUsageDescription: >-
+          Oturumunuzu Face ID ile hızlıca açmanız için kullanılır. Bu, yalnızca
+          cihazınızda saklanan oturumun kilidini açar; sunucu tarafında
+          biyometrik bir kimlik doğrulama yapılmaz.
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.customer
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        GENERATE_INFOPLIST_FILE: NO
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SUPPORTS_MACCATALYST: NO
+
+schemes:
+  QervonCourierApp:
+    build:
+      targets:
+        QervonCourierApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+
+  QervonCustomerApp:
+    build:
+      targets:
+        QervonCustomerApp: all
+    run:
+      config: Debug
+    test:
+      config: Debug

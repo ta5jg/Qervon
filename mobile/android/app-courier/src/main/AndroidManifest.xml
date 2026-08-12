@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+=============================================================================
+File:           mobile/android/app-courier/src/main/AndroidManifest.xml
+Project:        Qervon
+Author:         USDTG GROUP TECHNOLOGY LLC
+Developer:      Irfan Gedik
+Created Date:   2026-08-12
+Version:        0.1.0
+License:        Qervon License v1.0 — see LICENSE in the repository root.
+=============================================================================
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".QervonCourierApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:theme="@style/Theme.Qervon"
+        android:usesCleartextTraffic="true">
+
+        <!--
+        usesCleartextTraffic=true: local/dev backends are commonly plain
+        HTTP (see APIEnvironment). Production deployments behind
+        silhor.com are expected to terminate TLS, at which point this
+        should be tightened; see BACKEND_BACKLOG.md.
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Qervon"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
