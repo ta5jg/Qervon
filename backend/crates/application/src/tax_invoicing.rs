@@ -44,7 +44,7 @@ impl TaxInvoicingEngine {
         let total_amount_minor = net_amount_minor + vat_amount_minor;
 
         let inv_suffix = uuid::Uuid::now_v7().to_string();
-        let invoice_number = format!("QER2026{}", &inv_suffix[..8].to_uppercase());
+        let invoice_number = format!("QER2026{}", inv_suffix[..8].to_uppercase());
 
         ElectronicInvoiceDraft {
             invoice_number,

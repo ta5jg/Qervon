@@ -54,3 +54,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           working-directory: backend
+          # The `audit-check` action does not read backend/.cargo/audit.toml
+          # (that file only applies to a locally-run `cargo audit`), so the
+          # same RUSTSEC-2023-0071 exception documented there is repeated
+          # here explicitly. See backend/.cargo/audit.toml for the full
+          # rationale (transitive via web-push -> jwt-simple -> rsa, unused
+          # RSA-JWT surface).
+          ignore: RUSTSEC-2023-0071
