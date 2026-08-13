@@ -52,6 +52,8 @@ public struct OrderHistoryView: View {
         .qervonScreenBackground()
         .refreshable { await viewModel.load() }
         .task { await viewModel.load() }
+        .onAppear { viewModel.startLiveUpdates() }
+        .onDisappear { viewModel.stopLiveUpdates() }
     }
 
     private func section(title: String, orders: [Order]) -> some View {

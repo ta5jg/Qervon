@@ -1,10 +1,13 @@
 // =============================================================================
-// File:           mobile/ios/Features/QervonFeatures/Sources/CustomerOrderFeature/OrderHistoryViewModel.swift
+// File:           mobile/ios/Features/QervonFeatures/Sources/OrdersFeature/CourierOrdersViewModel.swift
 // Project:        Qervon
 // Author:         USDTG GROUP TECHNOLOGY LLC
 // Developer:      Irfan Gedik
-// Created Date:   2026-08-12
+// Created Date:   2026-08-13
 // Version:        0.1.0
+//
+// Description:
+//   Live active courier orders list state for the dedicated "İşlerim" tab.
 //
 // License:
 //   Qervon License v1.0 — see LICENSE in the repository root.
@@ -15,7 +18,7 @@ import QervonCore
 import QervonNetworking
 
 @MainActor
-public final class OrderHistoryViewModel: ObservableObject {
+public final class CourierOrdersViewModel: ObservableObject {
     @Published public private(set) var orders: [Order] = []
     @Published public private(set) var isLoading = false
     @Published public var errorMessage: String?
@@ -33,7 +36,7 @@ public final class OrderHistoryViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
         do {
-            orders = try await api.listCustomerOrders().sorted { $0.createdAt > $1.createdAt }
+            orders = try await activeCourierOrders()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -55,23 +58,17 @@ public final class OrderHistoryViewModel: ObservableObject {
         pollingTask = nil
     }
 
-    public var activeOrders: [Order] {
-        orders.filter {
-            $0.status == .pending || $0.status == .courierAssigned || $0.status == .inTransit
-        }
-    }
-
-    public var pastOrders: [Order] {
-        orders.filter {
-            $0.status == .delivered || $0.status == .cancelled || $0.status == .returned
+    private func activeCourierOrders() async throws -> [Order] {
+        try await api.listCourierOrders().filter {
+            $0.status == .courierAssigned || $0.status == .inTransit
         }
     }
 
     private func refreshSilently() async {
         do {
-            orders = try await api.listCustomerOrders().sorted { $0.createdAt > $1.createdAt }
+            orders = try await activeCourierOrders()
         } catch {
-            // Keep previous rendered list for transient poll failures.
+            // Keep previous list on transient errors.
         }
     }
 

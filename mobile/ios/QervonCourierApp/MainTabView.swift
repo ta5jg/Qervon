@@ -17,6 +17,7 @@
 import SwiftUI
 import QervonDesignSystem
 import DispatchFeature
+import OrdersFeature
 import EarningsFeature
 import ProfileFeature
 
@@ -25,16 +26,27 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            DispatchHomeView(api: session.api)
-                .tabItem { Label("Ana Sayfa", systemImage: "house.fill") }
-
-            EarningsView(api: session.api)
-                .tabItem { Label("Kazanç", systemImage: "wallet.pass.fill") }
-
-            ProfileView(api: session.api) {
-                Task { await session.logout() }
+            NavigationStack {
+                DispatchHomeView(api: session.api)
             }
-            .tabItem { Label("Profil", systemImage: "person.fill") }
+            .tabItem { Label("Panel", systemImage: "dot.radiowaves.left.and.right") }
+
+            NavigationStack {
+                CourierOrdersView(api: session.api)
+            }
+            .tabItem { Label("İşlerim", systemImage: "list.bullet.rectangle.fill") }
+
+            NavigationStack {
+                EarningsView(api: session.api)
+            }
+            .tabItem { Label("Kazanç", systemImage: "wallet.pass.fill") }
+
+            NavigationStack {
+                ProfileView(api: session.api) {
+                    Task { await session.logout() }
+                }
+            }
+            .tabItem { Label("Hesap", systemImage: "person.fill") }
         }
         .tint(QervonColor.accent)
     }

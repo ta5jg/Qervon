@@ -18,11 +18,16 @@ import com.qervon.core.common.QervonApiException
 import com.qervon.core.common.model.Order
 import com.qervon.core.network.QervonApi
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val ORDER_HISTORY_POLL_INTERVAL_MS = 5_000L
 
 data class OrderHistoryUiState(
     val orders: List<Order> = emptyList(),
@@ -35,6 +40,7 @@ class OrderHistoryViewModel @Inject constructor(private val api: QervonApi) : Vi
 
     private val _uiState = MutableStateFlow(OrderHistoryUiState())
     val uiState: StateFlow<OrderHistoryUiState> = _uiState.asStateFlow()
+    private var pollJob: Job? = null
 
     fun refresh() {
         viewModelScope.launch {
@@ -48,5 +54,30 @@ class OrderHistoryViewModel @Inject constructor(private val api: QervonApi) : Vi
                 _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
+    }
+
+    fun startLiveUpdates() {
+        if (pollJob?.isActive == true) return
+        pollJob = viewModelScope.launch {
+            while (isActive) {
+                delay(ORDER_HISTORY_POLL_INTERVAL_MS)
+                try {
+                    val orders = api.listCustomerOrders().sortedByDescending { it.createdAt }
+                    _uiState.value = _uiState.value.copy(orders = orders)
+                } catch (_: QervonApiException) {
+                    // Keep previous list on transient refresh errors.
+                }
+            }
+        }
+    }
+
+    fun stopLiveUpdates() {
+        pollJob?.cancel()
+        pollJob = null
+    }
+
+    override fun onCleared() {
+        stopLiveUpdates()
+        super.onCleared()
     }
 }

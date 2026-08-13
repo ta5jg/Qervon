@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -49,6 +50,7 @@ import com.qervon.features.customerorder.NewOrderScreen
 import com.qervon.features.customerorder.OrderDetailScreen
 import com.qervon.features.customerorder.OrderHistoryScreen
 import com.qervon.features.customerprofile.CustomerProfileScreen
+import com.qervon.features.customerprofile.CustomerSupportScreen
 
 private object Routes {
     const val LOGIN = "login"
@@ -58,6 +60,7 @@ private object Routes {
     const val NEW_ORDER = "new_order"
     const val ORDERS = "orders"
     const val PROFILE = "profile"
+    const val SUPPORT = "support"
     fun orderDetail(orderId: String) = "orderDetail/$orderId"
 }
 
@@ -154,6 +157,12 @@ private fun CustomerMainTabs(
                     icon = { Icon(Icons.Filled.AccountCircle, contentDescription = null) },
                     label = { Text("Hesabım") },
                 )
+                NavigationBarItem(
+                    selected = currentRoute == Routes.SUPPORT,
+                    onClick = { tabNavController.navigate(Routes.SUPPORT) { launchSingleTop = true } },
+                    icon = { Icon(Icons.Filled.SupportAgent, contentDescription = null) },
+                    label = { Text("Destek") },
+                )
             }
         },
     ) { padding ->
@@ -165,6 +174,7 @@ private fun CustomerMainTabs(
             composable(Routes.NEW_ORDER) { NewOrderScreen(onOrderCreated = onOrderSelected) }
             composable(Routes.ORDERS) { OrderHistoryScreen(onOrderSelected = onOrderSelected) }
             composable(Routes.PROFILE) { CustomerProfileScreen(onLoggedOut = onLoggedOut) }
+            composable(Routes.SUPPORT) { CustomerSupportScreen() }
         }
     }
 }

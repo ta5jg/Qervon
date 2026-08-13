@@ -28,6 +28,7 @@ struct MainTabView: View {
         case newOrder
         case history
         case profile
+        case support
     }
 
     var body: some View {
@@ -57,6 +58,12 @@ struct MainTabView: View {
             }
             .tabItem { Label("Profil", systemImage: "person.fill") }
             .tag(Tab.profile)
+
+            NavigationStack {
+                CustomerSupportView(api: session.api)
+            }
+            .tabItem { Label("Destek", systemImage: "message.fill") }
+            .tag(Tab.support)
         }
         .tint(QervonColor.accent)
     }

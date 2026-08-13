@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qervon.core.common.model.OrderStatus
 import com.qervon.core.designsystem.QervonCard
 import com.qervon.core.designsystem.QervonColors
 import com.qervon.core.designsystem.QervonPrimaryButton
@@ -69,6 +70,22 @@ fun DispatchScreen(viewModel: DispatchViewModel = hiltViewModel()) {
                         )
                     }
                     Switch(checked = state.isOnline, onCheckedChange = { viewModel.toggleOnline() }, enabled = !state.isTogglingOnline)
+                }
+            }
+
+            state.activeOrder?.let { order ->
+                QervonCard {
+                    Text("Aktif Görev", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(QervonSpacing.sm))
+                    Text(
+                        if (order.status == OrderStatus.COURIER_ASSIGNED) "Alım noktasına gidiliyor" else "Teslimata gidiliyor",
+                        color = QervonColors.Primary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text("Alım: ${order.pickup.label ?: "Konum"}")
+                    Text("Teslim: ${order.dropoff.label ?: "Konum"}")
+                    Text("Ücret: ${order.fare.formatted()}", style = MaterialTheme.typography.titleMedium)
                 }
             }
 

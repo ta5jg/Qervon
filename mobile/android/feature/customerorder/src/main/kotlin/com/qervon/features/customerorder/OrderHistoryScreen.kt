@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -48,7 +49,13 @@ fun OrderHistoryScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) { viewModel.refresh() }
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+        viewModel.startLiveUpdates()
+    }
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopLiveUpdates() }
+    }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Siparişlerim") }) }) { padding ->
         if (state.orders.isEmpty() && !state.isLoading) {

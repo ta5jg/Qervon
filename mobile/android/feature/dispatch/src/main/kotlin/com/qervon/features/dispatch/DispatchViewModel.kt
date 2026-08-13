@@ -24,6 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.qervon.core.common.QervonApiException
 import com.qervon.core.common.model.Courier
 import com.qervon.core.common.model.CourierStatus
+import com.qervon.core.common.model.Order
+import com.qervon.core.common.model.OrderStatus
 import com.qervon.core.common.model.PendingOffer
 import com.qervon.core.location.CourierLocationService
 import com.qervon.core.location.LocationReporter
@@ -44,6 +46,7 @@ private const val OFFER_POLL_INTERVAL_MS = 4_000L
 
 data class DispatchUiState(
     val courier: Courier? = null,
+    val activeOrder: Order? = null,
     val pendingOffer: PendingOffer? = null,
     val secondsRemaining: Long = 0,
     val isTogglingOnline: Boolean = false,
@@ -83,7 +86,13 @@ class DispatchViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val courier = api.getOwnCourier()
-                _uiState.value = _uiState.value.copy(courier = courier)
+                val activeOrder = api.listCourierOrders().firstOrNull {
+                    it.status == OrderStatus.COURIER_ASSIGNED || it.status == OrderStatus.IN_TRANSIT
+                }
+                _uiState.value = _uiState.value.copy(
+                    courier = courier,
+                    activeOrder = activeOrder,
+                )
                 if (courier.status != CourierStatus.OFFLINE) startPolling()
             } catch (error: QervonApiException) {
                 _uiState.value = _uiState.value.copy(errorMessage = error.message)
@@ -105,7 +114,7 @@ class DispatchViewModel @Inject constructor(
                 } else {
                     CourierLocationService.stop(appContext)
                     stopPolling()
-                    _uiState.value = _uiState.value.copy(pendingOffer = null)
+                    _uiState.value = _uiState.value.copy(pendingOffer = null, activeOrder = null)
                 }
             } catch (error: QervonApiException) {
                 _uiState.value = _uiState.value.copy(errorMessage = error.message)
@@ -120,8 +129,8 @@ class DispatchViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isRespondingToOffer = true)
             try {
-                api.acceptOffer(offer.order.id)
-                _uiState.value = _uiState.value.copy(pendingOffer = null)
+                val accepted = api.acceptOffer(offer.order.id)
+                _uiState.value = _uiState.value.copy(pendingOffer = null, activeOrder = accepted)
             } catch (error: QervonApiException) {
                 _uiState.value = _uiState.value.copy(errorMessage = error.message)
             } finally {
@@ -150,11 +159,23 @@ class DispatchViewModel @Inject constructor(
         pollJob = viewModelScope.launch {
             while (isActive) {
                 try {
-                    val offer = api.getOwnPendingOffer()
-                    _uiState.value = _uiState.value.copy(
-                        pendingOffer = offer,
-                        secondsRemaining = offer?.secondsRemaining() ?: 0,
-                    )
+                    val activeOrder = api.listCourierOrders().firstOrNull {
+                        it.status == OrderStatus.COURIER_ASSIGNED || it.status == OrderStatus.IN_TRANSIT
+                    }
+                    if (activeOrder != null) {
+                        _uiState.value = _uiState.value.copy(
+                            activeOrder = activeOrder,
+                            pendingOffer = null,
+                            secondsRemaining = 0,
+                        )
+                    } else {
+                        val offer = api.getOwnPendingOffer()
+                        _uiState.value = _uiState.value.copy(
+                            activeOrder = null,
+                            pendingOffer = offer,
+                            secondsRemaining = offer?.secondsRemaining() ?: 0,
+                        )
+                    }
                 } catch (_: QervonApiException) {
                     // Transient poll failures are silently retried.
                 }
