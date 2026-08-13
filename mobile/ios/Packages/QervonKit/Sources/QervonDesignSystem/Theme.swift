@@ -157,3 +157,40 @@ public extension View {
         modifier(QervonScreenBackground())
     }
 }
+
+public struct QervonTerminalHeader: View {
+    let title: String
+    let subtitle: String
+    let badge: String
+
+    public init(title: String, subtitle: String, badge: String) {
+        self.title = title
+        self.subtitle = subtitle
+        self.badge = badge
+    }
+
+    public var body: some View {
+        HStack(alignment: .center, spacing: QervonSpacing.sm) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 14, weight: .heavy))
+                    .foregroundColor(.white)
+                Text(subtitle)
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(QervonColor.cyan)
+            }
+            Spacer(minLength: QervonSpacing.sm)
+            Text(badge)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(QervonColor.success)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(QervonColor.success.opacity(0.18))
+                .cornerRadius(8)
+        }
+        .padding(.horizontal, QervonSpacing.md)
+        .padding(.vertical, 12)
+        .background(QervonColor.surface)
+        .overlay(Rectangle().fill(QervonColor.border).frame(height: 1), alignment: .bottom)
+    }
+}

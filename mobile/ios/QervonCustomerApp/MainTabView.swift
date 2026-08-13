@@ -35,43 +35,66 @@ struct MainTabView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                CustomerLiveTrackingView(api: session.api)
+                customerShell {
+                    CustomerLiveTrackingView(api: session.api)
+                }
             }
             .tabItem { Label("Canlı Takip", systemImage: "location.fill") }
             .tag(Tab.liveTracking)
 
             NavigationStack {
-                NewOrderView(api: session.api) { _ in
-                    // Jump to the history tab so the customer can see (and
-                    // start tracking) the order they just created.
-                    historyRefreshToken = UUID()
-                    selectedTab = .history
+                customerShell {
+                    NewOrderView(api: session.api) { _ in
+                        // Jump to the history tab so the customer can see (and
+                        // start tracking) the order they just created.
+                        historyRefreshToken = UUID()
+                        selectedTab = .history
+                    }
                 }
             }
             .tabItem { Label("Sipariş Ver", systemImage: "shippingbox.fill") }
             .tag(Tab.newOrder)
 
             NavigationStack {
-                OrderHistoryView(api: session.api)
-                    .id(historyRefreshToken)
+                customerShell {
+                    OrderHistoryView(api: session.api)
+                        .id(historyRefreshToken)
+                }
             }
             .tabItem { Label("Geçmiş", systemImage: "clock.fill") }
             .tag(Tab.history)
 
             NavigationStack {
-                CustomerProfileView(api: session.api) {
-                    Task { await session.logout() }
+                customerShell {
+                    CustomerProfileView(api: session.api) {
+                        Task { await session.logout() }
+                    }
                 }
             }
             .tabItem { Label("Cüzdan", systemImage: "wallet.pass.fill") }
             .tag(Tab.profile)
 
             NavigationStack {
-                CustomerSupportView(api: session.api)
+                customerShell {
+                    CustomerSupportView(api: session.api)
+                }
             }
             .tabItem { Label("Destek", systemImage: "message.fill") }
             .tag(Tab.support)
         }
         .tint(QervonColor.accent)
+    }
+
+    @ViewBuilder
+    private func customerShell<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            QervonTerminalHeader(
+                title: "QERVON MÜŞTERİ",
+                subtitle: "NATIVE iOS / ANDROID SIMULATOR",
+                badge: "GPS LIVE"
+            )
+            content()
+        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }

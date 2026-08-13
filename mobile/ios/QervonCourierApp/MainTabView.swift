@@ -27,27 +27,48 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             NavigationStack {
-                DispatchHomeView(api: session.api)
+                courierShell {
+                    DispatchHomeView(api: session.api)
+                }
             }
             .tabItem { Label("Navigasyon", systemImage: "location.fill") }
 
             NavigationStack {
-                CourierOrdersView(api: session.api)
+                courierShell {
+                    CourierOrdersView(api: session.api)
+                }
             }
             .tabItem { Label("POD / İmza", systemImage: "checkmark.seal.fill") }
 
             NavigationStack {
-                EarningsView(api: session.api)
+                courierShell {
+                    EarningsView(api: session.api)
+                }
             }
             .tabItem { Label("Kazançlar", systemImage: "wallet.pass.fill") }
 
             NavigationStack {
-                ProfileView(api: session.api) {
-                    Task { await session.logout() }
+                courierShell {
+                    ProfileView(api: session.api) {
+                        Task { await session.logout() }
+                    }
                 }
             }
             .tabItem { Label("Profil", systemImage: "person.fill") }
         }
         .tint(QervonColor.accent)
+    }
+
+    @ViewBuilder
+    private func courierShell<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            QervonTerminalHeader(
+                title: "KURYE TERMİNALİ",
+                subtitle: "HARDWARE GPS BROADCASTER",
+                badge: "OTURUM"
+            )
+            content()
+        }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
