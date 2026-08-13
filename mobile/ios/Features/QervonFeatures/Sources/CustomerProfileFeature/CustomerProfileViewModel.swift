@@ -24,6 +24,8 @@ public final class CustomerProfileViewModel: ObservableObject {
     @Published public private(set) var isLinkingPhone = false
     @Published public private(set) var phoneLinked = false
     @Published public private(set) var supportTickets: [SupportTicket] = []
+    @Published public private(set) var isSubmittingSupportTicket = false
+    @Published public private(set) var supportInfoMessage: String?
     @Published public private(set) var notifications: [AppNotification] = []
     @Published public var errorMessage: String?
     @Published public var isBiometricEnabled: Bool {
@@ -32,6 +34,8 @@ public final class CustomerProfileViewModel: ObservableObject {
 
     public let biometricGate = BiometricGate()
     private let api: QervonAPI
+    private var supportPollingTask: Task<Void, Never>?
+    private let supportPollingInterval: Duration = .seconds(5)
 
     public init(api: QervonAPI) {
         self.api = api
@@ -45,6 +49,49 @@ public final class CustomerProfileViewModel: ObservableObject {
         profile = await profileResult
         supportTickets = await ticketsResult ?? []
         notifications = await notificationsResult ?? []
+    }
+
+    public func startLiveSupport() {
+        supportPollingTask?.cancel()
+        supportPollingTask = Task { [weak self] in
+            guard let self else { return }
+            while !Task.isCancelled {
+                try? await Task.sleep(for: supportPollingInterval)
+                await refreshSupportTickets()
+            }
+        }
+    }
+
+    public func stopLiveSupport() {
+        supportPollingTask?.cancel()
+        supportPollingTask = nil
+    }
+
+    public func submitSupportTicket(subject: String, message: String) async {
+        let trimmedSubject = subject.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedMessage = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedSubject.isEmpty, !trimmedMessage.isEmpty else { return }
+
+        isSubmittingSupportTicket = true
+        supportInfoMessage = nil
+        errorMessage = nil
+        defer { isSubmittingSupportTicket = false }
+
+        do {
+            _ = try await api.createSupportTicket(orderId: nil, subject: trimmedSubject, message: trimmedMessage)
+            supportTickets = try await api.listSupportTickets()
+            supportInfoMessage = "Destek talebiniz operatore iletildi."
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func refreshSupportTickets() async {
+        do {
+            supportTickets = try await api.listSupportTickets()
+        } catch {
+            // Keep last rendered support list during transient failures.
+        }
     }
 
     public func linkPhone() async {
@@ -72,5 +119,9 @@ public final class CustomerProfileViewModel: ObservableObject {
             errorMessage = error.localizedDescription
             return false
         }
+    }
+
+    deinit {
+        supportPollingTask?.cancel()
     }
 }

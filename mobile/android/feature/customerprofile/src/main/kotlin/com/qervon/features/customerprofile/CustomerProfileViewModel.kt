@@ -25,11 +25,16 @@ import com.qervon.core.common.model.SupportTicket
 import com.qervon.core.network.QervonApi
 import com.qervon.core.security.AppPreferences
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val SUPPORT_POLL_INTERVAL_MS = 5_000L
 
 data class CustomerProfileUiState(
     val profile: CustomerProfile? = null,
@@ -37,7 +42,9 @@ data class CustomerProfileUiState(
     val notifications: List<AppNotification> = emptyList(),
     val biometricLockEnabled: Boolean = false,
     val isLoading: Boolean = false,
+    val isSubmittingSupportTicket: Boolean = false,
     val errorMessage: String? = null,
+    val infoMessage: String? = null,
 )
 
 @HiltViewModel
@@ -48,10 +55,11 @@ class CustomerProfileViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(CustomerProfileUiState(biometricLockEnabled = preferences.biometricLockEnabled))
     val uiState: StateFlow<CustomerProfileUiState> = _uiState.asStateFlow()
+    private var supportPollJob: Job? = null
 
     fun refresh() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null, infoMessage = null)
             try {
                 val profile = api.getCustomerProfile()
                 val tickets = api.listSupportTickets()
@@ -65,6 +73,56 @@ class CustomerProfileViewModel @Inject constructor(
         }
     }
 
+    fun startLiveSupport() {
+        if (supportPollJob?.isActive == true) return
+        supportPollJob = viewModelScope.launch {
+            while (isActive) {
+                delay(SUPPORT_POLL_INTERVAL_MS)
+                refreshSupportTickets()
+            }
+        }
+    }
+
+    fun stopLiveSupport() {
+        supportPollJob?.cancel()
+        supportPollJob = null
+    }
+
+    fun submitSupportTicket(subject: String, message: String) {
+        val trimmedSubject = subject.trim()
+        val trimmedMessage = message.trim()
+        if (trimmedSubject.isEmpty() || trimmedMessage.isEmpty()) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                isSubmittingSupportTicket = true,
+                errorMessage = null,
+                infoMessage = null,
+            )
+            try {
+                api.createSupportTicket(orderId = null, subject = trimmedSubject, message = trimmedMessage)
+                val tickets = api.listSupportTickets()
+                _uiState.value = _uiState.value.copy(
+                    tickets = tickets,
+                    infoMessage = "Destek talebiniz operatore iletildi.",
+                )
+            } catch (error: QervonApiException) {
+                _uiState.value = _uiState.value.copy(errorMessage = error.message)
+            } finally {
+                _uiState.value = _uiState.value.copy(isSubmittingSupportTicket = false)
+            }
+        }
+    }
+
+    private suspend fun refreshSupportTickets() {
+        try {
+            val tickets = api.listSupportTickets()
+            _uiState.value = _uiState.value.copy(tickets = tickets)
+        } catch (_: QervonApiException) {
+            // Keep existing tickets if a transient poll refresh fails.
+        }
+    }
+
     fun setBiometricLockEnabled(enabled: Boolean) {
         preferences.biometricLockEnabled = enabled
         _uiState.value = _uiState.value.copy(biometricLockEnabled = enabled)
@@ -72,5 +130,10 @@ class CustomerProfileViewModel @Inject constructor(
 
     fun logout() {
         api.logout()
+    }
+
+    override fun onCleared() {
+        stopLiveSupport()
+        super.onCleared()
     }
 }

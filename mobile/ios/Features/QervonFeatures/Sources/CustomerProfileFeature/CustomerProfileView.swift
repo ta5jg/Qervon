@@ -18,6 +18,8 @@ import AddressBookFeature
 
 public struct CustomerProfileView: View {
     @StateObject private var viewModel: CustomerProfileViewModel
+    @State private var supportSubject = ""
+    @State private var supportMessage = ""
     private let api: QervonAPI
     let onLogout: () -> Void
 
@@ -75,6 +77,8 @@ public struct CustomerProfileView: View {
         .qervonScreenBackground()
         .navigationTitle("Profil")
         .task { await viewModel.load() }
+        .onAppear { viewModel.startLiveSupport() }
+        .onDisappear { viewModel.stopLiveSupport() }
     }
 
     private func navRow(title: String, systemImage: String) -> some View {
@@ -106,24 +110,60 @@ public struct CustomerProfileView: View {
             } else {
                 ForEach(viewModel.supportTickets) { ticket in
                     QervonCard {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(ticket.subject)
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(QervonColor.textPrimary)
-                                Text(QervonFormat.dayAndTime(ticket.createdAt))
-                                    .font(.system(size: 11))
-                                    .foregroundColor(QervonColor.textSecondary)
+                        VStack(alignment: .leading, spacing: QervonSpacing.xs) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(ticket.subject)
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundColor(QervonColor.textPrimary)
+                                    Text(QervonFormat.dayAndTime(ticket.createdAt))
+                                        .font(.system(size: 11))
+                                        .foregroundColor(QervonColor.textSecondary)
+                                }
+                                Spacer()
+                                Text(ticket.status.displayName)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(QervonColor.accent)
                             }
-                            Spacer()
-                            Text(ticket.status.displayName)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(QervonColor.accent)
+                            Text(ticket.message)
+                                .font(.system(size: 12))
+                                .foregroundColor(QervonColor.textSecondary)
                         }
                     }
                     .padding(.horizontal, QervonSpacing.lg)
                 }
             }
+
+            QervonCard {
+                VStack(alignment: .leading, spacing: QervonSpacing.sm) {
+                    QervonTextField(title: "Konu", text: $supportSubject)
+                    QervonTextField(title: "Mesaj", text: $supportMessage)
+                    Button("Canli Destek Talebi Olustur") {
+                        Task {
+                            await viewModel.submitSupportTicket(subject: supportSubject, message: supportMessage)
+                        }
+                    }
+                    .buttonStyle(
+                        QervonButtonStyle(
+                            kind: .secondary,
+                            isEnabled: !viewModel.isSubmittingSupportTicket &&
+                                !supportSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+                                !supportMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                        )
+                    )
+                    .disabled(
+                        viewModel.isSubmittingSupportTicket ||
+                            supportSubject.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                            supportMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    )
+                    if let info = viewModel.supportInfoMessage {
+                        Text(info)
+                            .font(.system(size: 12))
+                            .foregroundColor(QervonColor.success)
+                    }
+                }
+            }
+            .padding(.horizontal, QervonSpacing.lg)
         }
     }
 

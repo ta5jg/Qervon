@@ -22,12 +22,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,8 +57,16 @@ fun CustomerProfileScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var step by remember { mutableStateOf(ProfileStep.MAIN) }
+    var supportSubject by remember { mutableStateOf("") }
+    var supportMessage by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) { viewModel.refresh() }
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+        viewModel.startLiveSupport()
+    }
+    DisposableEffect(Unit) {
+        onDispose { viewModel.stopLiveSupport() }
+    }
 
     if (step == ProfileStep.ADDRESS_LIST) {
         AddressBookListScreen(onAddAddress = { step = ProfileStep.ADDRESS_PICKER })
@@ -89,8 +99,32 @@ fun CustomerProfileScreen(
 
             QervonCard {
                 Text("Destek Taleplerim (${state.tickets.size})", style = MaterialTheme.typography.titleMedium)
-                state.tickets.take(3).forEach { ticket ->
+                state.tickets.take(6).forEach { ticket ->
                     Text("• ${ticket.subject} — ${ticket.status.displayName()}", color = QervonColors.OnSurfaceMuted)
+                }
+                OutlinedTextField(
+                    value = supportSubject,
+                    onValueChange = { supportSubject = it },
+                    label = { Text("Konu") },
+                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = supportMessage,
+                    onValueChange = { supportMessage = it },
+                    label = { Text("Mesaj") },
+                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
+                )
+                OutlinedButton(
+                    onClick = {
+                        viewModel.submitSupportTicket(supportSubject, supportMessage)
+                    },
+                    enabled = !state.isSubmittingSupportTicket &&
+                        supportSubject.isNotBlank() &&
+                        supportMessage.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
+                ) {
+                    Text(if (state.isSubmittingSupportTicket) "Gonderiliyor..." else "Canli Destek Talebi Olustur")
                 }
             }
 
@@ -109,6 +143,7 @@ fun CustomerProfileScreen(
             }
 
             state.errorMessage?.let { Text(it, color = QervonColors.Danger) }
+            state.infoMessage?.let { Text(it, color = QervonColors.Success) }
 
             OutlinedButton(onClick = { viewModel.logout(); onLoggedOut() }, modifier = Modifier.fillMaxWidth()) { Text("Çıkış Yap") }
         }
