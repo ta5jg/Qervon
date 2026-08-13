@@ -26,6 +26,7 @@ members = [
     "crates/api-contracts",
     "crates/application",
     "crates/domain",
+    "crates/foundation-runtime",
     "crates/infrastructure",
     "crates/test-support",
     "modules/billing",

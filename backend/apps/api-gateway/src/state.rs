@@ -41,10 +41,14 @@ use qervon_domain::{
     CourierWalletRepository, CredentialRepository, CustomerRatingRepository, CustomerRepository,
     DeliveryPricingRepository, DevicePushTokenRepository, InvoiceRepository,
     NotificationRepository, OrderRepository, OtpChallengeRepository, ProofOfDeliveryRepository,
-    SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
-    VehicleRepository, WebhookRepository,
+    RouteBreadcrumb, SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
+    VehicleRepository, WarehouseHub, WebhookRepository,
 };
 use qervon_fleet_module::FleetModule;
+use qervon_foundation_runtime::{
+    FoundationRuntime, ModuleManifest, PolicyDefinition, RuleDefinition, WorkflowDefinition,
+    WorkflowTransition,
+};
 use qervon_identity_module::IdentityModule;
 use qervon_infrastructure::{
     memory::InMemoryStore,
@@ -169,6 +173,7 @@ struct LocationRelayMessage {
 
 #[derive(Clone)]
 pub struct AppState {
+    pub foundation: Arc<FoundationRuntime>,
     pub orders: Arc<OrdersModule<DynOrders>>,
     pub couriers: Arc<CouriersModule<DynCouriers>>,
     pub dispatch: Arc<DispatchModule<DynOrders, DynCouriers, DynAssignments>>,
@@ -202,6 +207,19 @@ pub struct AppState {
     pub started_at: Instant,
     pub runtime_metrics: Arc<ApiRuntimeMetrics>,
     pub postgres_pool: Option<sqlx::PgPool>,
+    pub warehouse_hubs: Arc<std::sync::RwLock<Vec<WarehouseHub>>>,
+    pub hub_manifests: Arc<std::sync::RwLock<Vec<qervon_domain::HubManifestAssignment>>>,
+    pub cold_chain_telemetry: Arc<std::sync::RwLock<Vec<qervon_domain::ColdChainTelemetry>>>,
+    pub route_breadcrumbs: Arc<std::sync::RwLock<Vec<RouteBreadcrumb>>>,
+    pub field_service_appointments:
+        Arc<std::sync::RwLock<Vec<qervon_application::FieldServiceAppointment>>>,
+    pub payment_reconciliations: Arc<std::sync::RwLock<Vec<serde_json::Value>>>,
+    pub sms_provider_url: Option<String>,
+    pub sms_provider_bearer_token: Option<Arc<str>>,
+    pub payment_gateway_url: Option<String>,
+    pub payment_gateway_bearer_token: Option<Arc<str>>,
+    pub push_provider_url: Option<String>,
+    pub push_provider_bearer_token: Option<Arc<str>>,
     /// Local-filesystem root for uploaded files (delivery-proof photos
     /// today). Real, working persistence — but not a cloud object store;
     /// see QLS-000013 and BACKEND_BACKLOG.md. Configured via
@@ -240,6 +258,27 @@ impl AppState {
         if let Ok(dir) = std::env::var("QERVON_UPLOADS_DIR") {
             state.uploads_dir = std::path::PathBuf::from(dir);
         }
+        state.sms_provider_url = std::env::var("QERVON_SMS_PROVIDER_URL")
+            .ok()
+            .filter(|value| !value.trim().is_empty());
+        state.sms_provider_bearer_token = std::env::var("QERVON_SMS_PROVIDER_TOKEN")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .map(Arc::<str>::from);
+        state.payment_gateway_url = std::env::var("QERVON_PAYMENT_GATEWAY_URL")
+            .ok()
+            .filter(|value| !value.trim().is_empty());
+        state.payment_gateway_bearer_token = std::env::var("QERVON_PAYMENT_GATEWAY_TOKEN")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .map(Arc::<str>::from);
+        state.push_provider_url = std::env::var("QERVON_PUSH_PROVIDER_URL")
+            .ok()
+            .filter(|value| !value.trim().is_empty());
+        state.push_provider_bearer_token = std::env::var("QERVON_PUSH_PROVIDER_TOKEN")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .map(Arc::<str>::from);
         Ok(state)
     }
 
@@ -402,7 +441,9 @@ impl AppState {
         delivery_pricing: DynDeliveryPricing,
     ) -> Self {
         let (location_tx, _) = tokio::sync::broadcast::channel(100);
+        let foundation = build_foundation_runtime();
         Self {
+            foundation: Arc::new(foundation),
             orders: Arc::new(OrdersModule::new(orders.clone())),
             couriers: Arc::new(CouriersModule::new(couriers.clone())),
             ratings: Arc::new(RatingService::new(customer_ratings, orders.clone())),
@@ -434,7 +475,99 @@ impl AppState {
             started_at: Instant::now(),
             runtime_metrics: Arc::new(ApiRuntimeMetrics::default()),
             postgres_pool: None,
+            warehouse_hubs: Arc::new(std::sync::RwLock::new(Vec::new())),
+            hub_manifests: Arc::new(std::sync::RwLock::new(Vec::new())),
+            cold_chain_telemetry: Arc::new(std::sync::RwLock::new(Vec::new())),
+            route_breadcrumbs: Arc::new(std::sync::RwLock::new(Vec::new())),
+            field_service_appointments: Arc::new(std::sync::RwLock::new(Vec::new())),
+            payment_reconciliations: Arc::new(std::sync::RwLock::new(Vec::new())),
+            sms_provider_url: None,
+            sms_provider_bearer_token: None,
+            payment_gateway_url: None,
+            payment_gateway_bearer_token: None,
+            push_provider_url: None,
+            push_provider_bearer_token: None,
             uploads_dir: std::path::PathBuf::from("./data/uploads"),
         }
     }
+}
+
+fn build_foundation_runtime() -> FoundationRuntime {
+    let runtime = FoundationRuntime::new();
+    for module in [
+        ModuleManifest {
+            id: "orders".into(),
+            version: "1.0.0".into(),
+            capabilities: vec!["order.create".into(), "order.lifecycle".into()],
+        },
+        ModuleManifest {
+            id: "dispatch".into(),
+            version: "1.0.0".into(),
+            capabilities: vec!["assignment.offer".into(), "assignment.accept".into()],
+        },
+        ModuleManifest {
+            id: "tracking".into(),
+            version: "1.0.0".into(),
+            capabilities: vec!["tracking.publish".into(), "tracking.consume".into()],
+        },
+        ModuleManifest {
+            id: "billing".into(),
+            version: "1.0.0".into(),
+            capabilities: vec!["invoice.create".into(), "payout.schedule".into()],
+        },
+    ] {
+        runtime.register_module(module);
+    }
+    runtime.register_rule(RuleDefinition {
+        id: "dispatch.max-active-offer-per-courier".into(),
+        version: 1,
+        expression: "courier.pending_offers <= 1".into(),
+    });
+    runtime.register_rule(RuleDefinition {
+        id: "tracking.min-interval-seconds".into(),
+        version: 1,
+        expression: "sample_interval_seconds >= 3".into(),
+    });
+    runtime.register_policy(PolicyDefinition {
+        id: "global-default".into(),
+        tenant_id: uuid::Uuid::nil(),
+        allowed_rule_ids: vec![
+            "dispatch.max-active-offer-per-courier".into(),
+            "tracking.min-interval-seconds".into(),
+        ],
+    });
+    runtime.register_workflow(WorkflowDefinition {
+        id: "delivery-order-lifecycle".into(),
+        states: vec![
+            "pending".into(),
+            "courier_assigned".into(),
+            "in_transit".into(),
+            "delivered".into(),
+        ],
+        transitions: vec![
+            WorkflowTransition {
+                from: "pending".into(),
+                to: "courier_assigned".into(),
+                event: "assign".into(),
+            },
+            WorkflowTransition {
+                from: "courier_assigned".into(),
+                to: "in_transit".into(),
+                event: "pickup".into(),
+            },
+            WorkflowTransition {
+                from: "in_transit".into(),
+                to: "delivered".into(),
+                event: "deliver".into(),
+            },
+        ],
+    });
+    runtime.publish_event(
+        "foundation.runtime.booted",
+        serde_json::json!({
+            "source": "api-gateway",
+            "status": "ok"
+        }),
+    );
+    runtime
 }

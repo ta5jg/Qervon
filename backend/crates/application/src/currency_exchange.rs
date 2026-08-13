@@ -12,7 +12,7 @@
 // Specification:
 //   QAS-000006, QES-000006.
 // =============================================================================
-// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
+// STATUS: wired -- currency conversion service is exposed via api-gateway endpoints in LOS campaign rollout.
 
 use serde::{Deserialize, Serialize};
 

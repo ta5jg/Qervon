@@ -12,7 +12,7 @@
 // Specification:
 //   QAS-000003, QES-000002.
 // =============================================================================
-// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
+// STATUS: wired -- migration + HTTP routes are available in api-gateway for LOS campaign rollout.
 
 use crate::Location;
 use serde::{Deserialize, Serialize};

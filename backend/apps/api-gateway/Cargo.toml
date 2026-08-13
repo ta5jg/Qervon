@@ -37,6 +37,7 @@ qervon-customers-module = { path = "../../modules/customers" }
 qervon-dispatch-module = { path = "../../modules/dispatch" }
 qervon-domain = { path = "../../crates/domain" }
 qervon-fleet-module = { path = "../../modules/fleet" }
+qervon-foundation-runtime = { path = "../../crates/foundation-runtime" }
 qervon-identity-module = { path = "../../modules/identity" }
 qervon-infrastructure = { path = "../../crates/infrastructure" }
 qervon-notifications-module = { path = "../../modules/notifications" }
@@ -60,6 +61,7 @@ aes-gcm = { workspace = true }
 tower-http = { workspace = true, features = ["cors"] }
 tower_governor = { version = "0.8.0", default-features = false, features = ["axum"] }
 governor = "0.10.4"
+reqwest = { workspace = true }
 
 [dev-dependencies]
 http-body-util = { workspace = true }

@@ -22,6 +22,11 @@
 set -eu
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ENFORCE_STATUS_DRIFT=0
+
+if [ "${1:-}" = "--enforce-status-drift" ]; then
+    ENFORCE_STATUS_DRIFT=1
+fi
 
 required_files=(
     "$ROOT/README.md"
@@ -61,6 +66,13 @@ done
 if [ "$fail" -ne 0 ]; then
     echo "documentation check FAILED" >&2
     exit 1
+fi
+
+if [ "$ENFORCE_STATUS_DRIFT" -eq 1 ]; then
+    if ! python3 "$ROOT/scripts/check-status-drift.py"; then
+        echo "documentation status drift check FAILED" >&2
+        exit 1
+    fi
 fi
 
 echo "documentation check passed"

@@ -2024,11 +2024,13 @@ dependencies = [
  "qervon-dispatch-module",
  "qervon-domain",
  "qervon-fleet-module",
+ "qervon-foundation-runtime",
  "qervon-identity-module",
  "qervon-infrastructure",
  "qervon-notifications-module",
  "qervon-orders-module",
  "qervon-tracking-module",
+ "reqwest",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -2128,6 +2130,16 @@ version = "0.1.0"
 dependencies = [
  "qervon-application",
  "qervon-domain",
+ "uuid",
+]
+
+[[package]]
+name = "qervon-foundation-runtime"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "serde",
+ "serde_json",
  "uuid",
 ]
 
