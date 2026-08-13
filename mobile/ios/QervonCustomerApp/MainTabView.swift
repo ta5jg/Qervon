@@ -21,7 +21,7 @@ import CustomerProfileFeature
 
 struct MainTabView: View {
     @EnvironmentObject private var session: AppSession
-    @State private var selectedTab = Tab.liveTracking
+    @State private var selectedTab = Tab.launchTab
     @State private var historyRefreshToken = UUID()
 
     enum Tab {
@@ -30,6 +30,28 @@ struct MainTabView: View {
         case history
         case profile
         case support
+
+        static var launchTab: Tab {
+            let args = ProcessInfo.processInfo.arguments
+            guard let raw = args.first(where: { $0.hasPrefix("--qervon-customer-tab=") })?
+                .split(separator: "=")
+                .last
+            else {
+                return .liveTracking
+            }
+            switch String(raw) {
+            case "order":
+                return .newOrder
+            case "history":
+                return .history
+            case "wallet":
+                return .profile
+            case "support":
+                return .support
+            default:
+                return .liveTracking
+            }
+        }
     }
 
     var body: some View {

@@ -23,15 +23,44 @@ import ProfileFeature
 
 struct MainTabView: View {
     @EnvironmentObject private var session: AppSession
+    @State private var selectedTab = Tab.launchTab
+
+    enum Tab {
+        case navigation
+        case pod
+        case earnings
+        case profile
+
+        static var launchTab: Tab {
+            let args = ProcessInfo.processInfo.arguments
+            guard let raw = args.first(where: { $0.hasPrefix("--qervon-courier-tab=") })?
+                .split(separator: "=")
+                .last
+            else {
+                return .navigation
+            }
+            switch String(raw) {
+            case "pod":
+                return .pod
+            case "earnings":
+                return .earnings
+            case "profile":
+                return .profile
+            default:
+                return .navigation
+            }
+        }
+    }
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             NavigationStack {
                 courierShell {
                     DispatchHomeView(api: session.api)
                 }
             }
             .tabItem { Label("Navigasyon", systemImage: "location.fill") }
+            .tag(Tab.navigation)
 
             NavigationStack {
                 courierShell {
@@ -39,6 +68,7 @@ struct MainTabView: View {
                 }
             }
             .tabItem { Label("POD / İmza", systemImage: "checkmark.seal.fill") }
+            .tag(Tab.pod)
 
             NavigationStack {
                 courierShell {
@@ -46,6 +76,7 @@ struct MainTabView: View {
                 }
             }
             .tabItem { Label("Kazançlar", systemImage: "wallet.pass.fill") }
+            .tag(Tab.earnings)
 
             NavigationStack {
                 courierShell {
@@ -55,6 +86,7 @@ struct MainTabView: View {
                 }
             }
             .tabItem { Label("Profil", systemImage: "person.fill") }
+            .tag(Tab.profile)
         }
         .tint(QervonColor.accent)
     }

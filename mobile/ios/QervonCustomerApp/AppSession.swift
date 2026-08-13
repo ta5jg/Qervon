@@ -48,6 +48,10 @@ public final class AppSession: ObservableObject {
     }
 
     private func bootstrap() {
+        if ProcessInfo.processInfo.arguments.contains("--qervon-acceptance-mode") {
+            state = .active
+            return
+        }
         guard let claims = tokenStore.currentClaims(), !claims.isExpired else {
             tokenStore.clear()
             state = .loggedOut
