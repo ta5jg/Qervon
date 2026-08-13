@@ -26,7 +26,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg-base); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; }
 
-    .glass { background: var(--bg-card); backdrop-filter: blur(16px); border: 1px solid var(--border-color); }
+    .glass { background: var(--bg-card); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border: 1px solid var(--border-color); }
 
     sidebar {
       width: 260px;
@@ -66,6 +66,33 @@
       padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); cursor: pointer; text-align: center; display: flex; flex-direction: column; gap: 4px; transition: all 0.2s ease;
     }
     .package-card.selected { border-color: var(--accent-green); background: rgba(16,185,129,0.1); }
+
+    .support-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+    .support-thread { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px; }
+    .support-bubble {
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.24);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .support-meta { color: var(--text-muted); font-size: 10px; margin-top: 4px; }
+    .support-bubble.operator-update { border-color: rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.12); }
+    .support-badge {
+      margin-left: auto;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -84,6 +111,7 @@
       <div class="nav-item" onclick="switchTab('addresses')"><div i data-lucide="book-open"></div> Adres Defteri</div>
       <div class="nav-item" onclick="switchTab('bulk')"><i data-lucide="file-spreadsheet"></i> Toplu Excel Sipariş Yükle</div>
       <div class="nav-item" onclick="switchTab('history')"><i data-lucide="history"></i> Geçmiş Siparişler & Faturalar</div>
+      <div class="nav-item" onclick="switchTab('support')"><i data-lucide="messages-square"></i> Canlı Destek <span id="support-unread-badge" class="support-badge">0</span></div>
     </div>
   </sidebar>
 
@@ -197,6 +225,28 @@
       </div>
     </div>
 
+    <!-- TAB 5: LIVE SUPPORT -->
+    <div id="tab-support" class="view-section">
+      <div class="glass" style="border-radius:20px; padding:20px;">
+        <h3 style="font-size:16px; font-weight:800; margin-bottom:14px;">Canlı Destek Merkezi</h3>
+        <div class="support-layout">
+          <div>
+            <div id="support-thread" class="support-thread">
+              <div class="support-bubble">Destek konuşmaları yükleniyor…</div>
+            </div>
+          </div>
+          <div class="glass" style="border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Konu</label>
+            <input id="support-subject" type="text" value="Canlı Destek Talebi" style="width:100%; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px;">
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Mesaj</label>
+            <textarea id="support-message-input" rows="6" placeholder="Destek ekibine iletmek istediğiniz mesaj..." style="width:100%; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; resize:vertical;"></textarea>
+            <button class="btn-action" onclick="sendSupportMessage()">Mesajı Gönder</button>
+            <div id="support-status" role="status" aria-live="polite" style="min-height:18px; font-size:12px; color:var(--text-muted);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -211,6 +261,10 @@
     let courierMarker;
     let trackedOrder;
     let selectedPaymentMethod = 'cash';
+    let supportRefreshTimer = null;
+    let supportEventSource = null;
+    let supportTicketsCache = [];
+    let activeTab = 'new-order';
 
     function selectPaymentMethod(card) {
       document.querySelectorAll('#payment-method-grid .package-card').forEach(c => c.classList.remove('selected'));
@@ -292,8 +346,128 @@
         const [orders, profile] = await Promise.all([api('/v1/customer/orders'), api('/v1/customer/profile')]);
         renderOrders(orders);
         renderAddresses(profile);
+        await loadSupportTickets();
       } catch (error) {
         showCustomerError(document.getElementById('customer-message'), error);
+      }
+    }
+
+    function getSeenSupportTicketIds() {
+      try { return new Set(JSON.parse(localStorage.getItem('qervon.support.seenTicketIds') || '[]')); }
+      catch (_) { return new Set(); }
+    }
+
+    function setSeenSupportTicketIds(ids) {
+      localStorage.setItem('qervon.support.seenTicketIds', JSON.stringify(Array.from(ids)));
+    }
+
+    function markSupportTicketsSeen(tickets) {
+      const seen = getSeenSupportTicketIds();
+      tickets.forEach(ticket => seen.add(ticket.id));
+      setSeenSupportTicketIds(seen);
+      updateSupportUnreadBadge(tickets);
+    }
+
+    function updateSupportUnreadBadge(tickets) {
+      const badge = document.getElementById('support-unread-badge');
+      if (!badge) return;
+      const seen = getSeenSupportTicketIds();
+      const unreadCount = tickets.filter(ticket => !seen.has(ticket.id)).length;
+      badge.textContent = String(unreadCount);
+      badge.style.display = unreadCount > 0 ? 'inline-flex' : 'none';
+    }
+
+    function renderSupportTickets(tickets) {
+      const thread = document.getElementById('support-thread');
+      if (!thread) return;
+      if (!tickets.length) {
+        thread.innerHTML = '<div class="support-bubble">Henüz destek mesajı yok. Sağdan ilk mesajınızı gönderin.</div>';
+        return;
+      }
+      const seen = getSeenSupportTicketIds();
+      thread.innerHTML = tickets.map(ticket => `
+        <div class="support-bubble ${ticket.status !== 'open' ? 'operator-update' : ''}">
+          <div style="font-weight:700; color:var(--accent-cyan);">${escapeHtml(ticket.subject)}</div>
+          <div style="margin-top:4px;">${escapeHtml(ticket.message)}</div>
+          <div class="support-meta">
+            Durum: ${escapeHtml(ticket.status)} • ${new Date(ticket.created_at).toLocaleString('tr-TR')}
+            ${ticket.order_id ? `• Sipariş #${escapeHtml(String(ticket.order_id).slice(0, 8))}` : ''}
+            ${ticket.status !== 'open' ? ' • Operatör güncellemesi' : ''}
+            ${!seen.has(ticket.id) ? ' • Yeni' : ''}
+          </div>
+        </div>
+      `).join('');
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    function consumeSupportTickets(tickets) {
+      const normalized = Array.isArray(tickets) ? tickets : [];
+      supportTicketsCache = normalized;
+      renderSupportTickets(normalized);
+      updateSupportUnreadBadge(normalized);
+      if (activeTab === 'support') {
+        markSupportTicketsSeen(normalized);
+      }
+    }
+
+    async function loadSupportTickets() {
+      try {
+        const tickets = await api('/v1/customer/support-tickets', { method: 'GET' });
+        consumeSupportTickets(tickets);
+      } catch (error) {
+        const thread = document.getElementById('support-thread');
+        if (thread) {
+          thread.innerHTML = `<div class="support-bubble">Destek konuşması yüklenemedi: ${escapeHtml(error?.message || 'bilinmeyen hata')}</div>`;
+        }
+      }
+    }
+
+    async function sendSupportMessage() {
+      const status = document.getElementById('support-status');
+      const subject = document.getElementById('support-subject')?.value.trim();
+      const message = document.getElementById('support-message-input')?.value.trim();
+      if (!subject || !message) {
+        status.textContent = 'Konu ve mesaj alanı zorunludur.';
+        return;
+      }
+      try {
+        await api('/v1/customer/support-tickets', {
+          method: 'POST',
+          body: JSON.stringify({
+            order_id: trackedOrder?.id || null,
+            subject,
+            message
+          })
+        });
+        document.getElementById('support-message-input').value = '';
+        status.textContent = 'Mesajınız destek ekibine iletildi.';
+        await loadSupportTickets();
+      } catch (error) {
+        showCustomerError(status, error);
+      }
+    }
+
+    function connectSupportStream() {
+      if (supportEventSource) return;
+      try {
+        supportEventSource = new EventSource('/v1/customer/support-tickets/stream');
+        supportEventSource.addEventListener('tickets', (event) => {
+          try {
+            const tickets = JSON.parse(event.data || '[]');
+            consumeSupportTickets(tickets);
+          } catch (_) { /* ignore malformed payload */ }
+        });
+        supportEventSource.onerror = () => {
+          supportEventSource?.close();
+          supportEventSource = null;
+          if (!supportRefreshTimer) {
+            supportRefreshTimer = setInterval(loadSupportTickets, 5000);
+          }
+        };
+      } catch (_) {
+        if (!supportRefreshTimer) {
+          supportRefreshTimer = setInterval(loadSupportTickets, 5000);
+        }
       }
     }
 
@@ -361,16 +535,31 @@
     function switchTab(tabId) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      activeTab = tabId;
 
       event.currentTarget.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
       if (tabId === 'new-order') {
         setTimeout(() => map?.invalidateSize(), 100);
       }
+      if (tabId === 'support') {
+        loadSupportTickets();
+        markSupportTicketsSeen(supportTicketsCache);
+        connectSupportStream();
+        if (!supportRefreshTimer) {
+          supportRefreshTimer = setInterval(loadSupportTickets, 5000);
+        }
+      } else {
+        if (supportRefreshTimer) {
+          clearInterval(supportRefreshTimer);
+          supportRefreshTimer = null;
+        }
+      }
     }
 
     loadCustomerWorkspace();
     setInterval(refreshTracking, 5000);
+    connectSupportStream();
   </script>
 </body>
 </html>

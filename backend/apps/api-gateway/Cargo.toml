@@ -62,6 +62,8 @@ tower-http = { workspace = true, features = ["cors"] }
 tower_governor = { version = "0.8.0", default-features = false, features = ["axum"] }
 governor = "0.10.4"
 reqwest = { workspace = true }
+async-stream = "0.3"
+futures-core = "0.3"
 
 [dev-dependencies]
 http-body-util = { workspace = true }

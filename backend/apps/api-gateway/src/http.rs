@@ -24,7 +24,10 @@ use axum::{
     extract::{DefaultBodyLimit, Extension, Path, Query, Request, State},
     http::{header, HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     middleware::{self, Next},
-    response::{IntoResponse, Response},
+    response::{
+        sse::{Event, KeepAlive, Sse},
+        IntoResponse, Response,
+    },
     routing::{delete, get, post},
     Json, Router,
 };
@@ -50,6 +53,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use sqlx::FromRow;
 use std::collections::{BTreeMap, HashMap};
+use std::convert::Infallible;
 use std::time::Instant;
 use tower_governor::{governor::GovernorConfigBuilder, GovernorLayer};
 use tower_http::cors::{AllowOrigin, CorsLayer};
@@ -358,6 +362,10 @@ pub fn router(state: AppState) -> Router {
         .route(
             "/v1/customer/support-tickets",
             post(create_customer_support_ticket).get(list_customer_support_tickets),
+        )
+        .route(
+            "/v1/customer/support-tickets/stream",
+            get(stream_customer_support_tickets),
         )
         .route(
             "/v1/customer/notifications",
@@ -3824,6 +3832,35 @@ async fn list_customer_support_tickets(
         .list_for_customer(claims.subject)
         .await?;
     Ok(Json(tickets.iter().map(Into::into).collect()))
+}
+
+async fn stream_customer_support_tickets(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Sse<impl futures_core::Stream<Item = Result<Event, Infallible>>>, ApiError> {
+    let customer_id = claims.subject;
+    let stream = async_stream::stream! {
+        loop {
+            let event = match state.support_tickets.list_for_customer(customer_id).await {
+                Ok(tickets) => {
+                    let payload: Vec<qervon_api_contracts::SupportTicketResponse> =
+                        tickets.iter().map(Into::into).collect();
+                    match serde_json::to_string(&payload) {
+                        Ok(json) => Event::default().event("tickets").data(json),
+                        Err(_) => Event::default().event("tickets").data("[]"),
+                    }
+                }
+                Err(_) => Event::default().event("tickets").data("[]"),
+            };
+            yield Ok(event);
+            tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+        }
+    };
+    Ok(Sse::new(stream).keep_alive(
+        KeepAlive::new()
+            .interval(std::time::Duration::from_secs(15))
+            .text("keep-alive"),
+    ))
 }
 
 async fn list_customer_notifications(
