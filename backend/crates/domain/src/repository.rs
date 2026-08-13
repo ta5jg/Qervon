@@ -476,6 +476,7 @@ pub trait SupportTicketRepository: Send + Sync {
     async fn find_by_id(&self, id: Uuid) -> Result<Option<SupportTicket>, DomainError>;
     async fn list_for_customer(&self, customer_id: Uuid)
         -> Result<Vec<SupportTicket>, DomainError>;
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError>;
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError>;
 }
 
@@ -492,6 +493,9 @@ impl SupportTicketRepository for Arc<dyn SupportTicketRepository> {
         customer_id: Uuid,
     ) -> Result<Vec<SupportTicket>, DomainError> {
         (**self).list_for_customer(customer_id).await
+    }
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+        (**self).list_for_tenant(tenant_id).await
     }
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
         (**self).update(ticket).await

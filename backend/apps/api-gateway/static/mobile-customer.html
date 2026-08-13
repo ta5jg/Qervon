@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qervon — Müşteri Mobil Uygulaması (iOS & Android Simulator)</title>
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/manifest.webmanifest">
   <meta name="theme-color" content="#10b981">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -67,7 +68,7 @@
       background: #090d1a;
       border-top: 1px solid var(--border-color);
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       align-items: center;
       padding: 0 8px;
     }
@@ -109,6 +110,8 @@
     }
 
     #map { width: 100%; height: 260px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 12px; }
+    .support-thread { max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .support-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; }
   </style>
 </head>
 <body>
@@ -149,7 +152,7 @@
       <div class="card">
         <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Hızlı Kurye Çağır</div>
         <div style="display:flex; gap:8px;">
-          <input id="quick-route" type="text" value="Yıldıztabya ➔ Maslak Plaza" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
+          <input id="quick-route" aria-label="Hızlı rota" type="text" value="Yıldıztabya ➔ Maslak Plaza" placeholder="Alım ➔ Teslimat" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
           <button onclick="createQuickOrder()" style="padding:10px 14px; background:var(--accent-green); color:white; border:none; border-radius:10px; font-weight:700; font-size:11px;">Çağır</button>
         </div>
       </div>
@@ -205,12 +208,31 @@
       </div>
     </div>
 
+    <!-- TAB 5: CANLI DESTEK -->
+    <div id="tab-support" class="view-content">
+      <div class="card">
+        <div style="font-size:14px; font-weight:800; margin-bottom:10px;">Canlı Destek</div>
+        <div id="mobile-support-thread" class="support-thread">
+          <div class="support-item" style="font-size:11px; color:var(--text-muted);">Destek görüşmeleri yükleniyor…</div>
+        </div>
+      </div>
+      <div class="card">
+        <label style="font-size:10px; color:var(--text-muted);">Konu</label>
+        <input id="mobile-support-subject" type="text" value="Mobil Destek Talebi" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <label style="font-size:10px; color:var(--text-muted);">Mesaj</label>
+        <textarea id="mobile-support-message" rows="4" placeholder="Yaşadığınız sorunu yazın..." style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; resize:vertical;"></textarea>
+        <button class="btn-main" style="margin-top:10px;" onclick="sendMobileSupportMessage()">Destek Mesajı Gönder</button>
+        <div id="mobile-support-status" role="status" aria-live="polite" style="font-size:10px; color:var(--text-muted); margin-top:8px;"></div>
+      </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
       <div class="nav-tab active" onclick="switchMobileTab('home', this)"><i data-lucide="map-pin"></i> Canlı Takip</div>
       <div class="nav-tab" onclick="switchMobileTab('order', this)"><i data-lucide="plus-circle"></i> Sipariş Ver</div>
       <div class="nav-tab" onclick="switchMobileTab('history', this)"><i data-lucide="clock"></i> Geçmiş</div>
       <div class="nav-tab" onclick="switchMobileTab('profile', this)"><i data-lucide="user"></i> Cüzdan</div>
+      <div class="nav-tab" onclick="switchMobileTab('support', this)"><i data-lucide="messages-square"></i> Destek</div>
     </div>
   </div>
 
@@ -227,6 +249,7 @@
     let courierMarker;
     let trackedOrder;
     let selectedPaymentMethod = 'cash';
+    let mobileSupportEventSource = null;
 
     function escapeHtml(value) {
       return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
@@ -340,6 +363,81 @@
       submitCustomerOrder(pickup, dropoff);
     }
 
+    function renderMobileSupportTickets(tickets) {
+      const thread = document.getElementById('mobile-support-thread');
+      if (!thread) return;
+      if (!tickets.length) {
+        thread.innerHTML = '<div class="support-item" style="font-size:11px; color:var(--text-muted);">Henüz destek kaydı yok.</div>';
+        return;
+      }
+      thread.innerHTML = tickets.map(ticket => `
+        <div class="support-item">
+          <div style="font-size:11px; font-weight:700; color:var(--accent-cyan);">${escapeHtml(ticket.subject)}</div>
+          <div style="font-size:11px; margin-top:4px;">${escapeHtml(ticket.message)}</div>
+          <div style="font-size:9px; color:var(--text-muted); margin-top:6px;">
+            ${escapeHtml(ticket.status)} • ${new Date(ticket.created_at).toLocaleString('tr-TR')}
+          </div>
+        </div>
+      `).join('');
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    async function loadMobileSupportTickets() {
+      try {
+        const tickets = await api('/v1/customer/support-tickets', { method: 'GET' });
+        renderMobileSupportTickets(Array.isArray(tickets) ? tickets : []);
+      } catch (error) {
+        const thread = document.getElementById('mobile-support-thread');
+        if (thread) {
+          thread.innerHTML = `<div class="support-item" style="font-size:11px; color:var(--accent-purple);">Destek yüklenemedi: ${escapeHtml(error?.message || 'bilinmeyen hata')}</div>`;
+        }
+      }
+    }
+
+    async function sendMobileSupportMessage() {
+      const status = document.getElementById('mobile-support-status');
+      const subject = document.getElementById('mobile-support-subject')?.value.trim();
+      const message = document.getElementById('mobile-support-message')?.value.trim();
+      if (!subject || !message) {
+        status.textContent = 'Konu ve mesaj boş olamaz.';
+        return;
+      }
+      try {
+        await api('/v1/customer/support-tickets', {
+          method: 'POST',
+          body: JSON.stringify({
+            order_id: trackedOrder?.id || null,
+            subject,
+            message
+          })
+        });
+        document.getElementById('mobile-support-message').value = '';
+        status.textContent = 'Mesaj destek ekibine gönderildi.';
+        await loadMobileSupportTickets();
+      } catch (error) {
+        showCustomerError(status, error);
+      }
+    }
+
+    function connectMobileSupportStream() {
+      if (mobileSupportEventSource) return;
+      try {
+        mobileSupportEventSource = new EventSource('/v1/customer/support-tickets/stream');
+        mobileSupportEventSource.addEventListener('tickets', event => {
+          try {
+            const tickets = JSON.parse(event.data || '[]');
+            renderMobileSupportTickets(Array.isArray(tickets) ? tickets : []);
+          } catch (_) { /* ignore malformed payload */ }
+        });
+        mobileSupportEventSource.onerror = () => {
+          mobileSupportEventSource?.close();
+          mobileSupportEventSource = null;
+        };
+      } catch (_) {
+        /* fallback to manual load only */
+      }
+    }
+
     async function refreshOrderTracking() {
       const status = document.getElementById('live-status');
       if (!trackedOrder || !trackedOrder.assigned_courier_id) {
@@ -387,10 +485,15 @@
       if (tabId === 'home') {
         setTimeout(() => map.invalidateSize(), 100);
       }
+      if (tabId === 'support') {
+        loadMobileSupportTickets();
+      }
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
     loadCustomerOrders().then(refreshOrderTracking);
     loadCustomerProfile();
+    loadMobileSupportTickets();
+    connectMobileSupportStream();
     setInterval(refreshOrderTracking, 5000);
   </script>
 </body>

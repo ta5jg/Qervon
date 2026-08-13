@@ -1031,6 +1031,17 @@ impl SupportTicketRepository for InMemorySupportTicketRepository {
             .collect())
     }
 
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .values()
+            .filter(|ticket| ticket.tenant_id == tenant_id)
+            .cloned()
+            .collect())
+    }
+
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
         self.store
             .write()

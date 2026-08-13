@@ -816,6 +816,20 @@ impl SupportTicketRepository for PgSupportTicketRepository {
             .collect()
     }
 
+    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+        let rows: Vec<SupportTicketRow> = sqlx::query_as(&format!(
+            "SELECT {SUPPORT_TICKET_COLUMNS} FROM feedback.support_tickets \
+             WHERE tenant_id = $1 ORDER BY created_at DESC"
+        ))
+        .bind(tenant_id.0)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter()
+            .map(SupportTicketRow::into_domain)
+            .collect()
+    }
+
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
         let affected = sqlx::query("UPDATE feedback.support_tickets SET status = $2 WHERE id = $1")
             .bind(ticket.id)

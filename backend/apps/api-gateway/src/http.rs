@@ -46,6 +46,7 @@ use qervon_application::{
 use qervon_domain::{
     Address, ColdChainTelemetry, HubManifestAssignment, Location, Money, NotificationChannel,
     OrderId, RefreshSession, RouteBreadcrumb, TenantCompany, TenantId, TenantMemberRole,
+    TicketStatus,
     TenantMembership, UserId, UserRole, VehicleId, VehicleType, WarehouseHub,
 };
 use serde::{Deserialize, Serialize};
@@ -326,6 +327,15 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/reports/operations", get(operations_report))
         .route("/v1/finance/summary", get(finance_summary))
         .route("/v1/finance/invoices", get(list_finance_invoices))
+        .route("/v1/operations/support-tickets", get(list_operations_support_tickets))
+        .route(
+            "/v1/operations/support-tickets/stream",
+            get(stream_operations_support_tickets),
+        )
+        .route(
+            "/v1/operations/support-tickets/{id}/status",
+            post(update_operations_support_ticket_status),
+        )
         .route("/v1/company", get(company_profile))
         .route(
             "/v1/company/members",
@@ -491,7 +501,14 @@ async fn observe_request(State(state): State<AppState>, request: Request, next: 
     );
     response.headers_mut().insert(
         HeaderName::from_static("content-security-policy"),
-        HeaderValue::from_static("default-src 'self'; frame-ancestors 'none'"),
+        HeaderValue::from_static(
+            "default-src 'self'; frame-ancestors 'none'; \
+             script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; \
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com; \
+             font-src 'self' https://fonts.gstatic.com data:; \
+             img-src 'self' data: https:; \
+             connect-src 'self' https: ws: wss:",
+        ),
     );
     tracing::info!(
         request_id = %request_id,
@@ -1509,20 +1526,32 @@ async fn deliver_otp_sms(state: &AppState, phone: &str, code: &str) -> Result<()
     }
 }
 
-async fn serve_dashboard() -> axum::response::Html<&'static str> {
-    axum::response::Html(include_str!("../static/index.html"))
+async fn serve_dashboard() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "no-store, max-age=0")],
+        axum::response::Html(include_str!("../static/index.html")),
+    )
 }
 
-async fn serve_customer_portal() -> axum::response::Html<&'static str> {
-    axum::response::Html(include_str!("../static/customer.html"))
+async fn serve_customer_portal() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "no-store, max-age=0")],
+        axum::response::Html(include_str!("../static/customer.html")),
+    )
 }
 
-async fn serve_login() -> axum::response::Html<&'static str> {
-    axum::response::Html(include_str!("../static/login.html"))
+async fn serve_login() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "no-store, max-age=0")],
+        axum::response::Html(include_str!("../static/login.html")),
+    )
 }
 
-async fn serve_setup() -> axum::response::Html<&'static str> {
-    axum::response::Html(include_str!("../static/setup.html"))
+async fn serve_setup() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "no-store, max-age=0")],
+        axum::response::Html(include_str!("../static/setup.html")),
+    )
 }
 
 async fn health() -> Json<Value> {
@@ -3861,6 +3890,72 @@ async fn stream_customer_support_tickets(
             .interval(std::time::Duration::from_secs(15))
             .text("keep-alive"),
     ))
+}
+
+async fn list_operations_support_tickets(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<qervon_api_contracts::SupportTicketResponse>>, ApiError> {
+    let tickets = state
+        .support_tickets
+        .list_for_tenant(TenantId(claims.tenant_id))
+        .await?;
+    Ok(Json(tickets.iter().map(Into::into).collect()))
+}
+
+async fn stream_operations_support_tickets(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Sse<impl futures_core::Stream<Item = Result<Event, Infallible>>>, ApiError> {
+    let tenant_id = TenantId(claims.tenant_id);
+    let stream = async_stream::stream! {
+        loop {
+            let event = match state.support_tickets.list_for_tenant(tenant_id).await {
+                Ok(tickets) => {
+                    let payload: Vec<qervon_api_contracts::SupportTicketResponse> =
+                        tickets.iter().map(Into::into).collect();
+                    match serde_json::to_string(&payload) {
+                        Ok(json) => Event::default().event("tickets").data(json),
+                        Err(_) => Event::default().event("tickets").data("[]"),
+                    }
+                }
+                Err(_) => Event::default().event("tickets").data("[]"),
+            };
+            yield Ok(event);
+            tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+        }
+    };
+    Ok(Sse::new(stream).keep_alive(
+        KeepAlive::new()
+            .interval(std::time::Duration::from_secs(15))
+            .text("keep-alive"),
+    ))
+}
+
+#[derive(Deserialize)]
+struct UpdateSupportTicketStatusRequest {
+    status: String,
+}
+
+async fn update_operations_support_ticket_status(
+    State(state): State<AppState>,
+    Path(id): Path<uuid::Uuid>,
+    Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<UpdateSupportTicketStatusRequest>,
+) -> Result<Json<qervon_api_contracts::SupportTicketResponse>, ApiError> {
+    let target_status: TicketStatus = request
+        .status
+        .parse()
+        .map_err(|error: qervon_domain::DomainError| ApiError::unprocessable(error.to_string()))?;
+    let ticket = state.support_tickets.get(id).await?;
+    if ticket.tenant_id != TenantId(claims.tenant_id) {
+        return Err(ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "support ticket not found".into(),
+        });
+    }
+    let updated = state.support_tickets.set_status(id, target_status).await?;
+    Ok(Json((&updated).into()))
 }
 
 async fn list_customer_notifications(

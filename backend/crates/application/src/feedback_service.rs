@@ -20,7 +20,7 @@
 use chrono::Utc;
 use qervon_domain::{
     CustomerRating, CustomerRatingRepository, OrderId, OrderRepository, OrderStatus, SupportTicket,
-    SupportTicketRepository, TenantId,
+    SupportTicketRepository, TenantId, TicketStatus,
 };
 use uuid::Uuid;
 
@@ -159,6 +159,26 @@ where
         ticket.close()?;
         self.tickets.update(&ticket).await?;
         Ok(ticket)
+    }
+
+    pub async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<SupportTicket>, ApplicationError> {
+        Ok(self.tickets.list_for_tenant(tenant_id).await?)
+    }
+
+    pub async fn set_status(
+        &self,
+        id: Uuid,
+        status: TicketStatus,
+    ) -> Result<SupportTicket, ApplicationError> {
+        match status {
+            TicketStatus::Open => self.get(id).await,
+            TicketStatus::InProgress => self.start_progress(id).await,
+            TicketStatus::Resolved => self.resolve(id).await,
+            TicketStatus::Closed => self.close(id).await,
+        }
     }
 }
 
