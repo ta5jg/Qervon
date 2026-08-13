@@ -28,8 +28,10 @@ pub use memory::{
     InMemoryVehicleRepository, InMemoryWebhookRepository,
 };
 pub use postgres::{
-    PgAssignmentRepository, PgCourierPayoutRepository, PgCourierRepository, PgCredentialRepository,
-    PgCustomerRepository, PgInvoiceRepository, PgNotificationRepository, PgOrderRepository,
-    PgProofOfDeliveryRepository, PgTenantRepository, PgTrackingRepository, PgUserRepository,
-    PgVehicleRepository, PgWebhookRepository,
+    PgAssignmentRepository, PgColdChainTelemetryRepository, PgCourierPayoutRepository,
+    PgCourierRepository, PgCredentialRepository, PgCustomerRepository,
+    PgFieldServiceAppointmentRepository, PgInvoiceRepository, PgNotificationRepository,
+    PgOrderRepository, PgProofOfDeliveryRepository, PgRouteBreadcrumbRepository,
+    PgTenantRepository, PgTrackingRepository, PgUserRepository, PgVehicleRepository,
+    PgWarehouseHubRepository, PgWebhookRepository,
 };

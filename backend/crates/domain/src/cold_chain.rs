@@ -12,12 +12,17 @@
 // Specification:
 //   QAS-000003, QES-000002.
 // =============================================================================
-// STATUS: wired -- migration + HTTP routes are available in api-gateway for LOS campaign rollout.
+// STATUS: wired -- Postgres-backed repository (ColdChainTelemetryRepository), a
+// governed migration adding tenant_id, and tenant-scoped HTTP routes are all
+// wired in api-gateway. See BACKEND_BACKLOG.md for history.
 
+use crate::tenant::TenantId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ColdChainTelemetry {
+    pub id: uuid::Uuid,
+    pub tenant_id: TenantId,
     pub order_id: uuid::Uuid,
     pub sensor_id: String,
     pub temperature_celsius: f64,
@@ -30,6 +35,7 @@ pub struct ColdChainTelemetry {
 
 impl ColdChainTelemetry {
     pub fn new(
+        tenant_id: TenantId,
         order_id: uuid::Uuid,
         sensor_id: impl Into<String>,
         temp: f64,
@@ -39,6 +45,8 @@ impl ColdChainTelemetry {
     ) -> Self {
         let is_violation = temp < min_allowed || temp > max_allowed;
         Self {
+            id: uuid::Uuid::now_v7(),
+            tenant_id,
             order_id,
             sensor_id: sensor_id.into(),
             temperature_celsius: temp,
@@ -57,13 +65,14 @@ mod tests {
 
     #[test]
     fn detects_cold_chain_temperature_breach() {
+        let tenant_id = TenantId::new();
         let order_id = uuid::Uuid::now_v7();
 
         // Medical Vaccine requirement: +2°C to +8°C
-        let normal = ColdChainTelemetry::new(order_id, "SENS-101", 5.0, 45.0, 2.0, 8.0);
+        let normal = ColdChainTelemetry::new(tenant_id, order_id, "SENS-101", 5.0, 45.0, 2.0, 8.0);
         assert!(!normal.is_violation);
 
-        let breach = ColdChainTelemetry::new(order_id, "SENS-101", 12.5, 45.0, 2.0, 8.0);
+        let breach = ColdChainTelemetry::new(tenant_id, order_id, "SENS-101", 12.5, 45.0, 2.0, 8.0);
         assert!(breach.is_violation);
     }
 }

@@ -4125,3 +4125,437 @@ async fn auth_login_is_rate_limited_per_client_after_repeated_attempts() {
     );
     assert!(throttled.headers().contains_key("retry-after"));
 }
+
+#[tokio::test]
+async fn warehouse_hubs_are_tenant_isolated() {
+    let (app, tenant_token, other_tenant_token) = tenant_tracking_fixture().await;
+
+    let (status, foreign_hub) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/warehouse/hubs",
+        json!({
+            "hub_code": "HUB-FOREIGN",
+            "hub_name": "Foreign Transfer Hub",
+            "latitude": 41.0,
+            "longitude": 29.0,
+            "capacity_parcels": 500
+        }),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let foreign_hub_id = foreign_hub["id"].as_str().expect("foreign hub id");
+
+    let (status, own_hub) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/warehouse/hubs",
+        json!({
+            "hub_code": "HUB-OWN",
+            "hub_name": "Own Transfer Hub",
+            "latitude": 41.05,
+            "longitude": 28.97,
+            "capacity_parcels": 1000
+        }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let own_hub_id = own_hub["id"].as_str().expect("own hub id").to_string();
+
+    // Listing only returns hubs owned by the caller's own tenant.
+    let (status, listed) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/warehouse/hubs",
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let listed = listed.as_array().expect("hub list");
+    assert!(listed.iter().any(|entry| entry["id"] == own_hub_id));
+    assert!(!listed.iter().any(|entry| entry["id"] == foreign_hub_id));
+
+    // Receiving parcels into another tenant's hub is treated as not found.
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/warehouse/hubs/{foreign_hub_id}/receive"),
+        json!({ "count": 10 }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::NOT_FOUND);
+
+    // Receiving parcels into one's own hub persists the new count.
+    let (status, updated_hub) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/warehouse/hubs/{own_hub_id}/receive"),
+        json!({ "count": 25 }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(updated_hub["active_parcels"], 25);
+
+    // The persisted update survives a fresh list query too, proving hub
+    // state lives in the repository rather than a per-request in-memory
+    // copy.
+    let (status, listed_again) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/warehouse/hubs",
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let refreshed = listed_again
+        .as_array()
+        .expect("hub list")
+        .iter()
+        .find(|entry| entry["id"] == own_hub_id)
+        .expect("own hub present");
+    assert_eq!(refreshed["active_parcels"], 25);
+
+    // Dispatching a manifest from another tenant's hub is not found.
+    let (status, _) = authorized_request(
+        app,
+        "POST",
+        &format!("/v1/warehouse/hubs/{foreign_hub_id}/dispatch"),
+        json!({ "courier_id": Uuid::now_v7(), "order_ids": [] }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn cold_chain_telemetry_is_tenant_isolated() {
+    let (app, tenant_token, other_tenant_token) = tenant_tracking_fixture().await;
+    let order_id = Uuid::now_v7();
+
+    let (status, reading) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/cold-chain/telemetry",
+        json!({
+            "order_id": order_id,
+            "sensor_id": "SENS-1",
+            "temperature_celsius": 12.5,
+            "humidity_percent": 40.0,
+            "min_allowed_temp": 2.0,
+            "max_allowed_temp": 8.0
+        }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(reading["is_violation"], true);
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/cold-chain/telemetry",
+        json!({
+            "order_id": Uuid::now_v7(),
+            "sensor_id": "SENS-2",
+            "temperature_celsius": 5.0,
+            "humidity_percent": 45.0,
+            "min_allowed_temp": 2.0,
+            "max_allowed_temp": 8.0
+        }),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    // Listing only returns telemetry recorded by the caller's own tenant,
+    // even when filtered by an order id that belongs to another tenant.
+    let (status, listed) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/cold-chain/telemetry",
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let listed = listed.as_array().expect("telemetry list");
+    assert_eq!(listed.len(), 1);
+    assert_eq!(listed[0]["sensor_id"], "SENS-1");
+
+    let (status, other_listed) = authorized_request(
+        app,
+        "GET",
+        "/v1/cold-chain/telemetry",
+        json!({}),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let other_listed = other_listed.as_array().expect("other telemetry list");
+    assert_eq!(other_listed.len(), 1);
+    assert_eq!(other_listed[0]["sensor_id"], "SENS-2");
+}
+
+#[tokio::test]
+async fn field_service_appointments_are_tenant_isolated() {
+    let (app, tenant_token, other_tenant_token) = tenant_tracking_fixture().await;
+
+    let (status, appointment) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/field-service/appointments",
+        json!({
+            "customer_id": Uuid::now_v7(),
+            "service_type": "Klima Bakımı",
+            "appointment_date": "2026-08-20",
+            "slot_window": "Morning"
+        }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(appointment["is_confirmed"], true);
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/field-service/appointments",
+        json!({
+            "customer_id": Uuid::now_v7(),
+            "service_type": "Kurulum",
+            "appointment_date": "2026-08-21",
+            "slot_window": "Afternoon"
+        }),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    let (status, listed) = authorized_request(
+        app,
+        "GET",
+        "/v1/field-service/appointments",
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let listed = listed.as_array().expect("appointment list");
+    assert_eq!(listed.len(), 1);
+    assert_eq!(listed[0]["service_type"], "Klima Bakımı");
+}
+
+#[tokio::test]
+async fn route_breadcrumbs_require_courier_ownership_and_are_tenant_isolated() {
+    let (app, tenant_token, other_tenant_token) = tenant_tracking_fixture().await;
+
+    let (status, courier) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/couriers",
+        json!({ "name": "Rota Kurye", "vehicle": "motorcycle" }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    let courier_id = courier["id"].as_str().expect("courier id").to_string();
+
+    // Another tenant cannot report breadcrumbs for a courier it does not own.
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/route-history/{courier_id}/breadcrumbs"),
+        json!({
+            "latitude": 41.02,
+            "longitude": 28.95,
+            "speed_kmh": 32.0,
+            "battery_level": 80
+        }),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::NOT_FOUND);
+
+    let timestamp = Utc::now();
+    let (status, breadcrumb) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/route-history/{courier_id}/breadcrumbs"),
+        json!({
+            "latitude": 41.02,
+            "longitude": 28.95,
+            "speed_kmh": 32.0,
+            "battery_level": 80,
+            "timestamp": timestamp.to_rfc3339()
+        }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(breadcrumb["courier_id"], courier_id);
+
+    // Another tenant cannot read the playback track either.
+    let (status, _) = authorized_request(
+        app.clone(),
+        "GET",
+        &format!(
+            "/v1/route-history/{courier_id}?date={}",
+            timestamp.format("%Y-%m-%d")
+        ),
+        json!({}),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::NOT_FOUND);
+
+    let (status, track) = authorized_request(
+        app,
+        "GET",
+        &format!(
+            "/v1/route-history/{courier_id}?date={}",
+            timestamp.format("%Y-%m-%d")
+        ),
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let breadcrumbs = track["breadcrumbs"].as_array().expect("breadcrumbs");
+    assert_eq!(breadcrumbs.len(), 1);
+}
+
+#[tokio::test]
+async fn courier_leaderboard_ranks_couriers_and_is_tenant_isolated() {
+    let (app, tenant_token, other_tenant_token) = tenant_tracking_fixture().await;
+
+    let (status, top_courier) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/couriers",
+        json!({ "name": "Ahmet", "vehicle": "motorcycle" }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    let top_courier_id = top_courier["id"]
+        .as_str()
+        .expect("top courier id")
+        .to_string();
+
+    let (status, idle_courier) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/couriers",
+        json!({ "name": "Mehmet", "vehicle": "bicycle" }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    let idle_courier_id = idle_courier["id"]
+        .as_str()
+        .expect("idle courier id")
+        .to_string();
+
+    let (status, foreign_courier) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/couriers",
+        json!({ "name": "Foreign Courier", "vehicle": "car" }),
+        &other_tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    let foreign_courier_id = foreign_courier["id"]
+        .as_str()
+        .expect("foreign courier id")
+        .to_string();
+
+    // Give the top courier one completed delivery so it scores above the
+    // idle courier, which has none.
+    let (status, order) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/orders",
+        json!({
+            "customer_id": Uuid::now_v7(),
+            "pickup": { "latitude": 41.0, "longitude": 29.0, "label": "Alım" },
+            "dropoff": { "latitude": 41.1, "longitude": 29.1, "label": "Teslim" },
+            "fare_amount_minor": 4200,
+            "fare_currency": "TRY"
+        }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    let order_id = order["id"].as_str().expect("order id").to_string();
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/orders/{order_id}/assign"),
+        json!({ "courier_id": top_courier_id }),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/orders/{order_id}/transit"),
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/orders/{order_id}/deliver"),
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    let (status, leaderboard) = authorized_request(
+        app,
+        "GET",
+        "/v1/couriers/leaderboard",
+        json!({}),
+        &tenant_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    let entries = leaderboard.as_array().expect("leaderboard entries");
+
+    // Only the caller's own tenant's couriers are ranked.
+    assert!(entries
+        .iter()
+        .any(|entry| entry["courier_id"] == top_courier_id));
+    assert!(entries
+        .iter()
+        .any(|entry| entry["courier_id"] == idle_courier_id));
+    assert!(!entries
+        .iter()
+        .any(|entry| entry["courier_id"] == foreign_courier_id));
+
+    let top_entry = entries
+        .iter()
+        .find(|entry| entry["courier_id"] == top_courier_id)
+        .expect("top courier entry");
+    let idle_entry = entries
+        .iter()
+        .find(|entry| entry["courier_id"] == idle_courier_id)
+        .expect("idle courier entry");
+    assert_eq!(top_entry["completed_deliveries"], 1);
+    assert_eq!(idle_entry["completed_deliveries"], 0);
+    assert!(top_entry["rank"].as_u64().unwrap() < idle_entry["rank"].as_u64().unwrap());
+}

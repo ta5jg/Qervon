@@ -4,11 +4,11 @@ Project:        Qervon
 Author:         USDTG GROUP TECHNOLOGY LLC
 Developer:      Irfan Gedik
 Created Date:   2026-08-05
-Version:        0.2.0
+Version:        0.3.0
 
 Description:
-  Ratings, support tickets, and notifications are real. Gamification,
-  referrals, and a "favorites" concept beyond the address book are not.
+  Ratings, support tickets, notifications, and the courier gamification
+  leaderboard are real. Referrals and loyalty-point redemption are not.
 
 Specification:
   QLS-000005, QLS-000010.
@@ -19,7 +19,7 @@ License:
 
 # QLS-000014 — Customer Experience
 
-**Status: Implemented (core) — gamification/referral/loyalty-redemption
+**Status: Implemented (core + gamification) — referral/loyalty-redemption
 are not built.**
 
 ## What is real
@@ -34,17 +34,28 @@ are not built.**
 - **Address book / "favorites":** the only "favorite" concept that
   exists is the saved address book (QLS-000005) — there is no separate
   favorite-courier or favorite-order feature.
+- **Courier gamification leaderboard:** `GET /v1/couriers/leaderboard`
+  (see below) — the one gamification element that is real.
 
-## What is not built (`courier_leaderboard.rs` — v2 backlog)
+## Courier leaderboard (`courier_leaderboard.rs`)
 
-`backend/crates/application/src/courier_leaderboard.rs` models
-gamification (a courier leaderboard/ranking) with
-`// STATUS: v2 backlog -- domain model + unit tests only; no
-repository, migration, or HTTP route yet.` — a real model and tests, no
-wiring. There is no referral-program code, no loyalty-point-redemption
-flow (the points themselves exist but are never awarded — see
-QLS-000005), and no "gamified" element visible to a customer or courier
-in either shipped mobile app or the web pages today.
+`backend/crates/application/src/courier_leaderboard.rs` models a
+composite performance score and rank
+(`completed_deliveries * 10 + on_time_rate% * 5 + average_rating * 50`).
+It is exposed as a tenant-scoped read model at
+`GET /v1/couriers/leaderboard`: every input is computed live from the
+existing `OrderRepository` and `CustomerRatingRepository` rather than
+duplicated into a new table, and "on-time" is defined as delivered within
+60 minutes of order creation. It has no repository or migration of its
+own by design — see BACKEND_BACKLOG.md.
+
+## What is still not built
+
+There is no referral-program code, and no loyalty-point-redemption flow
+(the points themselves exist but are never awarded — see QLS-000005). The
+leaderboard above is the only "gamified" element visible through the API
+today; neither shipped mobile app nor the web pages surface it in a
+dedicated screen yet.
 
 ## References
 
@@ -59,3 +70,4 @@ in either shipped mobile app or the web pages today.
 |---------|------|-------------|
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten distinguishing the real ratings/support/notifications from the entirely-unbuilt gamification/referral concepts. |
+| 0.3.0 | 2026-08-13 | Courier leaderboard wired to `GET /v1/couriers/leaderboard` as a live read model; referral/loyalty-redemption remain unbuilt. |

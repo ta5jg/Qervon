@@ -40,14 +40,14 @@ use qervon_api_contracts::{
     SetCourierAvailabilityRequest, UpdateLocationRequest,
 };
 use qervon_application::{
-    CreateInvoiceInput, CreateOrderInput, CurrencyExchangeEngine, FieldServiceScheduler,
-    RegisterCourierInput, SendNotificationInput, TaxInvoicingEngine, TimeSlotWindow,
+    CourierLeaderboardEngine, CourierLeaderboardEntry, CreateInvoiceInput, CreateOrderInput,
+    CurrencyExchangeEngine, RegisterCourierInput, SendNotificationInput, TaxInvoicingEngine,
 };
 use qervon_domain::{
-    Address, ColdChainTelemetry, HubManifestAssignment, Location, Money, NotificationChannel,
-    OrderId, RefreshSession, RouteBreadcrumb, TenantCompany, TenantId, TenantMemberRole,
-    TicketStatus,
-    TenantMembership, UserId, UserRole, VehicleId, VehicleType, WarehouseHub,
+    Address, ColdChainTelemetry, FieldServiceScheduler, HubManifestAssignment, Location, Money,
+    NotificationChannel, OrderId, RefreshSession, RouteBreadcrumb, TenantCompany, TenantId,
+    TenantMemberRole, TenantMembership, TicketStatus, TimeSlotWindow, UserId, UserRole, VehicleId,
+    VehicleType, WarehouseHub,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -259,7 +259,10 @@ pub fn router(state: AppState) -> Router {
     let operations = Router::new()
         .route("/v1/operations/overview", get(operations_overview))
         .route("/v1/foundation/runtime", get(get_foundation_runtime))
-        .route("/v1/warehouse/hubs", post(create_warehouse_hub).get(list_warehouse_hubs))
+        .route(
+            "/v1/warehouse/hubs",
+            post(create_warehouse_hub).get(list_warehouse_hubs),
+        )
         .route(
             "/v1/warehouse/hubs/{id}/receive",
             post(receive_warehouse_parcels),
@@ -301,6 +304,7 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/couriers", post(register_courier).get(list_couriers))
         .route("/v1/couriers/{id}/wallet", get(get_courier_wallet))
         .route("/v1/couriers/{id}/ratings", get(list_courier_ratings))
+        .route("/v1/couriers/leaderboard", get(courier_leaderboard))
         .route("/v1/coupons", post(create_coupon).get(list_coupons))
         .route(
             "/v1/fleet/vehicles",
@@ -327,7 +331,10 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/reports/operations", get(operations_report))
         .route("/v1/finance/summary", get(finance_summary))
         .route("/v1/finance/invoices", get(list_finance_invoices))
-        .route("/v1/operations/support-tickets", get(list_operations_support_tickets))
+        .route(
+            "/v1/operations/support-tickets",
+            get(list_operations_support_tickets),
+        )
         .route(
             "/v1/operations/support-tickets/stream",
             get(stream_operations_support_tickets),
@@ -1510,9 +1517,9 @@ async fn deliver_otp_sms(state: &AppState, phone: &str, code: &str) -> Result<()
         .header("content-type", "application/json")
         .body(
             json!({
-        "phone": phone,
-        "message": format!("Qervon OTP code: {code}"),
-    })
+                "phone": phone,
+                "message": format!("Qervon OTP code: {code}"),
+            })
             .to_string(),
         );
     if let Some(token) = &state.sms_provider_bearer_token {
@@ -2040,6 +2047,70 @@ async fn list_courier_ratings(
     }
     let ratings = state.ratings.list_for_courier(courier_id).await?;
     Ok(Json(ratings.iter().map(Into::into).collect()))
+}
+
+/// Tenant-scoped courier gamification leaderboard. This is a pure read
+/// model: every input is computed live from `state.orders` and
+/// `state.ratings` rather than a dedicated table, so there is nothing to
+/// duplicate or fall out of sync. "On-time" is defined as delivered within
+/// 60 minutes of order creation — a real, timestamp-derived measure, not a
+/// fabricated value (see `qervon_application::CourierLeaderboardEngine`).
+async fn courier_leaderboard(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<CourierLeaderboardEntry>>, ApiError> {
+    const ON_TIME_THRESHOLD_MINUTES: i64 = 60;
+
+    let tenant_id = TenantId(claims.tenant_id);
+    let couriers = state.couriers.list_all_couriers().await?;
+    let orders = state.orders.list_all().await?;
+
+    let mut entries = Vec::new();
+    for courier in couriers {
+        if state.tenants.find_courier_tenant(courier.id).await? != Some(tenant_id) {
+            continue;
+        }
+        let delivered: Vec<&qervon_domain::Order> = orders
+            .iter()
+            .filter(|order| {
+                order.assigned_courier_id == Some(courier.id)
+                    && order.status == qervon_domain::OrderStatus::Delivered
+            })
+            .collect();
+        let completed_deliveries = delivered.len() as u32;
+        let on_time_count = delivered
+            .iter()
+            .filter(|order| {
+                order.delivered_at.is_some_and(|delivered_at| {
+                    (delivered_at - order.created_at).num_minutes() <= ON_TIME_THRESHOLD_MINUTES
+                })
+            })
+            .count();
+        let on_time_rate_percent = if completed_deliveries > 0 {
+            (on_time_count as f64 / completed_deliveries as f64) * 100.0
+        } else {
+            0.0
+        };
+        let ratings = state.ratings.list_for_courier(courier.id).await?;
+        let average_rating = if ratings.is_empty() {
+            0.0
+        } else {
+            ratings.iter().map(|r| r.rating_stars as f64).sum::<f64>() / ratings.len() as f64
+        };
+        entries.push(CourierLeaderboardEntry {
+            courier_id: courier.id,
+            courier_name: courier.name,
+            completed_deliveries,
+            on_time_rate_percent,
+            average_rating,
+            total_score: 0.0,
+            rank: 0,
+        });
+    }
+
+    Ok(Json(CourierLeaderboardEngine::calculate_leaderboard(
+        entries,
+    )))
 }
 
 async fn list_own_ratings(
@@ -2882,34 +2953,59 @@ struct CreateWarehouseHubRequest {
     capacity_parcels: u32,
 }
 
+/// Creates a warehouse hub owned by the caller's tenant. Persisted through
+/// `WarehouseHubRepository` (Postgres-backed in production; see
+/// `warehouse.hubs` migration) rather than process memory, so hubs survive a
+/// restart and are isolated per tenant.
 async fn create_warehouse_hub(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Json(request): Json<CreateWarehouseHubRequest>,
 ) -> Result<Json<WarehouseHub>, ApiError> {
     let location = Location::new(request.latitude, request.longitude)
         .map_err(|error| ApiError::unprocessable(error.to_string()))?;
     let hub = WarehouseHub::new(
+        TenantId(claims.tenant_id),
         request.hub_code,
         request.hub_name,
         location,
         request.capacity_parcels,
     );
-    state
-        .warehouse_hubs
-        .write()
-        .map_err(|_| ApiError::unprocessable("warehouse store lock poisoned"))?
-        .push(hub.clone());
+    state.warehouse_hubs.create_hub(&hub).await?;
     Ok(Json(hub))
 }
 
-async fn list_warehouse_hubs(State(state): State<AppState>) -> Result<Json<Vec<WarehouseHub>>, ApiError> {
-    Ok(Json(
-        state
-            .warehouse_hubs
-            .read()
-            .map_err(|_| ApiError::unprocessable("warehouse store lock poisoned"))?
-            .clone(),
-    ))
+async fn list_warehouse_hubs(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<WarehouseHub>>, ApiError> {
+    let hubs = state
+        .warehouse_hubs
+        .list_hubs_for_tenant(TenantId(claims.tenant_id))
+        .await?;
+    Ok(Json(hubs))
+}
+
+async fn find_owned_warehouse_hub(
+    state: &AppState,
+    claims: &AccessClaims,
+    id: uuid::Uuid,
+) -> Result<WarehouseHub, ApiError> {
+    let hub = state
+        .warehouse_hubs
+        .find_hub_by_id(id)
+        .await?
+        .ok_or_else(|| ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "warehouse hub not found".into(),
+        })?;
+    if hub.tenant_id != TenantId(claims.tenant_id) {
+        return Err(ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "warehouse hub not found".into(),
+        });
+    }
+    Ok(hub)
 }
 
 #[derive(Deserialize)]
@@ -2919,23 +3015,15 @@ struct ReceiveWarehouseParcelsRequest {
 
 async fn receive_warehouse_parcels(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Path(id): Path<uuid::Uuid>,
     Json(request): Json<ReceiveWarehouseParcelsRequest>,
 ) -> Result<Json<WarehouseHub>, ApiError> {
-    let mut hubs = state
-        .warehouse_hubs
-        .write()
-        .map_err(|_| ApiError::unprocessable("warehouse store lock poisoned"))?;
-    let hub = hubs
-        .iter_mut()
-        .find(|hub| hub.id == id)
-        .ok_or_else(|| ApiError {
-            status: StatusCode::NOT_FOUND,
-            detail: "warehouse hub not found".into(),
-        })?;
+    let mut hub = find_owned_warehouse_hub(&state, &claims, id).await?;
     hub.receive_parcels(request.count)
         .map_err(ApiError::unprocessable)?;
-    Ok(Json(hub.clone()))
+    state.warehouse_hubs.update_hub(&hub).await?;
+    Ok(Json(hub))
 }
 
 #[derive(Deserialize)]
@@ -2946,28 +3034,16 @@ struct DispatchWarehouseManifestRequest {
 
 async fn dispatch_warehouse_manifest(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Path(id): Path<uuid::Uuid>,
     Json(request): Json<DispatchWarehouseManifestRequest>,
 ) -> Result<Json<HubManifestAssignment>, ApiError> {
-    let mut hubs = state
-        .warehouse_hubs
-        .write()
-        .map_err(|_| ApiError::unprocessable("warehouse store lock poisoned"))?;
-    let hub = hubs
-        .iter_mut()
-        .find(|hub| hub.id == id)
-        .ok_or_else(|| ApiError {
-            status: StatusCode::NOT_FOUND,
-            detail: "warehouse hub not found".into(),
-        })?;
+    let mut hub = find_owned_warehouse_hub(&state, &claims, id).await?;
     let manifest = hub
         .dispatch_manifest(request.courier_id, request.order_ids)
         .map_err(ApiError::unprocessable)?;
-    state
-        .hub_manifests
-        .write()
-        .map_err(|_| ApiError::unprocessable("manifest store lock poisoned"))?
-        .push(manifest.clone());
+    state.warehouse_hubs.update_hub(&hub).await?;
+    state.warehouse_hubs.create_manifest(&manifest).await?;
     Ok(Json(manifest))
 }
 
@@ -2981,11 +3057,16 @@ struct RecordColdChainTelemetryRequest {
     max_allowed_temp: f64,
 }
 
+/// Records a cold-chain sensor reading scoped to the caller's tenant.
+/// Persisted through `ColdChainTelemetryRepository` rather than process
+/// memory; see `delivery.cold_chain_telemetry` migration.
 async fn record_cold_chain_telemetry(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Json(request): Json<RecordColdChainTelemetryRequest>,
 ) -> Result<Json<ColdChainTelemetry>, ApiError> {
     let telemetry = ColdChainTelemetry::new(
+        TenantId(claims.tenant_id),
         request.order_id,
         request.sensor_id,
         request.temperature_celsius,
@@ -2993,11 +3074,7 @@ async fn record_cold_chain_telemetry(
         request.min_allowed_temp,
         request.max_allowed_temp,
     );
-    state
-        .cold_chain_telemetry
-        .write()
-        .map_err(|_| ApiError::unprocessable("cold-chain store lock poisoned"))?
-        .push(telemetry.clone());
+    state.cold_chain_telemetry.create(&telemetry).await?;
     Ok(Json(telemetry))
 }
 
@@ -3008,19 +3085,14 @@ struct ColdChainTelemetryQuery {
 
 async fn list_cold_chain_telemetry(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Query(query): Query<ColdChainTelemetryQuery>,
 ) -> Result<Json<Vec<ColdChainTelemetry>>, ApiError> {
     let telemetry = state
         .cold_chain_telemetry
-        .read()
-        .map_err(|_| ApiError::unprocessable("cold-chain store lock poisoned"))?;
-    let mut result = Vec::new();
-    for item in telemetry.iter() {
-        if query.order_id.is_none_or(|id| id == item.order_id) {
-            result.push(item.clone());
-        }
-    }
-    Ok(Json(result))
+        .list_for_tenant(TenantId(claims.tenant_id), query.order_id)
+        .await?;
+    Ok(Json(telemetry))
 }
 
 #[derive(Deserialize)]
@@ -3031,11 +3103,16 @@ struct CreateFieldServiceAppointmentRequest {
     slot_window: TimeSlotWindow,
 }
 
+/// Schedules a field-service appointment scoped to the caller's tenant.
+/// Persisted through `FieldServiceAppointmentRepository` rather than process
+/// memory; see `service.field_service_appointments` migration.
 async fn create_field_service_appointment(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Json(request): Json<CreateFieldServiceAppointmentRequest>,
-) -> Result<Json<qervon_application::FieldServiceAppointment>, ApiError> {
+) -> Result<Json<qervon_domain::FieldServiceAppointment>, ApiError> {
     let appointment = FieldServiceScheduler::schedule_appointment(
+        TenantId(claims.tenant_id),
         request.customer_id,
         request.service_type,
         request.appointment_date,
@@ -3043,22 +3120,20 @@ async fn create_field_service_appointment(
     );
     state
         .field_service_appointments
-        .write()
-        .map_err(|_| ApiError::unprocessable("field-service store lock poisoned"))?
-        .push(appointment.clone());
+        .create(&appointment)
+        .await?;
     Ok(Json(appointment))
 }
 
 async fn list_field_service_appointments(
     State(state): State<AppState>,
-) -> Result<Json<Vec<qervon_application::FieldServiceAppointment>>, ApiError> {
-    Ok(Json(
-        state
-            .field_service_appointments
-            .read()
-            .map_err(|_| ApiError::unprocessable("field-service store lock poisoned"))?
-            .clone(),
-    ))
+    Extension(claims): Extension<AccessClaims>,
+) -> Result<Json<Vec<qervon_domain::FieldServiceAppointment>>, ApiError> {
+    let appointments = state
+        .field_service_appointments
+        .list_for_tenant(TenantId(claims.tenant_id))
+        .await?;
+    Ok(Json(appointments))
 }
 
 #[derive(Deserialize)]
@@ -3070,25 +3145,36 @@ struct RecordRouteBreadcrumbRequest {
     timestamp: Option<chrono::DateTime<Utc>>,
 }
 
+/// Records a courier GPS breadcrumb. The courier must already be bound to
+/// the caller's tenant (`TenantRepository::find_courier_tenant`) — this is
+/// the same ownership check every other courier-scoped write in this file
+/// uses. Persisted through `RouteBreadcrumbRepository` rather than process
+/// memory; see `tracking.route_breadcrumbs` migration.
 async fn record_route_breadcrumb(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Path(courier_id): Path<uuid::Uuid>,
     Json(request): Json<RecordRouteBreadcrumbRequest>,
 ) -> Result<Json<RouteBreadcrumb>, ApiError> {
+    let tenant_id = TenantId(claims.tenant_id);
+    if state.tenants.find_courier_tenant(courier_id).await? != Some(tenant_id) {
+        return Err(ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "courier not found".into(),
+        });
+    }
     let location = Location::new(request.latitude, request.longitude)
         .map_err(|error| ApiError::unprocessable(error.to_string()))?;
     let breadcrumb = RouteBreadcrumb {
+        id: uuid::Uuid::now_v7(),
+        tenant_id,
         courier_id,
         location,
         speed_kmh: request.speed_kmh,
         battery_level: request.battery_level,
         timestamp: request.timestamp.unwrap_or_else(Utc::now),
     };
-    state
-        .route_breadcrumbs
-        .write()
-        .map_err(|_| ApiError::unprocessable("route-history store lock poisoned"))?
-        .push(breadcrumb.clone());
+    state.route_breadcrumbs.create(&breadcrumb).await?;
     Ok(Json(breadcrumb))
 }
 
@@ -3099,18 +3185,24 @@ struct RoutePlaybackQuery {
 
 async fn get_route_playback_track(
     State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
     Path(courier_id): Path<uuid::Uuid>,
     Query(query): Query<RoutePlaybackQuery>,
 ) -> Result<Json<qervon_domain::CourierPlaybackTrack>, ApiError> {
+    let tenant_id = TenantId(claims.tenant_id);
+    if state.tenants.find_courier_tenant(courier_id).await? != Some(tenant_id) {
+        return Err(ApiError {
+            status: StatusCode::NOT_FOUND,
+            detail: "courier not found".into(),
+        });
+    }
     let breadcrumbs = state
         .route_breadcrumbs
-        .read()
-        .map_err(|_| ApiError::unprocessable("route-history store lock poisoned"))?;
+        .list_for_courier_and_date(tenant_id, courier_id, &query.date)
+        .await?;
     let mut track = qervon_domain::CourierPlaybackTrack::new(courier_id, query.date.clone());
-    for breadcrumb in breadcrumbs.iter() {
-        if breadcrumb.courier_id == courier_id && breadcrumb.timestamp.date_naive().to_string() == query.date {
-            track.add_breadcrumb(breadcrumb.clone());
-        }
+    for breadcrumb in breadcrumbs {
+        track.add_breadcrumb(breadcrumb);
     }
     Ok(Json(track))
 }
@@ -3144,12 +3236,9 @@ struct CurrencyConvertQuery {
 async fn convert_currency_amount(
     Query(query): Query<CurrencyConvertQuery>,
 ) -> Result<Json<Value>, ApiError> {
-    let converted = CurrencyExchangeEngine::convert_amount(
-        query.amount_minor,
-        &query.from,
-        &query.to,
-    )
-    .map_err(ApiError::unprocessable)?;
+    let converted =
+        CurrencyExchangeEngine::convert_amount(query.amount_minor, &query.from, &query.to)
+            .map_err(ApiError::unprocessable)?;
     Ok(Json(json!({
         "amount_minor": query.amount_minor,
         "from": query.from,
@@ -3195,10 +3284,9 @@ async fn charge_payment(
     if let Some(token) = &state.payment_gateway_bearer_token {
         outbound = outbound.bearer_auth(token.as_ref());
     }
-    let response = outbound
-        .send()
-        .await
-        .map_err(|error| ApiError::unprocessable(format!("payment gateway request failed: {error}")))?;
+    let response = outbound.send().await.map_err(|error| {
+        ApiError::unprocessable(format!("payment gateway request failed: {error}"))
+    })?;
     let status = response.status();
     let body = response.text().await.unwrap_or_default();
     Ok(Json(json!({

@@ -4,14 +4,51 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Enforces the backend crate layering rules declared in
+#   scripts/check-architecture.sh: domain has no internal dependencies,
+#   application/infrastructure/api-contracts/test-support depend only on
+#   domain, and the couriers/dispatch/orders modules depend only on
+#   application + domain. Runs independently of backend.yml so a layering
+#   violation is caught even on changes that don't touch test files.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QMI-000000, QAS-000001 through QAS-000006, QFS-000002, QES-000002.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: Architecture CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**/Cargo.toml"
+      - "scripts/check-architecture.sh"
+      - ".github/workflows/architecture.yml"
+  pull_request:
+    paths:
+      - "backend/**/Cargo.toml"
+      - "scripts/check-architecture.sh"
+      - ".github/workflows/architecture.yml"
+
+concurrency:
+  group: architecture-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  layering:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Backend crate layering check
+        run: ./scripts/check-architecture.sh

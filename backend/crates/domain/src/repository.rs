@@ -22,6 +22,7 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::billing::{CourierPayout, Invoice, InvoiceId};
+use crate::cold_chain::ColdChainTelemetry;
 use crate::coupon::Coupon;
 use crate::courier::Courier;
 use crate::courier_wallet::{CourierWallet, WalletTransaction};
@@ -32,14 +33,17 @@ use crate::delivery_pricing::DeliveryPricing;
 use crate::device_push_token::DevicePushToken;
 use crate::dispatch::Assignment;
 use crate::error::DomainError;
+use crate::field_service::FieldServiceAppointment;
 use crate::fleet::{Vehicle, VehicleId};
 use crate::notification::{Notification, NotificationId};
 use crate::order::{Order, OrderId};
 use crate::otp_challenge::OtpChallenge;
 use crate::proof_of_delivery::ProofOfDeliveryRecord;
+use crate::route_history::RouteBreadcrumb;
 use crate::tenant::{TenantCompany, TenantId, TenantMembership};
 use crate::tracking::{TrackingPoint, TrackingSession};
 use crate::user::{User, UserId};
+use crate::warehouse_hub::{HubManifestAssignment, WarehouseHub};
 use crate::webhook::WebhookSubscription;
 
 #[async_trait]
@@ -476,7 +480,8 @@ pub trait SupportTicketRepository: Send + Sync {
     async fn find_by_id(&self, id: Uuid) -> Result<Option<SupportTicket>, DomainError>;
     async fn list_for_customer(&self, customer_id: Uuid)
         -> Result<Vec<SupportTicket>, DomainError>;
-    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError>;
+    async fn list_for_tenant(&self, tenant_id: TenantId)
+        -> Result<Vec<SupportTicket>, DomainError>;
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError>;
 }
 
@@ -494,7 +499,10 @@ impl SupportTicketRepository for Arc<dyn SupportTicketRepository> {
     ) -> Result<Vec<SupportTicket>, DomainError> {
         (**self).list_for_customer(customer_id).await
     }
-    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<SupportTicket>, DomainError> {
         (**self).list_for_tenant(tenant_id).await
     }
     async fn update(&self, ticket: &SupportTicket) -> Result<(), DomainError> {
@@ -758,5 +766,132 @@ impl DeliveryPricingRepository for Arc<dyn DeliveryPricingRepository> {
     }
     async fn upsert(&self, pricing: &DeliveryPricing) -> Result<(), DomainError> {
         (**self).upsert(pricing).await
+    }
+}
+
+// ---------------------------------------------------------------------------
+// WarehouseHubRepository
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+pub trait WarehouseHubRepository: Send + Sync {
+    async fn create_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError>;
+    async fn find_hub_by_id(&self, id: Uuid) -> Result<Option<WarehouseHub>, DomainError>;
+    async fn list_hubs_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<WarehouseHub>, DomainError>;
+    async fn update_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError>;
+    async fn create_manifest(&self, manifest: &HubManifestAssignment) -> Result<(), DomainError>;
+}
+
+#[async_trait]
+impl WarehouseHubRepository for Arc<dyn WarehouseHubRepository> {
+    async fn create_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        (**self).create_hub(hub).await
+    }
+    async fn find_hub_by_id(&self, id: Uuid) -> Result<Option<WarehouseHub>, DomainError> {
+        (**self).find_hub_by_id(id).await
+    }
+    async fn list_hubs_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<WarehouseHub>, DomainError> {
+        (**self).list_hubs_for_tenant(tenant_id).await
+    }
+    async fn update_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        (**self).update_hub(hub).await
+    }
+    async fn create_manifest(&self, manifest: &HubManifestAssignment) -> Result<(), DomainError> {
+        (**self).create_manifest(manifest).await
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ColdChainTelemetryRepository
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+pub trait ColdChainTelemetryRepository: Send + Sync {
+    async fn create(&self, telemetry: &ColdChainTelemetry) -> Result<(), DomainError>;
+    /// Lists telemetry scoped to a tenant, optionally filtered to one order.
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+        order_id: Option<Uuid>,
+    ) -> Result<Vec<ColdChainTelemetry>, DomainError>;
+}
+
+#[async_trait]
+impl ColdChainTelemetryRepository for Arc<dyn ColdChainTelemetryRepository> {
+    async fn create(&self, telemetry: &ColdChainTelemetry) -> Result<(), DomainError> {
+        (**self).create(telemetry).await
+    }
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+        order_id: Option<Uuid>,
+    ) -> Result<Vec<ColdChainTelemetry>, DomainError> {
+        (**self).list_for_tenant(tenant_id, order_id).await
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FieldServiceAppointmentRepository
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+pub trait FieldServiceAppointmentRepository: Send + Sync {
+    async fn create(&self, appointment: &FieldServiceAppointment) -> Result<(), DomainError>;
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<FieldServiceAppointment>, DomainError>;
+}
+
+#[async_trait]
+impl FieldServiceAppointmentRepository for Arc<dyn FieldServiceAppointmentRepository> {
+    async fn create(&self, appointment: &FieldServiceAppointment) -> Result<(), DomainError> {
+        (**self).create(appointment).await
+    }
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<FieldServiceAppointment>, DomainError> {
+        (**self).list_for_tenant(tenant_id).await
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RouteBreadcrumbRepository
+// ---------------------------------------------------------------------------
+
+#[async_trait]
+pub trait RouteBreadcrumbRepository: Send + Sync {
+    async fn create(&self, breadcrumb: &RouteBreadcrumb) -> Result<(), DomainError>;
+    /// Lists a courier's breadcrumbs for a single calendar day (`YYYY-MM-DD`),
+    /// scoped to the tenant that owns the courier.
+    async fn list_for_courier_and_date(
+        &self,
+        tenant_id: TenantId,
+        courier_id: Uuid,
+        date: &str,
+    ) -> Result<Vec<RouteBreadcrumb>, DomainError>;
+}
+
+#[async_trait]
+impl RouteBreadcrumbRepository for Arc<dyn RouteBreadcrumbRepository> {
+    async fn create(&self, breadcrumb: &RouteBreadcrumb) -> Result<(), DomainError> {
+        (**self).create(breadcrumb).await
+    }
+    async fn list_for_courier_and_date(
+        &self,
+        tenant_id: TenantId,
+        courier_id: Uuid,
+        date: &str,
+    ) -> Result<Vec<RouteBreadcrumb>, DomainError> {
+        (**self)
+            .list_for_courier_and_date(tenant_id, courier_id, date)
+            .await
     }
 }

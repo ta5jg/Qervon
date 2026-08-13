@@ -4,14 +4,49 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Guards the official web platform (backend/apps/api-gateway/static/) — a
+#   vanilla HTML/CSS/JS surface served directly by the API gateway — against
+#   unpinned third-party CDN scripts and plaintext HTTP resource references.
+#   See scripts/check-web.sh and README.md "Web Platformu Kararı" for context.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QMI-000000, QAS-000008, QES-000014.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: Web Platform CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/apps/api-gateway/static/**"
+      - "scripts/check-web.sh"
+      - ".github/workflows/web.yml"
+  pull_request:
+    paths:
+      - "backend/apps/api-gateway/static/**"
+      - "scripts/check-web.sh"
+      - ".github/workflows/web.yml"
+
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Web platform static checks (CDN pinning, plaintext HTTP)
+        run: ./scripts/check-web.sh

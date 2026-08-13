@@ -150,7 +150,10 @@ impl FoundationRuntime {
             payload,
             created_at: Utc::now(),
         };
-        self.event_log.write().expect("event log lock").push(event.clone());
+        self.event_log
+            .write()
+            .expect("event log lock")
+            .push(event.clone());
         event.id
     }
 

@@ -19,18 +19,21 @@
 use async_trait::async_trait;
 use chrono::{DateTime, NaiveDate, Utc};
 use qervon_domain::{
-    Address, Assignment, AssignmentRepository, Coupon, CouponRepository, Courier, CourierPayout,
-    CourierPayoutRepository, CourierRepository, CourierWallet, CourierWalletRepository, Credential,
-    CredentialRepository, CustomerId, CustomerProfile, CustomerRating, CustomerRatingRepository,
-    CustomerRepository, DeliveryPricing, DeliveryPricingRepository, DevicePushToken,
-    DevicePushTokenRepository, DomainError, Invoice, InvoiceId, InvoiceRepository, InvoiceStatus,
-    Location, Money, Notification, NotificationChannel, NotificationId, NotificationRepository,
-    NotificationStatus, Order, OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository,
-    PayoutStatus, ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, SavedAddress,
-    SupportTicket, SupportTicketRepository, TenantCompany, TenantId, TenantMemberRole,
-    TenantMembership, TenantRepository, TrackingPoint, TrackingRepository, TrackingSession,
-    TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository,
-    VehicleStatus, WalletTransaction, WebhookRepository, WebhookSubscription,
+    Address, Assignment, AssignmentRepository, ColdChainTelemetry, ColdChainTelemetryRepository,
+    Coupon, CouponRepository, Courier, CourierPayout, CourierPayoutRepository, CourierRepository,
+    CourierWallet, CourierWalletRepository, Credential, CredentialRepository, CustomerId,
+    CustomerProfile, CustomerRating, CustomerRatingRepository, CustomerRepository, DeliveryPricing,
+    DeliveryPricingRepository, DevicePushToken, DevicePushTokenRepository, DomainError,
+    FieldServiceAppointment, FieldServiceAppointmentRepository, HubManifestAssignment, Invoice,
+    InvoiceId, InvoiceRepository, InvoiceStatus, Location, Money, Notification,
+    NotificationChannel, NotificationId, NotificationRepository, NotificationStatus, Order,
+    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, PayoutStatus,
+    ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, RouteBreadcrumb,
+    RouteBreadcrumbRepository, SavedAddress, SupportTicket, SupportTicketRepository, TenantCompany,
+    TenantId, TenantMemberRole, TenantMembership, TenantRepository, TrackingPoint,
+    TrackingRepository, TrackingSession, TrackingSessionStatus, User, UserId, UserRepository,
+    Vehicle, VehicleId, VehicleRepository, VehicleStatus, WalletTransaction, WarehouseHub,
+    WarehouseHubRepository, WebhookRepository, WebhookSubscription,
 };
 use sqlx::{FromRow, PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -816,7 +819,10 @@ impl SupportTicketRepository for PgSupportTicketRepository {
             .collect()
     }
 
-    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<SupportTicket>, DomainError> {
         let rows: Vec<SupportTicketRow> = sqlx::query_as(&format!(
             "SELECT {SUPPORT_TICKET_COLUMNS} FROM feedback.support_tickets \
              WHERE tenant_id = $1 ORDER BY created_at DESC"
@@ -2476,6 +2482,399 @@ impl OtpChallengeRepository for PgOtpChallengeRepository {
             return Err(map_row_absent());
         }
         Ok(())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgWarehouseHubRepository {
+    pool: PgPool,
+}
+
+impl PgWarehouseHubRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct WarehouseHubRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    hub_code: String,
+    hub_name: String,
+    latitude: f64,
+    longitude: f64,
+    capacity_parcels: i32,
+    active_parcels: i32,
+}
+
+impl WarehouseHubRow {
+    fn into_domain(self) -> Result<WarehouseHub, DomainError> {
+        Ok(WarehouseHub {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            hub_code: self.hub_code,
+            hub_name: self.hub_name,
+            location: Location::new(self.latitude, self.longitude)
+                .map_err(|error| DomainError::validation(error.to_string()))?,
+            capacity_parcels: self.capacity_parcels as u32,
+            active_parcels: self.active_parcels as u32,
+        })
+    }
+}
+
+const WAREHOUSE_HUB_COLUMNS: &str = "id, tenant_id, hub_code, hub_name, latitude, longitude, \
+     capacity_parcels, active_parcels";
+
+#[async_trait]
+impl WarehouseHubRepository for PgWarehouseHubRepository {
+    async fn create_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO warehouse.hubs \
+             (id, tenant_id, hub_code, hub_name, latitude, longitude, capacity_parcels, \
+              active_parcels) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(hub.id)
+        .bind(hub.tenant_id.0)
+        .bind(&hub.hub_code)
+        .bind(&hub.hub_name)
+        .bind(hub.location.latitude)
+        .bind(hub.location.longitude)
+        .bind(hub.capacity_parcels as i32)
+        .bind(hub.active_parcels as i32)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_hub_by_id(&self, id: Uuid) -> Result<Option<WarehouseHub>, DomainError> {
+        let row: Option<WarehouseHubRow> = sqlx::query_as(&format!(
+            "SELECT {WAREHOUSE_HUB_COLUMNS} FROM warehouse.hubs WHERE id = $1"
+        ))
+        .bind(id)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        row.map(WarehouseHubRow::into_domain).transpose()
+    }
+
+    async fn list_hubs_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<WarehouseHub>, DomainError> {
+        let rows: Vec<WarehouseHubRow> = sqlx::query_as(&format!(
+            "SELECT {WAREHOUSE_HUB_COLUMNS} FROM warehouse.hubs \
+             WHERE tenant_id = $1 ORDER BY hub_code"
+        ))
+        .bind(tenant_id.0)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter().map(WarehouseHubRow::into_domain).collect()
+    }
+
+    async fn update_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        let affected = sqlx::query(
+            "UPDATE warehouse.hubs SET active_parcels = $2 WHERE id = $1 AND tenant_id = $3",
+        )
+        .bind(hub.id)
+        .bind(hub.active_parcels as i32)
+        .bind(hub.tenant_id.0)
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+
+    async fn create_manifest(&self, manifest: &HubManifestAssignment) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO warehouse.hub_manifest_assignments \
+             (id, hub_id, courier_id, order_ids, created_at) \
+             VALUES ($1, $2, $3, $4, $5)",
+        )
+        .bind(manifest.id)
+        .bind(manifest.hub_id)
+        .bind(manifest.courier_id)
+        .bind(&manifest.order_ids)
+        .bind(manifest.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+}
+
+#[derive(Clone)]
+pub struct PgColdChainTelemetryRepository {
+    pool: PgPool,
+}
+
+impl PgColdChainTelemetryRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct ColdChainTelemetryRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    order_id: Uuid,
+    sensor_id: String,
+    temperature_celsius: f64,
+    humidity_percent: f64,
+    min_allowed_temp: f64,
+    max_allowed_temp: f64,
+    is_violation: bool,
+    recorded_at: DateTime<Utc>,
+}
+
+impl ColdChainTelemetryRow {
+    fn into_domain(self) -> ColdChainTelemetry {
+        ColdChainTelemetry {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            order_id: self.order_id,
+            sensor_id: self.sensor_id,
+            temperature_celsius: self.temperature_celsius,
+            humidity_percent: self.humidity_percent,
+            min_allowed_temp: self.min_allowed_temp,
+            max_allowed_temp: self.max_allowed_temp,
+            is_violation: self.is_violation,
+            timestamp: self.recorded_at,
+        }
+    }
+}
+
+const COLD_CHAIN_TELEMETRY_COLUMNS: &str = "id, tenant_id, order_id, sensor_id, \
+     temperature_celsius, humidity_percent, min_allowed_temp, max_allowed_temp, is_violation, \
+     recorded_at";
+
+#[async_trait]
+impl ColdChainTelemetryRepository for PgColdChainTelemetryRepository {
+    async fn create(&self, telemetry: &ColdChainTelemetry) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO delivery.cold_chain_telemetry \
+             (id, tenant_id, order_id, sensor_id, temperature_celsius, humidity_percent, \
+              min_allowed_temp, max_allowed_temp, is_violation, recorded_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+        )
+        .bind(telemetry.id)
+        .bind(telemetry.tenant_id.0)
+        .bind(telemetry.order_id)
+        .bind(&telemetry.sensor_id)
+        .bind(telemetry.temperature_celsius)
+        .bind(telemetry.humidity_percent)
+        .bind(telemetry.min_allowed_temp)
+        .bind(telemetry.max_allowed_temp)
+        .bind(telemetry.is_violation)
+        .bind(telemetry.timestamp)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+        order_id: Option<Uuid>,
+    ) -> Result<Vec<ColdChainTelemetry>, DomainError> {
+        let rows: Vec<ColdChainTelemetryRow> = sqlx::query_as(&format!(
+            "SELECT {COLD_CHAIN_TELEMETRY_COLUMNS} FROM delivery.cold_chain_telemetry \
+             WHERE tenant_id = $1 AND ($2::uuid IS NULL OR order_id = $2) \
+             ORDER BY recorded_at DESC"
+        ))
+        .bind(tenant_id.0)
+        .bind(order_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(rows
+            .into_iter()
+            .map(ColdChainTelemetryRow::into_domain)
+            .collect())
+    }
+}
+
+#[derive(Clone)]
+pub struct PgFieldServiceAppointmentRepository {
+    pool: PgPool,
+}
+
+impl PgFieldServiceAppointmentRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct FieldServiceAppointmentRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    customer_id: Uuid,
+    technician_id: Option<Uuid>,
+    service_type: String,
+    appointment_date: NaiveDate,
+    slot_window: String,
+    is_confirmed: bool,
+}
+
+impl FieldServiceAppointmentRow {
+    fn into_domain(self) -> Result<FieldServiceAppointment, DomainError> {
+        Ok(FieldServiceAppointment {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            customer_id: self.customer_id,
+            technician_id: self.technician_id,
+            service_type: self.service_type,
+            appointment_date: self.appointment_date.to_string(),
+            slot_window: self.slot_window.parse()?,
+            is_confirmed: self.is_confirmed,
+        })
+    }
+}
+
+const FIELD_SERVICE_APPOINTMENT_COLUMNS: &str = "id, tenant_id, customer_id, technician_id, \
+     service_type, appointment_date, slot_window, is_confirmed";
+
+#[async_trait]
+impl FieldServiceAppointmentRepository for PgFieldServiceAppointmentRepository {
+    async fn create(&self, appointment: &FieldServiceAppointment) -> Result<(), DomainError> {
+        let appointment_date = NaiveDate::parse_from_str(&appointment.appointment_date, "%Y-%m-%d")
+            .map_err(|_| {
+                DomainError::validation("appointment_date must be formatted YYYY-MM-DD")
+            })?;
+        sqlx::query(
+            "INSERT INTO service.field_service_appointments \
+             (id, tenant_id, customer_id, technician_id, service_type, appointment_date, \
+              slot_window, is_confirmed) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(appointment.id)
+        .bind(appointment.tenant_id.0)
+        .bind(appointment.customer_id)
+        .bind(appointment.technician_id)
+        .bind(&appointment.service_type)
+        .bind(appointment_date)
+        .bind(appointment.slot_window.as_str())
+        .bind(appointment.is_confirmed)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<FieldServiceAppointment>, DomainError> {
+        let rows: Vec<FieldServiceAppointmentRow> = sqlx::query_as(&format!(
+            "SELECT {FIELD_SERVICE_APPOINTMENT_COLUMNS} FROM service.field_service_appointments \
+             WHERE tenant_id = $1 ORDER BY appointment_date DESC"
+        ))
+        .bind(tenant_id.0)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter()
+            .map(FieldServiceAppointmentRow::into_domain)
+            .collect()
+    }
+}
+
+#[derive(Clone)]
+pub struct PgRouteBreadcrumbRepository {
+    pool: PgPool,
+}
+
+impl PgRouteBreadcrumbRepository {
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(FromRow)]
+struct RouteBreadcrumbRow {
+    id: Uuid,
+    tenant_id: Uuid,
+    courier_id: Uuid,
+    latitude: f64,
+    longitude: f64,
+    speed_kmh: f64,
+    battery_level: i16,
+    recorded_at: DateTime<Utc>,
+}
+
+impl RouteBreadcrumbRow {
+    fn into_domain(self) -> Result<RouteBreadcrumb, DomainError> {
+        Ok(RouteBreadcrumb {
+            id: self.id,
+            tenant_id: TenantId(self.tenant_id),
+            courier_id: self.courier_id,
+            location: Location::new(self.latitude, self.longitude)
+                .map_err(|error| DomainError::validation(error.to_string()))?,
+            speed_kmh: self.speed_kmh,
+            battery_level: self.battery_level as u8,
+            timestamp: self.recorded_at,
+        })
+    }
+}
+
+const ROUTE_BREADCRUMB_COLUMNS: &str = "id, tenant_id, courier_id, latitude, longitude, \
+     speed_kmh, battery_level, recorded_at";
+
+#[async_trait]
+impl RouteBreadcrumbRepository for PgRouteBreadcrumbRepository {
+    async fn create(&self, breadcrumb: &RouteBreadcrumb) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO tracking.route_breadcrumbs \
+             (id, tenant_id, courier_id, latitude, longitude, speed_kmh, battery_level, \
+              recorded_at) \
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+        )
+        .bind(breadcrumb.id)
+        .bind(breadcrumb.tenant_id.0)
+        .bind(breadcrumb.courier_id)
+        .bind(breadcrumb.location.latitude)
+        .bind(breadcrumb.location.longitude)
+        .bind(breadcrumb.speed_kmh)
+        .bind(breadcrumb.battery_level as i16)
+        .bind(breadcrumb.timestamp)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn list_for_courier_and_date(
+        &self,
+        tenant_id: TenantId,
+        courier_id: Uuid,
+        date: &str,
+    ) -> Result<Vec<RouteBreadcrumb>, DomainError> {
+        let day = NaiveDate::parse_from_str(date, "%Y-%m-%d")
+            .map_err(|_| DomainError::validation("date must be formatted YYYY-MM-DD"))?;
+        let rows: Vec<RouteBreadcrumbRow> = sqlx::query_as(&format!(
+            "SELECT {ROUTE_BREADCRUMB_COLUMNS} FROM tracking.route_breadcrumbs \
+             WHERE tenant_id = $1 AND courier_id = $2 AND recorded_at::date = $3 \
+             ORDER BY recorded_at ASC"
+        ))
+        .bind(tenant_id.0)
+        .bind(courier_id)
+        .bind(day)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        rows.into_iter()
+            .map(RouteBreadcrumbRow::into_domain)
+            .collect()
     }
 }
 

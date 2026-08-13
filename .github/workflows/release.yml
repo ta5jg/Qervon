@@ -4,14 +4,53 @@
 # Author:         USDTG GROUP TECHNOLOGY LLC
 # Developer:      Irfan Gedik
 # Created Date:   2026-08-05
-# Version:        0.1.0
+# Version:        0.2.0
 #
 # Description:
-#   Defines an automated GitHub Actions workflow for Qervon engineering governance.
+#   Release readiness gate: runs scripts/release.sh (tests, lints, backend
+#   crate layering, documentation baseline, and secret/artifact scanning)
+#   without ever tagging from CI — tagging stays a deliberate, local,
+#   human-invoked action (`scripts/release.sh --tag <version>`). Triggers on
+#   an annotated `v*` tag push (so the exact tagged commit is verified) and on
+#   manual dispatch for an on-demand pre-release check.
 #
 # Specification:
-#   QMI-000000, QES-000007, QES-000008, QES-000010.
+#   QMI-000000, QAS-000001 through QAS-000006, QES-000002, QES-000006,
+#   QES-000012.
 #
 # License:
 #   Qervon License v1.0 — see LICENSE in the repository root.
 # ==============================================================================
+
+name: Release Readiness
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Run release gates (tests, lints, architecture, docs, security)
+        run: ./scripts/release.sh

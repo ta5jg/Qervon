@@ -4,12 +4,12 @@ Project:        Qervon
 Author:         USDTG GROUP TECHNOLOGY LLC
 Developer:      Irfan Gedik
 Created Date:   2026-08-05
-Version:        0.2.0
+Version:        0.3.0
 
 Description:
-  Honest status of route optimization and route-history/playback — a
-  domain model exists for playback; multi-stop route optimization does
-  not exist at all.
+  Honest status of route optimization and route-history/playback —
+  playback is now fully wired end-to-end; multi-stop route optimization
+  still does not exist at all.
 
 Specification:
   QAS-000009, QLS-000001.
@@ -20,21 +20,23 @@ License:
 
 # QLS-000008 — Routing Domain
 
-**Status: Vision / Not Implemented** (route-history has a domain model +
-tests only; route optimization has nothing).
+**Status: Partially Implemented** (route-history/playback is real and
+wired; route optimization has nothing).
 
 ## Route history / playback (`route_history.rs`)
 
 A real Rust domain model exists
 (`backend/crates/domain/src/route_history.rs`) representing a recorded
 sequence of a courier's positions for later playback (e.g. an operator
-reviewing "where did this courier actually go during this delivery").
-It has unit tests but explicitly no repository implementation, no
-migration, and no HTTP route
-(`// STATUS: v2 backlog -- domain model + unit tests only; no
-repository, migration, or HTTP route yet.`) — it cannot be exercised
-through the API today. See BACKEND_BACKLOG.md for the current v2-backlog
-list.
+reviewing "where did this courier actually go during this delivery"). As
+of the 2026-08-13 backlog closure it is fully wired: a `tenant_id`-scoped
+`RouteBreadcrumbRepository` (in-memory and Postgres), the
+`tracking.route_breadcrumbs` migration, and tenant-scoped HTTP routes
+(`POST /v1/route-history/{courier_id}/breadcrumbs` and
+`GET /v1/route-history/{courier_id}?date=YYYY-MM-DD`). Recording a
+breadcrumb requires the courier to already be bound to the caller's
+tenant (`TenantRepository::find_courier_tenant`), the same ownership check
+every other courier-scoped write in the API uses.
 
 ## Multi-stop route optimization ("AI Route")
 
@@ -45,11 +47,11 @@ stub domain model. The AI Dispatcher (QAS-000009) assigns one order to
 one courier at a time; there is no concept of batching multiple orders
 onto a single courier run or sequencing stops.
 
-## What building this for real would need
+## What building multi-stop route optimization for real would need
 
-- A `Route { stops: Vec<RouteStop> }` domain model actually wired to
-  repositories/migrations/HTTP routes (unlike the current stub).
-  and a real route-optimization algorithm (even a simple
+- A `Route { stops: Vec<RouteStop> }` domain model wired to
+  repositories/migrations/HTTP routes the same way `route_history.rs` now
+  is, and a real route-optimization algorithm (even a simple
   nearest-neighbor heuristic would be a legitimate first version — a
   full TSP solver is not required to be useful).
 - A decision on how this interacts with the existing single-order offer
@@ -70,3 +72,4 @@ onto a single courier run or sequencing stops.
 |---------|------|-------------|
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten as an explicit Vision/Not Implemented status distinguishing the route-history stub from the entirely-absent route-optimization feature. |
+| 0.3.0 | 2026-08-13 | Route-history/playback promoted out of backlog (repository, migration, tenant-scoped HTTP route); route optimization remains unbuilt. |

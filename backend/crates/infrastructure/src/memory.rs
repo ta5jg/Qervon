@@ -22,17 +22,21 @@ use std::sync::{Arc, RwLock};
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use qervon_domain::{
-    Assignment, AssignmentRepository, AssignmentStatus, Coupon, CouponRepository, Courier,
-    CourierPayout, CourierPayoutRepository, CourierRepository, CourierStatus, CourierWallet,
+    Assignment, AssignmentRepository, AssignmentStatus, ColdChainTelemetry,
+    ColdChainTelemetryRepository, Coupon, CouponRepository, Courier, CourierPayout,
+    CourierPayoutRepository, CourierRepository, CourierStatus, CourierWallet,
     CourierWalletRepository, Credential, CredentialRepository, CustomerId, CustomerProfile,
     CustomerRating, CustomerRatingRepository, CustomerRepository, DeliveryPricing,
-    DeliveryPricingRepository, DevicePushToken, DevicePushTokenRepository, DomainError, Invoice,
+    DeliveryPricingRepository, DevicePushToken, DevicePushTokenRepository, DomainError,
+    FieldServiceAppointment, FieldServiceAppointmentRepository, HubManifestAssignment, Invoice,
     InvoiceId, InvoiceRepository, Notification, NotificationId, NotificationRepository, Order,
     OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, ProofOfDeliveryRecord,
-    ProofOfDeliveryRepository, RefreshSession, SupportTicket, SupportTicketRepository,
-    TenantCompany, TenantId, TenantMembership, TenantRepository, TrackingPoint, TrackingRepository,
-    TrackingSession, TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId,
-    VehicleRepository, VehicleStatus, WalletTransaction, WebhookRepository, WebhookSubscription,
+    ProofOfDeliveryRepository, RefreshSession, RouteBreadcrumb, RouteBreadcrumbRepository,
+    SupportTicket, SupportTicketRepository, TenantCompany, TenantId, TenantMembership,
+    TenantRepository, TrackingPoint, TrackingRepository, TrackingSession, TrackingSessionStatus,
+    User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository, VehicleStatus,
+    WalletTransaction, WarehouseHub, WarehouseHubRepository, WebhookRepository,
+    WebhookSubscription,
 };
 use uuid::Uuid;
 
@@ -69,6 +73,11 @@ pub struct InMemoryStore {
     coupons: Arc<RwLock<HashMap<Uuid, Coupon>>>,
     device_push_tokens: Arc<RwLock<HashMap<Uuid, DevicePushToken>>>,
     delivery_pricing: Arc<RwLock<HashMap<TenantId, DeliveryPricing>>>,
+    warehouse_hubs: Arc<RwLock<HashMap<Uuid, WarehouseHub>>>,
+    hub_manifests: Arc<RwLock<Vec<HubManifestAssignment>>>,
+    cold_chain_telemetry: Arc<RwLock<Vec<ColdChainTelemetry>>>,
+    field_service_appointments: Arc<RwLock<Vec<FieldServiceAppointment>>>,
+    route_breadcrumbs: Arc<RwLock<Vec<RouteBreadcrumb>>>,
 }
 
 impl InMemoryStore {
@@ -204,6 +213,33 @@ impl InMemoryStore {
             courier_tenants: Arc::clone(&self.courier_tenants),
             order_tenants: Arc::clone(&self.order_tenants),
             vehicle_tenants: Arc::clone(&self.vehicle_tenants),
+        }
+    }
+
+    pub fn warehouse_hub_repository(&self) -> InMemoryWarehouseHubRepository {
+        InMemoryWarehouseHubRepository {
+            hubs: Arc::clone(&self.warehouse_hubs),
+            manifests: Arc::clone(&self.hub_manifests),
+        }
+    }
+
+    pub fn cold_chain_telemetry_repository(&self) -> InMemoryColdChainTelemetryRepository {
+        InMemoryColdChainTelemetryRepository {
+            store: Arc::clone(&self.cold_chain_telemetry),
+        }
+    }
+
+    pub fn field_service_appointment_repository(
+        &self,
+    ) -> InMemoryFieldServiceAppointmentRepository {
+        InMemoryFieldServiceAppointmentRepository {
+            store: Arc::clone(&self.field_service_appointments),
+        }
+    }
+
+    pub fn route_breadcrumb_repository(&self) -> InMemoryRouteBreadcrumbRepository {
+        InMemoryRouteBreadcrumbRepository {
+            store: Arc::clone(&self.route_breadcrumbs),
         }
     }
 }
@@ -1031,7 +1067,10 @@ impl SupportTicketRepository for InMemorySupportTicketRepository {
             .collect())
     }
 
-    async fn list_for_tenant(&self, tenant_id: TenantId) -> Result<Vec<SupportTicket>, DomainError> {
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<SupportTicket>, DomainError> {
         Ok(self
             .store
             .read()
@@ -1226,6 +1265,154 @@ impl CustomerRepository for InMemoryCustomerRepository {
             .unwrap()
             .insert(profile.id, profile.clone());
         Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// WarehouseHubRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryWarehouseHubRepository {
+    hubs: Arc<RwLock<HashMap<Uuid, WarehouseHub>>>,
+    manifests: Arc<RwLock<Vec<HubManifestAssignment>>>,
+}
+
+#[async_trait]
+impl WarehouseHubRepository for InMemoryWarehouseHubRepository {
+    async fn create_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        self.hubs.write().unwrap().insert(hub.id, hub.clone());
+        Ok(())
+    }
+
+    async fn find_hub_by_id(&self, id: Uuid) -> Result<Option<WarehouseHub>, DomainError> {
+        Ok(self.hubs.read().unwrap().get(&id).cloned())
+    }
+
+    async fn list_hubs_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<WarehouseHub>, DomainError> {
+        Ok(self
+            .hubs
+            .read()
+            .unwrap()
+            .values()
+            .filter(|hub| hub.tenant_id == tenant_id)
+            .cloned()
+            .collect())
+    }
+
+    async fn update_hub(&self, hub: &WarehouseHub) -> Result<(), DomainError> {
+        self.hubs.write().unwrap().insert(hub.id, hub.clone());
+        Ok(())
+    }
+
+    async fn create_manifest(&self, manifest: &HubManifestAssignment) -> Result<(), DomainError> {
+        self.manifests.write().unwrap().push(manifest.clone());
+        Ok(())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ColdChainTelemetryRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryColdChainTelemetryRepository {
+    store: Arc<RwLock<Vec<ColdChainTelemetry>>>,
+}
+
+#[async_trait]
+impl ColdChainTelemetryRepository for InMemoryColdChainTelemetryRepository {
+    async fn create(&self, telemetry: &ColdChainTelemetry) -> Result<(), DomainError> {
+        self.store.write().unwrap().push(telemetry.clone());
+        Ok(())
+    }
+
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+        order_id: Option<Uuid>,
+    ) -> Result<Vec<ColdChainTelemetry>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .iter()
+            .filter(|item| {
+                item.tenant_id == tenant_id && order_id.is_none_or(|id| id == item.order_id)
+            })
+            .cloned()
+            .collect())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// FieldServiceAppointmentRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryFieldServiceAppointmentRepository {
+    store: Arc<RwLock<Vec<FieldServiceAppointment>>>,
+}
+
+#[async_trait]
+impl FieldServiceAppointmentRepository for InMemoryFieldServiceAppointmentRepository {
+    async fn create(&self, appointment: &FieldServiceAppointment) -> Result<(), DomainError> {
+        self.store.write().unwrap().push(appointment.clone());
+        Ok(())
+    }
+
+    async fn list_for_tenant(
+        &self,
+        tenant_id: TenantId,
+    ) -> Result<Vec<FieldServiceAppointment>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .iter()
+            .filter(|appointment| appointment.tenant_id == tenant_id)
+            .cloned()
+            .collect())
+    }
+}
+
+// ---------------------------------------------------------------------------
+// RouteBreadcrumbRepository
+// ---------------------------------------------------------------------------
+
+#[derive(Clone)]
+pub struct InMemoryRouteBreadcrumbRepository {
+    store: Arc<RwLock<Vec<RouteBreadcrumb>>>,
+}
+
+#[async_trait]
+impl RouteBreadcrumbRepository for InMemoryRouteBreadcrumbRepository {
+    async fn create(&self, breadcrumb: &RouteBreadcrumb) -> Result<(), DomainError> {
+        self.store.write().unwrap().push(breadcrumb.clone());
+        Ok(())
+    }
+
+    async fn list_for_courier_and_date(
+        &self,
+        tenant_id: TenantId,
+        courier_id: Uuid,
+        date: &str,
+    ) -> Result<Vec<RouteBreadcrumb>, DomainError> {
+        Ok(self
+            .store
+            .read()
+            .unwrap()
+            .iter()
+            .filter(|b| {
+                b.tenant_id == tenant_id
+                    && b.courier_id == courier_id
+                    && b.timestamp.date_naive().to_string() == date
+            })
+            .cloned()
+            .collect())
     }
 }
 

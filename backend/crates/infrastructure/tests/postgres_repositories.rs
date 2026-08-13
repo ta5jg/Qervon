@@ -6,13 +6,17 @@
 
 use chrono::{Duration, NaiveDate, Utc};
 use qervon_domain::{
-    Courier, CourierPayout, CourierPayoutRepository, CourierRepository, CustomerId,
-    CustomerProfile, CustomerRepository, Location, Money, SavedAddress, User, UserId,
-    UserRepository, UserRole, Vehicle, VehicleId, VehicleRepository, VehicleType,
+    ColdChainTelemetry, ColdChainTelemetryRepository, Courier, CourierPayout,
+    CourierPayoutRepository, CourierRepository, CustomerId, CustomerProfile, CustomerRepository,
+    FieldServiceAppointmentRepository, FieldServiceScheduler, Location, Money,
+    RouteBreadcrumbRepository, SavedAddress, TenantId, TimeSlotWindow, User, UserId,
+    UserRepository, UserRole, Vehicle, VehicleId, VehicleRepository, VehicleType, WarehouseHub,
+    WarehouseHubRepository,
 };
 use qervon_infrastructure::{
-    postgres::PgPoolOptions, PgCourierPayoutRepository, PgCourierRepository, PgCustomerRepository,
-    PgUserRepository, PgVehicleRepository,
+    postgres::PgPoolOptions, PgColdChainTelemetryRepository, PgCourierPayoutRepository,
+    PgCourierRepository, PgCustomerRepository, PgFieldServiceAppointmentRepository,
+    PgRouteBreadcrumbRepository, PgUserRepository, PgVehicleRepository, PgWarehouseHubRepository,
 };
 use uuid::Uuid;
 
@@ -125,4 +129,107 @@ async fn postgres_repositories_round_trip() {
         .expect("payout exists");
     assert_eq!(persisted_payout.net_amount.amount_minor, 8_500);
     assert_eq!(persisted_payout.status.as_str(), "approved");
+
+    // --- LOS campaign domain expansion: warehouse, cold-chain, field
+    // service, and route-history breadcrumbs. These exercise the raw SQL in
+    // postgres.rs directly against a real schema, since the HTTP-level
+    // tenant-isolation tests in api_flow.rs only run against InMemoryStore.
+    let tenant_id = TenantId::new();
+
+    let warehouse = PgWarehouseHubRepository::new(pool.clone());
+    let hub = WarehouseHub::new(
+        tenant_id,
+        format!("HUB-{}", &suffix.to_string()[..8]),
+        "PostgreSQL Test Hub",
+        Location::new(41.02, 28.95).expect("valid hub location"),
+        500,
+    );
+    warehouse.create_hub(&hub).await.expect("persist hub");
+    let mut loaded_hub = warehouse
+        .find_hub_by_id(hub.id)
+        .await
+        .expect("read hub")
+        .expect("hub exists");
+    assert_eq!(loaded_hub.tenant_id, tenant_id);
+    assert_eq!(loaded_hub.active_parcels, 0);
+
+    loaded_hub.receive_parcels(15).expect("receive parcels");
+    warehouse.update_hub(&loaded_hub).await.expect("update hub");
+    let refreshed_hub = warehouse
+        .find_hub_by_id(hub.id)
+        .await
+        .expect("read hub again")
+        .expect("hub exists");
+    assert_eq!(refreshed_hub.active_parcels, 15);
+    assert!(warehouse
+        .list_hubs_for_tenant(tenant_id)
+        .await
+        .expect("list hubs")
+        .iter()
+        .any(|item| item.id == hub.id));
+
+    let manifest = refreshed_hub
+        .clone()
+        .dispatch_manifest(courier.id, vec![])
+        .expect("dispatch manifest");
+    warehouse
+        .create_manifest(&manifest)
+        .await
+        .expect("persist manifest");
+
+    let cold_chain = PgColdChainTelemetryRepository::new(pool.clone());
+    let telemetry =
+        ColdChainTelemetry::new(tenant_id, Uuid::now_v7(), "SENS-PG-1", 11.0, 40.0, 2.0, 8.0);
+    cold_chain
+        .create(&telemetry)
+        .await
+        .expect("persist telemetry");
+    let telemetry_for_tenant = cold_chain
+        .list_for_tenant(tenant_id, Some(telemetry.order_id))
+        .await
+        .expect("list telemetry");
+    assert_eq!(telemetry_for_tenant.len(), 1);
+    assert!(telemetry_for_tenant[0].is_violation);
+
+    let field_service = PgFieldServiceAppointmentRepository::new(pool.clone());
+    let appointment = FieldServiceScheduler::schedule_appointment(
+        tenant_id,
+        Uuid::now_v7(),
+        "PostgreSQL Bakım",
+        "2026-09-01",
+        TimeSlotWindow::Afternoon,
+    );
+    field_service
+        .create(&appointment)
+        .await
+        .expect("persist appointment");
+    let appointments_for_tenant = field_service
+        .list_for_tenant(tenant_id)
+        .await
+        .expect("list appointments");
+    assert!(appointments_for_tenant
+        .iter()
+        .any(|item| item.id == appointment.id));
+
+    let route_history = PgRouteBreadcrumbRepository::new(pool.clone());
+    let breadcrumb = qervon_domain::RouteBreadcrumb {
+        id: Uuid::now_v7(),
+        tenant_id,
+        courier_id: courier.id,
+        location: Location::new(41.03, 28.96).expect("valid breadcrumb location"),
+        speed_kmh: 28.0,
+        battery_level: 77,
+        timestamp: now,
+    };
+    route_history
+        .create(&breadcrumb)
+        .await
+        .expect("persist breadcrumb");
+    let day = now.format("%Y-%m-%d").to_string();
+    let breadcrumbs_for_day = route_history
+        .list_for_courier_and_date(tenant_id, courier.id, &day)
+        .await
+        .expect("list breadcrumbs");
+    assert_eq!(breadcrumbs_for_day.len(), 1);
+    assert_eq!(breadcrumbs_for_day[0].id, breadcrumb.id);
 }

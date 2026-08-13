@@ -12,14 +12,18 @@
 // Specification:
 //   QAS-000001, QES-000002.
 // =============================================================================
-// STATUS: wired -- migration + HTTP routes are available in api-gateway for LOS campaign rollout.
+// STATUS: wired -- Postgres-backed repository (WarehouseHubRepository), a
+// governed migration adding tenant_id, and tenant-scoped HTTP routes are all
+// wired in api-gateway. See BACKEND_BACKLOG.md for history.
 
+use crate::tenant::TenantId;
 use crate::Location;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WarehouseHub {
     pub id: uuid::Uuid,
+    pub tenant_id: TenantId,
     pub hub_code: String, // e.g. "HUB-IST-01"
     pub hub_name: String,
     pub location: Location,
@@ -38,6 +42,7 @@ pub struct HubManifestAssignment {
 
 impl WarehouseHub {
     pub fn new(
+        tenant_id: TenantId,
         hub_code: impl Into<String>,
         hub_name: impl Into<String>,
         location: Location,
@@ -45,6 +50,7 @@ impl WarehouseHub {
     ) -> Self {
         Self {
             id: uuid::Uuid::now_v7(),
+            tenant_id,
             hub_code: hub_code.into(),
             hub_name: hub_name.into(),
             location,
@@ -89,7 +95,13 @@ mod tests {
     #[test]
     fn receives_and_dispatches_parcels_manifest() {
         let loc = Location::new(41.06, 28.93).unwrap();
-        let mut hub = WarehouseHub::new("HUB-01", "İstanbul Ana Transfer Merkezi", loc, 1000);
+        let mut hub = WarehouseHub::new(
+            TenantId::new(),
+            "HUB-01",
+            "İstanbul Ana Transfer Merkezi",
+            loc,
+            1000,
+        );
 
         hub.receive_parcels(50).unwrap();
         assert_eq!(hub.active_parcels, 50);

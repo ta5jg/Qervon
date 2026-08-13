@@ -30,6 +30,7 @@ pub mod delivery_pricing;
 pub mod device_push_token;
 pub mod dispatch;
 pub mod error;
+pub mod field_service;
 pub mod fleet;
 pub mod location;
 pub mod money;
@@ -61,6 +62,7 @@ pub use delivery_pricing::{
 pub use device_push_token::{DevicePushToken, PushPlatform};
 pub use dispatch::{Assignment, AssignmentStatus, OFFER_TTL};
 pub use error::DomainError;
+pub use field_service::{FieldServiceAppointment, FieldServiceScheduler, TimeSlotWindow};
 pub use fleet::{Vehicle, VehicleId, VehicleStatus};
 pub use location::Location;
 pub use money::Money;
@@ -69,12 +71,13 @@ pub use order::{Address, Order, OrderId, OrderStatus, PaymentMethod};
 pub use otp_challenge::OtpChallenge;
 pub use proof_of_delivery::ProofOfDeliveryRecord;
 pub use repository::{
-    AssignmentRepository, CouponRepository, CourierPayoutRepository, CourierRepository,
-    CourierWalletRepository, CredentialRepository, CustomerRatingRepository, CustomerRepository,
-    DeliveryPricingRepository, DevicePushTokenRepository, InvoiceRepository,
-    NotificationRepository, OrderRepository, OtpChallengeRepository, ProofOfDeliveryRepository,
+    AssignmentRepository, ColdChainTelemetryRepository, CouponRepository, CourierPayoutRepository,
+    CourierRepository, CourierWalletRepository, CredentialRepository, CustomerRatingRepository,
+    CustomerRepository, DeliveryPricingRepository, DevicePushTokenRepository,
+    FieldServiceAppointmentRepository, InvoiceRepository, NotificationRepository, OrderRepository,
+    OtpChallengeRepository, ProofOfDeliveryRepository, RouteBreadcrumbRepository,
     SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
-    VehicleRepository, WebhookRepository,
+    VehicleRepository, WarehouseHubRepository, WebhookRepository,
 };
 pub use route_history::{CourierPlaybackTrack, RouteBreadcrumb};
 pub use tenant::{

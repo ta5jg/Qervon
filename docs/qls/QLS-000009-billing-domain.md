@@ -4,11 +4,11 @@ Project:        Qervon
 Author:         USDTG GROUP TECHNOLOGY LLC
 Developer:      Irfan Gedik
 Created Date:   2026-08-05
-Version:        0.2.0
+Version:        0.3.0
 
 Description:
-  Invoices, courier payouts, and coupons — real; tax-specific invoicing
-  is a v2-backlog stub.
+  Invoices, courier payouts, coupons, and tax-invoice drafts — all real
+  and reachable through the HTTP API.
 
 Specification:
   QAS-000002, QLS-000002, QLS-000004.
@@ -19,8 +19,7 @@ License:
 
 # QLS-000009 — Billing Domain
 
-**Status: Implemented (core)** — tax-specific invoicing is a v2-backlog
-stub, see below.
+**Status: Implemented (core + tax invoicing).**
 
 ## Invoices
 
@@ -50,14 +49,17 @@ no-side-effect "preview a coupon's discount before committing" endpoint;
 previewing requires actually creating the order (see
 BACKEND_BACKLOG.md's Faz-2.3 boundary note).
 
-## Tax invoicing (`tax_invoicing.rs`) — v2 backlog
+## Tax invoicing (`tax_invoicing.rs`)
 
-A real domain model for tax-compliant invoice formatting exists but
-`// STATUS: v2 backlog -- domain model + unit tests only; no
-repository, migration, or HTTP route yet.` — the plain `Invoice` above is
-what's actually issued today; a tax-authority-compliant invoice format
-(sequential numbering rules, required fields for a specific
-jurisdiction, etc.) is not implemented.
+`TaxInvoicingEngine::generate_e_invoice` produces a tax-compliant invoice
+draft, exposed via `POST /v1/tax/invoice-draft`. It is a stateless
+calculator — the same category as `CurrencyExchangeEngine` — so it has no
+repository or migration of its own; every field of the draft is derived
+from the request (`order_id`, `customer_id`, `net_amount_minor`,
+`currency`), not read back from storage. The plain `Invoice` above is
+still what's actually issued/tracked per order; this endpoint produces
+the tax-authority-shaped **draft** view of that amount on demand, not a
+second persisted invoice record.
 
 ## References
 
@@ -72,3 +74,4 @@ jurisdiction, etc.) is not implemented.
 |---------|------|-------------|
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten with the real invoice/payout/coupon behavior and the tax-invoicing v2-backlog status. |
+| 0.3.0 | 2026-08-13 | Tax invoicing wired to `POST /v1/tax/invoice-draft`; documented as a stateless calculator, not a backlog stub. |

@@ -11,7 +11,13 @@
 # Description:
 #   Scans tracked files for common secret material and forbidden artifact
 #   types. Scans only git-tracked files so build and dependency output is
-#   never inspected.
+#   never inspected. Test fixtures (Kotlin/Swift/Rust test directories) are
+#   excluded from the password/token/secret heuristic, the same way
+#   docs/*.md/*.sql already were, because they are expected to contain
+#   obviously-fake credentials (e.g. "fakesignature", "supersecretpassword")
+#   exercising encoding/parsing logic, not real secret material. The private
+#   key and AWS credential patterns still scan everywhere, including tests,
+#   since a real key accidentally committed there would be just as dangerous.
 #
 # Specification:
 #   QMI-000000, QAS-000001 through QAS-000006, QES-000004.
@@ -27,15 +33,32 @@ cd "$ROOT"
 
 fail=0
 
-secret_patterns=(
+always_scanned_patterns=(
     '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'
     'AKIA[0-9A-Z]{16}'
     '(AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_SESSION_TOKEN)\s*[:=]\s*["'\'' ]?[^"'\'' ]+'
+)
+
+test_fixture_excluded_patterns=(
     '(^|[[:space:]])(password|passwd|secret|api[_-]?key|token)[[:space:]]*[:=][[:space:]]*["'\''][^"'\''[:space:]]{8,}'
 )
 
-for pattern in "${secret_patterns[@]}"; do
-    matches="$(git grep -n -I -E -e "$pattern" -- . ':!docs/**' ':!*.md' ':!*.sql' || true)"
+exclude_pathspecs=(':!docs/**' ':!*.md' ':!*.sql')
+test_dir_pathspecs=(
+    ':!**/test/**' ':!**/tests/**' ':!**/Tests/**' ':!**/androidTest/**'
+)
+
+for pattern in "${always_scanned_patterns[@]}"; do
+    matches="$(git grep -n -I -E -e "$pattern" -- . "${exclude_pathspecs[@]}" || true)"
+    if [ -n "$matches" ]; then
+        echo "POTENTIAL SECRET FOUND:"
+        echo "$matches"
+        fail=1
+    fi
+done
+
+for pattern in "${test_fixture_excluded_patterns[@]}"; do
+    matches="$(git grep -n -I -E -e "$pattern" -- . "${exclude_pathspecs[@]}" "${test_dir_pathspecs[@]}" || true)"
     if [ -n "$matches" ]; then
         echo "POTENTIAL SECRET FOUND:"
         echo "$matches"

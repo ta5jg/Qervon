@@ -12,13 +12,18 @@
 // Specification:
 //   QAS-000003, QES-000002.
 // =============================================================================
-// STATUS: wired -- migration + HTTP routes are available in api-gateway for LOS campaign rollout.
+// STATUS: wired -- Postgres-backed repository (RouteBreadcrumbRepository), a
+// governed migration adding tenant_id, and tenant-scoped HTTP routes are all
+// wired in api-gateway. See BACKEND_BACKLOG.md for history.
 
+use crate::tenant::TenantId;
 use crate::Location;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RouteBreadcrumb {
+    pub id: uuid::Uuid,
+    pub tenant_id: TenantId,
     pub courier_id: uuid::Uuid,
     pub location: Location,
     pub speed_kmh: f64,
@@ -68,7 +73,10 @@ mod tests {
         let courier_id = uuid::Uuid::now_v7();
         let mut track = CourierPlaybackTrack::new(courier_id, "2026-08-08");
 
+        let tenant_id = TenantId::new();
         let b1 = RouteBreadcrumb {
+            id: uuid::Uuid::now_v7(),
+            tenant_id,
             courier_id,
             location: Location::new(41.06, 28.93).unwrap(),
             speed_kmh: 30.0,
@@ -77,6 +85,8 @@ mod tests {
         };
 
         let b2 = RouteBreadcrumb {
+            id: uuid::Uuid::now_v7(),
+            tenant_id,
             courier_id,
             location: Location::new(41.07, 28.94).unwrap(),
             speed_kmh: 40.0,

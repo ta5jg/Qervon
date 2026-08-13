@@ -12,7 +12,12 @@
 // Specification:
 //   QAS-000004, QES-000006.
 // =============================================================================
-// STATUS: v2 backlog -- domain model + unit tests only; no repository, migration, or HTTP route yet. See BACKEND_BACKLOG.md.
+// STATUS: wired -- exposed as a tenant-scoped read model at
+// GET /v1/couriers/leaderboard in api-gateway. It has no repository or
+// migration of its own on purpose: every input (completed deliveries,
+// on-time rate, average rating) is derived live from the existing Order and
+// CustomerRating repositories rather than duplicated into a new table. See
+// BACKEND_BACKLOG.md for history.
 
 use serde::{Deserialize, Serialize};
 

@@ -27,11 +27,12 @@ Qervon's backend has a working, tested "delivery vertical slice" (auth, orders,
 dispatch, tracking, proof of delivery, billing, notifications). Beyond that
 slice, several domains were implemented as pure Rust models with real unit
 tests, but were deliberately **not** connected to persistence or the HTTP API
-during Backend Faz-1, to keep that phase scoped and shippable.
-
-This file lists exactly what is done vs. missing for each of those domains, so
-they are not mistaken for finished features and so picking one up later is a
-scoped, well-understood task.
+during Backend Faz-1, to keep that phase scoped and shippable. All of them
+were promoted out of backlog status during the `full-vision-campaign` and its
+2026-08-13 follow-up hardening pass (see "Backlog closure" below); this file
+now exists mainly as the historical record of what that promotion involved,
+plus the still-honest boundary notes further down (Faz-2.1 through Faz-2.4,
+web platform).
 
 ## Status legend
 
@@ -40,48 +41,83 @@ scoped, well-understood task.
 - **Repository**: a `*Repository` trait in `qervon-domain` plus in-memory and
   PostgreSQL adapters in `qervon-infrastructure`.
 - **Migration**: a governed SQL migration under `backend/migrations/`.
-- **HTTP route**: a handler wired into `backend/apps/api-gateway/src/http.rs`.
+- **HTTP route**: a handler wired into `backend/apps/api-gateway/src/http.rs`,
+  tenant-scoped the same way every other operational endpoint is
+  (`require_operational_access` + a `tenant_id` check, either stored on the
+  entity itself or resolved via `TenantRepository::find_courier_tenant`).
 
-## Backlog items
+## Backlog closure (2026-08-13)
+
+Every domain below is now **fully wired**: real repository, real migration
+(or, for the two stateless calculators, no persistence needed because there
+is no entity to store), real tenant-scoped HTTP route, and HTTP-level tests
+including an explicit tenant-isolation test in
+`backend/apps/api-gateway/tests/api_flow.rs`. The Postgres adapters were also
+verified against a real local PostgreSQL instance via
+`scripts/test-postgres-integration.sh` (see the round-trip assertions added to
+`backend/crates/infrastructure/tests/postgres_repositories.rs`), not just the
+in-memory adapter that the HTTP-level tests exercise.
 
 | Domain | File | Domain model | Repository | Migration | HTTP route |
 | --- | --- | :---: | :---: | :---: | :---: |
-| Warehouse / Cross-Docking Hub | `backend/crates/domain/src/warehouse_hub.rs` | Yes | No | No | No |
-| Cold-Chain Temperature Telemetry | `backend/crates/domain/src/cold_chain.rs` | Yes | No | No | No |
-| Tax E-Invoicing (VAT draft) | `backend/crates/application/src/tax_invoicing.rs` | Yes | No | No | No |
-| Courier Gamification Leaderboard | `backend/crates/application/src/courier_leaderboard.rs` | Yes | No | No | No |
-| GPS Route Playback (breadcrumbs) | `backend/crates/domain/src/route_history.rs` | Yes | No | No | No |
-| Field Service Appointment Scheduling | `backend/crates/application/src/field_service.rs` | Yes | No | No | No |
-| Multi-Currency Exchange | `backend/crates/application/src/currency_exchange.rs` | Yes | No | No | No |
+| Warehouse / Cross-Docking Hub | `backend/crates/domain/src/warehouse_hub.rs` | Yes | Yes (Postgres) | Yes | Yes |
+| Cold-Chain Temperature Telemetry | `backend/crates/domain/src/cold_chain.rs` | Yes | Yes (Postgres) | Yes | Yes |
+| Tax E-Invoicing (VAT draft) | `backend/crates/application/src/tax_invoicing.rs` | Yes | N/A — stateless calculator | N/A | Yes |
+| Courier Gamification Leaderboard | `backend/crates/application/src/courier_leaderboard.rs` | Yes | N/A — read model over Order/CustomerRating | N/A | Yes |
+| GPS Route Playback (breadcrumbs) | `backend/crates/domain/src/route_history.rs` | Yes | Yes (Postgres) | Yes | Yes |
+| Field Service Appointment Scheduling | `backend/crates/domain/src/field_service.rs` | Yes | Yes (Postgres) | Yes | Yes |
+| Multi-Currency Exchange | `backend/crates/application/src/currency_exchange.rs` | Yes | N/A — stateless calculator | N/A | Yes |
 
-Each file above carries a `// STATUS: v2 backlog ...` comment right after its
-header, pointing back to this document.
+Notes on the two "N/A" rows, so they are not mistaken for oversights:
 
-The following domains were promoted out of this backlog during **Mobil Faz-2.1
-(destekleyici backend API'leri)**: Courier Wallet
+- **Tax E-Invoicing and Multi-Currency Exchange** compute a result from
+  request parameters (a VAT draft, a converted amount) with no state that
+  outlives the request — there is nothing to persist. This mirrors how
+  `PricingService::quote_fare` (delivery pricing preview) already worked
+  before this pass.
+- **Courier Leaderboard** is a derived read model: every input (completed
+  deliveries, on-time rate, average rating) is computed live from the
+  existing `OrderRepository` and `CustomerRatingRepository` in
+  `GET /v1/couriers/leaderboard`, rather than duplicated into a new table
+  that could drift out of sync with the orders/ratings it summarizes.
+  "On-time" is defined as delivered within 60 minutes of order creation — a
+  real, timestamp-derived measure, not a fabricated value.
+
+`FieldServiceAppointment` moved from `qervon-application` to `qervon-domain`
+as part of this pass (`backend/crates/domain/src/field_service.rs`), so its
+repository trait could live in `repository.rs` alongside every other one — a
+domain crate cannot depend on the application crate that used to own it.
+
+The following domains were promoted out of this backlog earlier, during
+**Mobil Faz-2.1 (destekleyici backend API'leri)**: Courier Wallet
 (`backend/crates/domain/src/courier_wallet.rs`), Promo Coupon
 (`backend/crates/application/src/promo_coupon.rs`, now backed by the persisted
 `Coupon` entity in `backend/crates/domain/src/coupon.rs`), and Customer
 Ratings & Support Tickets (`backend/crates/domain/src/customer_feedback.rs`).
-Each now has a full repository (memory + PostgreSQL), migration, and HTTP
+Each has a full repository (memory + PostgreSQL), migration, and HTTP
 routes — see "Faz-2.1 scope boundaries" below for what is still simplified
 within them.
 
-## Promoting an item out of the backlog
+## Promoting a future item out of the backlog
 
-When picking one of these up, follow the same pattern already used by the
-shipped domains (e.g. Fleet in `backend/crates/application/src/fleet_service.rs`,
-`backend/modules/fleet`, and `backend/crates/infrastructure/src/postgres.rs`):
+There is nothing left in this backlog as of 2026-08-13, but if a new domain
+is added as a pure model first, follow the same pattern used by every shipped
+domain above (e.g. Fleet in
+`backend/crates/application/src/fleet_service.rs`, `backend/modules/fleet`,
+and `backend/crates/infrastructure/src/postgres.rs`):
 
 1. Add a `*Repository` trait to `backend/crates/domain/src/repository.rs`.
 2. Implement it for both `InMemoryStore` (`memory.rs`) and Postgres
    (`postgres.rs`), plus a governed migration under `backend/migrations/`.
 3. Wire it into `AppState` (`backend/apps/api-gateway/src/state.rs`).
 4. Add HTTP routes in `http.rs` following the existing tenant-scoping pattern
-   (`require_operational_access` + `find_*_tenant` checks).
+   (`require_operational_access` + `find_*_tenant` checks, or a `tenant_id`
+   column checked directly on the entity).
 5. Add HTTP-level tests in `backend/apps/api-gateway/tests/api_flow.rs`,
-   including a tenant-isolation test.
-6. Remove the `// STATUS: v2 backlog` comment and this table row.
+   including a tenant-isolation test, and round-trip the new Postgres
+   repository in `backend/crates/infrastructure/tests/postgres_repositories.rs`.
+6. Remove the `// STATUS: v2 backlog` comment and add the domain to the table
+   above (or delete the table if it becomes empty again, as happened here).
 
 ## Explicitly out of scope for Backend Faz-1
 
@@ -95,53 +131,77 @@ shipped domains (e.g. Fleet in `backend/crates/application/src/fleet_service.rs`
 Faz-2.1 built the backend APIs a native mobile app needs (OTP login, courier
 wallet, ratings/support tickets, coupons, order payment method, native push
 registration). Every one of these is a **real, tested, persisted** feature —
-none are placeholders — but three of them have a deliberately limited edge
-that requires a real third-party provider we do not have credentials for in
-this environment. Each is called out in code comments at its integration
-point; this section is the single place that lists all three together.
+none are placeholders. Three of them additionally touch a real third-party
+provider (SMS, a payment gateway, APNs/FCM); the `full-vision-campaign`'s
+ops-hardening step (see `docs/operations/full-vision-acceptance-report.md`)
+added a real, pluggable outbound HTTP client for each — configurable via
+`QERVON_SMS_PROVIDER_URL`/`_TOKEN`, `QERVON_PAYMENT_GATEWAY_URL`/`_TOKEN`, and
+`QERVON_PUSH_PROVIDER_URL`/`_TOKEN` — so what remains environment-dependent is
+**only the actual third-party account and endpoint URL**, not the call site
+itself. This is proven end-to-end (real HTTP request, real bearer-token
+header, real request body) in
+`backend/apps/api-gateway/tests/outbound_providers.rs`, which points each
+provider URL at a local test server and asserts on what arrives.
 
-- **OTP phone login has no real SMS provider.** `OtpService`
+- **OTP phone login delivery.** `OtpService`
   (`backend/crates/application/src/otp_service.rs`) generates a
   cryptographically random 6-digit code, hashes it, persists the challenge,
-  and verifies it with attempt/expiry limits — that whole flow is real. What
-  is missing is delivery: `POST /v1/auth/otp/request` never calls an SMS API.
-  On in-memory (local/dev) storage the raw code is returned in the response
-  body as `dev_code` purely for local testing; on PostgreSQL storage it is
-  only written to the server log (never the HTTP response) and only the
-  fact that a code was issued is logged, not the code itself. Wiring a real
-  provider (e.g. Twilio) means replacing the `tracing::info!` call in
-  `auth_otp_request` (`backend/apps/api-gateway/src/http.rs`) with an actual
-  API call, and removing the `dev_code` field entirely once that exists.
-- **Order payment methods do not move money.** `Order.payment_method`
+  and verifies it with attempt/expiry limits — that whole flow is real.
+  `POST /v1/auth/otp/request` calls `deliver_otp_sms`
+  (`backend/apps/api-gateway/src/http.rs`), which POSTs `{phone, message}` to
+  `QERVON_SMS_PROVIDER_URL` with a bearer token if configured. When no URL is
+  configured (the default in this environment, since there is no real SMS
+  account here), delivery is a no-op and, on in-memory (local/dev) storage
+  only, the raw code is returned in the response body as `dev_code` purely
+  for local testing; on PostgreSQL storage it is only written to the server
+  log, never the HTTP response. A delivery failure is logged as a warning but
+  never fails the request, so a flaky provider cannot lock a user out of
+  requesting a new code.
+- **Order payment methods.** `Order.payment_method`
   (`Cash | Card | Qr | Wallet`) and `Order.payment_collected`
   (`backend/crates/domain/src/order.rs`) are real, persisted fields with a
   real state machine (`mark_payment_collected` requires a chosen method and
-  cannot be confirmed twice). But `Card`/`Qr`/`Wallet` only ever record the
-  customer's chosen method — no payment gateway (iyzico, Stripe, etc.) is
-  integrated, and no card data is collected or transmitted (this also keeps
-  the platform outside PCI-DSS scope for now). Only `Cash` has a real-world
-  action behind it: the courier's own confirmation that they physically
-  collected the amount, via `payment_collected` on
+  cannot be confirmed twice). `POST /v1/payments/charge` forwards
+  `{order_id, amount_minor, currency, method}` to `QERVON_PAYMENT_GATEWAY_URL`
+  with a bearer token when configured, and reports `"accepted"`/`"failed"`
+  based on the gateway's HTTP response; with no URL configured it returns
+  `"simulated"` rather than silently pretending money moved. This endpoint is
+  not yet called automatically from order creation for `Card`/`Qr`/`Wallet`
+  orders — an operator or client must invoke it explicitly — and no card
+  data is collected or transmitted (keeping the platform outside PCI-DSS
+  scope). Only `Cash` has a real-world action wired into the delivery flow
+  itself: the courier's own confirmation that they physically collected the
+  amount, via `payment_collected` on
   `POST /v1/courier/orders/{id}/deliver`.
-- **Native push registration does not send anything.** `DevicePushToken`
+- **Native push dispatch.** `DevicePushToken`
   (`backend/crates/domain/src/device_push_token.rs`) and
   `POST /v1/push/devices` / `DELETE /v1/push/devices/{id}` are a real,
   tenant-agnostic, per-user registry of iOS/Android device tokens with
-  idempotent re-registration and ownership-scoped deletion. Nothing reads
-  from this table yet: there is no APNs/FCM integration, so registering a
-  device does not cause any push notification to actually arrive. This
-  mirrors the existing browser web-push split already in the codebase
-  (`notifications.web_push_subscriptions` registration vs. the delivery
-  logic in `backend/apps/worker`) — the next step is a worker job that reads
-  `notifications.device_push_tokens`, calls Apple/Google's push APIs with
-  real credentials, and marks unreachable tokens invalid.
+  idempotent re-registration and ownership-scoped deletion.
+  `POST /v1/push/native/dispatch` reads a user's registered tokens and, if
+  any exist, POSTs `{user_id, platform, title, body, tokens}` to
+  `QERVON_PUSH_PROVIDER_URL` with a bearer token; with no tokens registered
+  it returns `"skipped"`, and with no provider URL configured it returns
+  `"simulated"`. This mirrors the existing browser web-push split already in
+  the codebase (`notifications.web_push_subscriptions` registration vs. the
+  delivery logic in `backend/apps/worker`). Two things are still missing
+  before this is a real APNs/FCM integration rather than a generic webhook:
+  (1) no code path calls this endpoint automatically on domain events (order
+  assigned/delivered, new support-ticket reply) — it must be invoked
+  explicitly — and (2) `QERVON_PUSH_PROVIDER_URL` would need to point at
+  something that actually speaks APNs/FCM's request shape (a real push
+  gateway or a thin translation service), since this client sends a generic
+  JSON body, not Apple/Google's native wire format.
 
-None of the above blocks local development or testing: every code path is
-exercised by an in-memory integration test in
-`backend/apps/api-gateway/tests/api_flow.rs`. They block is only *real-world*
-delivery (SMS/push) and *real-world* money movement (card/QR/wallet
-payments), which both require credentials/contracts this environment
-intentionally does not have.
+None of the above blocks local development or testing: every code path,
+including the outbound HTTP call itself, is exercised by an integration test
+(`backend/apps/api-gateway/tests/outbound_providers.rs` for the provider
+call-outs; `backend/apps/api-gateway/tests/api_flow.rs` for the rest). What
+blocks is only *real-world* delivery (an actual SMS arriving on a phone, a
+real push notification arriving on a device) and *real-world* money movement
+(card/QR/wallet payments), which require credentials/contracts and, for push,
+a protocol-shaped provider, that this environment intentionally does not
+have.
 
 ## Faz-2.2 scope boundaries (native iOS Courier app)
 

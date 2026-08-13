@@ -37,12 +37,13 @@ use qervon_couriers_module::CouriersModule;
 use qervon_customers_module::CustomersModule;
 use qervon_dispatch_module::DispatchModule;
 use qervon_domain::{
-    AssignmentRepository, CouponRepository, CourierPayoutRepository, CourierRepository,
-    CourierWalletRepository, CredentialRepository, CustomerRatingRepository, CustomerRepository,
-    DeliveryPricingRepository, DevicePushTokenRepository, InvoiceRepository,
-    NotificationRepository, OrderRepository, OtpChallengeRepository, ProofOfDeliveryRepository,
-    RouteBreadcrumb, SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
-    VehicleRepository, WarehouseHub, WebhookRepository,
+    AssignmentRepository, ColdChainTelemetryRepository, CouponRepository, CourierPayoutRepository,
+    CourierRepository, CourierWalletRepository, CredentialRepository, CustomerRatingRepository,
+    CustomerRepository, DeliveryPricingRepository, DevicePushTokenRepository,
+    FieldServiceAppointmentRepository, InvoiceRepository, NotificationRepository, OrderRepository,
+    OtpChallengeRepository, ProofOfDeliveryRepository, RouteBreadcrumbRepository,
+    SupportTicketRepository, TenantRepository, TrackingRepository, UserRepository,
+    VehicleRepository, WarehouseHubRepository, WebhookRepository,
 };
 use qervon_fleet_module::FleetModule;
 use qervon_foundation_runtime::{
@@ -53,12 +54,15 @@ use qervon_identity_module::IdentityModule;
 use qervon_infrastructure::{
     memory::InMemoryStore,
     postgres::{
-        PgAssignmentRepository, PgCouponRepository, PgCourierPayoutRepository, PgCourierRepository,
-        PgCourierWalletRepository, PgCredentialRepository, PgCustomerRatingRepository,
-        PgCustomerRepository, PgDeliveryPricingRepository, PgDevicePushTokenRepository,
-        PgInvoiceRepository, PgNotificationRepository, PgOrderRepository, PgOtpChallengeRepository,
-        PgPoolOptions, PgProofOfDeliveryRepository, PgSupportTicketRepository, PgTenantRepository,
-        PgTrackingRepository, PgUserRepository, PgVehicleRepository, PgWebhookRepository,
+        PgAssignmentRepository, PgColdChainTelemetryRepository, PgCouponRepository,
+        PgCourierPayoutRepository, PgCourierRepository, PgCourierWalletRepository,
+        PgCredentialRepository, PgCustomerRatingRepository, PgCustomerRepository,
+        PgDeliveryPricingRepository, PgDevicePushTokenRepository,
+        PgFieldServiceAppointmentRepository, PgInvoiceRepository, PgNotificationRepository,
+        PgOrderRepository, PgOtpChallengeRepository, PgPoolOptions, PgProofOfDeliveryRepository,
+        PgRouteBreadcrumbRepository, PgSupportTicketRepository, PgTenantRepository,
+        PgTrackingRepository, PgUserRepository, PgVehicleRepository, PgWarehouseHubRepository,
+        PgWebhookRepository,
     },
 };
 use qervon_notifications_module::NotificationsModule;
@@ -86,6 +90,10 @@ type DynSupportTickets = Arc<dyn SupportTicketRepository>;
 type DynCoupons = Arc<dyn CouponRepository>;
 type DynDevicePushTokens = Arc<dyn DevicePushTokenRepository>;
 type DynDeliveryPricing = Arc<dyn DeliveryPricingRepository>;
+type DynWarehouseHubs = Arc<dyn WarehouseHubRepository>;
+type DynColdChainTelemetry = Arc<dyn ColdChainTelemetryRepository>;
+type DynFieldServiceAppointments = Arc<dyn FieldServiceAppointmentRepository>;
+type DynRouteBreadcrumbs = Arc<dyn RouteBreadcrumbRepository>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum StorageBackend {
@@ -207,12 +215,10 @@ pub struct AppState {
     pub started_at: Instant,
     pub runtime_metrics: Arc<ApiRuntimeMetrics>,
     pub postgres_pool: Option<sqlx::PgPool>,
-    pub warehouse_hubs: Arc<std::sync::RwLock<Vec<WarehouseHub>>>,
-    pub hub_manifests: Arc<std::sync::RwLock<Vec<qervon_domain::HubManifestAssignment>>>,
-    pub cold_chain_telemetry: Arc<std::sync::RwLock<Vec<qervon_domain::ColdChainTelemetry>>>,
-    pub route_breadcrumbs: Arc<std::sync::RwLock<Vec<RouteBreadcrumb>>>,
-    pub field_service_appointments:
-        Arc<std::sync::RwLock<Vec<qervon_application::FieldServiceAppointment>>>,
+    pub warehouse_hubs: DynWarehouseHubs,
+    pub cold_chain_telemetry: DynColdChainTelemetry,
+    pub route_breadcrumbs: DynRouteBreadcrumbs,
+    pub field_service_appointments: DynFieldServiceAppointments,
     pub payment_reconciliations: Arc<std::sync::RwLock<Vec<serde_json::Value>>>,
     pub sms_provider_url: Option<String>,
     pub sms_provider_bearer_token: Option<Arc<str>>,
@@ -306,6 +312,10 @@ impl AppState {
             Arc::new(store.coupon_repository()),
             Arc::new(store.device_push_token_repository()),
             Arc::new(store.delivery_pricing_repository()),
+            Arc::new(store.warehouse_hub_repository()),
+            Arc::new(store.cold_chain_telemetry_repository()),
+            Arc::new(store.field_service_appointment_repository()),
+            Arc::new(store.route_breadcrumb_repository()),
         )
     }
 
@@ -339,6 +349,10 @@ impl AppState {
             Arc::new(PgCouponRepository::new(pool.clone())),
             Arc::new(PgDevicePushTokenRepository::new(pool.clone())),
             Arc::new(PgDeliveryPricingRepository::new(pool.clone())),
+            Arc::new(PgWarehouseHubRepository::new(pool.clone())),
+            Arc::new(PgColdChainTelemetryRepository::new(pool.clone())),
+            Arc::new(PgFieldServiceAppointmentRepository::new(pool.clone())),
+            Arc::new(PgRouteBreadcrumbRepository::new(pool.clone())),
         );
         state.postgres_pool = Some(pool);
         state.start_location_relay(database_url);
@@ -439,6 +453,10 @@ impl AppState {
         coupons: DynCoupons,
         device_push_tokens: DynDevicePushTokens,
         delivery_pricing: DynDeliveryPricing,
+        warehouse_hubs: DynWarehouseHubs,
+        cold_chain_telemetry: DynColdChainTelemetry,
+        field_service_appointments: DynFieldServiceAppointments,
+        route_breadcrumbs: DynRouteBreadcrumbs,
     ) -> Self {
         let (location_tx, _) = tokio::sync::broadcast::channel(100);
         let foundation = build_foundation_runtime();
@@ -475,11 +493,10 @@ impl AppState {
             started_at: Instant::now(),
             runtime_metrics: Arc::new(ApiRuntimeMetrics::default()),
             postgres_pool: None,
-            warehouse_hubs: Arc::new(std::sync::RwLock::new(Vec::new())),
-            hub_manifests: Arc::new(std::sync::RwLock::new(Vec::new())),
-            cold_chain_telemetry: Arc::new(std::sync::RwLock::new(Vec::new())),
-            route_breadcrumbs: Arc::new(std::sync::RwLock::new(Vec::new())),
-            field_service_appointments: Arc::new(std::sync::RwLock::new(Vec::new())),
+            warehouse_hubs,
+            cold_chain_telemetry,
+            route_breadcrumbs,
+            field_service_appointments,
             payment_reconciliations: Arc::new(std::sync::RwLock::new(Vec::new())),
             sms_provider_url: None,
             sms_provider_bearer_token: None,
