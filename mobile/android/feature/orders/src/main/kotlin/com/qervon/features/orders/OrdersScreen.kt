@@ -14,6 +14,7 @@ package com.qervon.features.orders
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,12 +23,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +43,6 @@ import com.qervon.core.designsystem.QervonPrimaryButton
 import com.qervon.core.designsystem.QervonSpacing
 import com.qervon.core.designsystem.StatusPill
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OrdersScreen(
     onStartDelivery: (orderId: String, isCashOrder: Boolean) -> Unit,
@@ -62,28 +59,26 @@ fun OrdersScreen(
         onDispose { viewModel.stopLiveUpdates() }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Aktif İşlerim") }) }) { padding ->
-        if (state.orders.isEmpty() && !state.isLoading) {
-            Column(modifier = Modifier.fillMaxSize().padding(padding).padding(QervonSpacing.lg)) {
-                Text("Şu anda atanmış aktif iş yok.", color = QervonColors.OnSurfaceMuted)
-            }
-            return@Scaffold
+    if (state.orders.isEmpty() && !state.isLoading) {
+        Column(modifier = Modifier.fillMaxSize().padding(QervonSpacing.lg)) {
+            Text("Şu anda atanmış aktif iş yok.", color = QervonColors.OnSurfaceMuted)
         }
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(QervonSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-        ) {
-            items(state.orders, key = { it.id }) { order ->
-                OrderCard(
-                    order = order,
-                    isProcessing = state.processingOrderId == order.id,
-                    onNavigatePickup = { ExternalNavigation.launch(context, order.pickup.latitude, order.pickup.longitude, order.pickup.label) },
-                    onNavigateDropoff = { ExternalNavigation.launch(context, order.dropoff.latitude, order.dropoff.longitude, order.dropoff.label) },
-                    onPickup = { viewModel.pickup(order.id) },
-                    onDeliver = { onStartDelivery(order.id, order.paymentMethod == com.qervon.core.common.model.PaymentMethod.CASH) },
-                )
-            }
+        return
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(QervonSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+    ) {
+        items(state.orders, key = { it.id }) { order ->
+            OrderCard(
+                order = order,
+                isProcessing = state.processingOrderId == order.id,
+                onNavigatePickup = { ExternalNavigation.launch(context, order.pickup.latitude, order.pickup.longitude, order.pickup.label) },
+                onNavigateDropoff = { ExternalNavigation.launch(context, order.dropoff.latitude, order.dropoff.longitude, order.dropoff.label) },
+                onPickup = { viewModel.pickup(order.id) },
+                onDeliver = { onStartDelivery(order.id, order.paymentMethod == com.qervon.core.common.model.PaymentMethod.CASH) },
+            )
         }
     }
 }

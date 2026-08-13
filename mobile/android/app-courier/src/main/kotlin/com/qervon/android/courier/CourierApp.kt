@@ -24,11 +24,13 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material.icons.filled.WifiTethering
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -39,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -46,6 +49,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.qervon.core.designsystem.QervonColors
+import com.qervon.core.designsystem.QervonTerminalHeader
 import com.qervon.features.auth.BiometricLockScreen
 import com.qervon.features.auth.LoginScreen
 import com.qervon.features.dispatch.DispatchScreen
@@ -138,33 +143,72 @@ private fun CourierMainTabs(
     val tabNavController = rememberNavController()
 
     Scaffold(
+        topBar = {
+            QervonTerminalHeader(
+                title = "KURYE TERMİNALİ",
+                subtitle = "HARDWARE GPS BROADCASTER",
+                badgeText = "OTURUM",
+            )
+        },
         bottomBar = {
             val currentEntry by tabNavController.currentBackStackEntryAsState()
             val currentRoute = currentEntry?.destination?.route
-            NavigationBar {
+            NavigationBar(
+                modifier = Modifier.height(68.dp),
+                containerColor = QervonColors.SurfaceDark,
+                contentColor = QervonColors.OnSurfaceMuted,
+            ) {
                 NavigationBarItem(
                     selected = currentRoute == Routes.DISPATCH,
                     onClick = { tabNavController.navigate(Routes.DISPATCH) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.WifiTethering, contentDescription = null) },
-                    label = { Text("Panel") },
+                    label = { Text("Navigasyon") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.ORDERS,
                     onClick = { tabNavController.navigate(Routes.ORDERS) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.List, contentDescription = null) },
-                    label = { Text("İşlerim") },
+                    label = { Text("POD / İmza") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.EARNINGS,
                     onClick = { tabNavController.navigate(Routes.EARNINGS) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.Wallet, contentDescription = null) },
-                    label = { Text("Kazanç") },
+                    label = { Text("Kazançlar") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.PROFILE,
                     onClick = { tabNavController.navigate(Routes.PROFILE) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.AccountCircle, contentDescription = null) },
-                    label = { Text("Hesap") },
+                    label = { Text("Profil") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
             }
         },

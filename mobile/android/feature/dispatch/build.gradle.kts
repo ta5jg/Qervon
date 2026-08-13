@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":core:location"))
     implementation(project(":core:security"))
     implementation(project(":core:designsystem"))
+    implementation(project(":feature:addressbook"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

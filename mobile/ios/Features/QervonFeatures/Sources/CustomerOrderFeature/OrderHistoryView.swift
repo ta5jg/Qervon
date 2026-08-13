@@ -27,7 +27,7 @@ public struct OrderHistoryView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: QervonSpacing.lg) {
-                Text("Siparişlerim")
+                Text("Geçmiş Teslimatlar")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                     .padding(.top, QervonSpacing.lg)

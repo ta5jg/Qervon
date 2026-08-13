@@ -28,7 +28,7 @@ public struct ProfileView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: QervonSpacing.lg) {
-                Text("Profil")
+                Text("Kurye Profili")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                     .padding(.top, QervonSpacing.lg)

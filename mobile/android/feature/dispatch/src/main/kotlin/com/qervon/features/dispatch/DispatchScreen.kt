@@ -14,20 +14,20 @@ package com.qervon.features.dispatch
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,76 +43,121 @@ import com.qervon.core.designsystem.QervonColors
 import com.qervon.core.designsystem.QervonPrimaryButton
 import com.qervon.core.designsystem.QervonSpacing
 import com.qervon.core.designsystem.StatusPill
+import com.qervon.features.addressbook.OsmMapView
+import org.osmdroid.util.GeoPoint
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DispatchScreen(viewModel: DispatchViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.refreshCourier() }
+    val currentOrder = state.activeOrder ?: state.pendingOffer?.order
+    val mapCenter = currentOrder?.pickup?.let { GeoPoint(it.latitude, it.longitude) } ?: GeoPoint(41.0082, 28.9784)
+    val markers = currentOrder?.let {
+        listOf(
+            GeoPoint(it.pickup.latitude, it.pickup.longitude),
+            GeoPoint(it.dropoff.latitude, it.dropoff.longitude),
+        )
+    } ?: emptyList()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Kurye Paneli") }) }) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(QervonSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-        ) {
-            QervonCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
-                        Text("Durum", style = MaterialTheme.typography.titleMedium)
-                        StatusPill(
-                            text = if (state.isOnline) "Çevrimiçi" else "Çevrimdışı",
-                            color = if (state.isOnline) QervonColors.Success else QervonColors.OnSurfaceMuted,
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(QervonSpacing.md),
+        contentPadding = PaddingValues(bottom = QervonSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+    ) {
+            item {
+                QervonCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(QervonSpacing.sm)) {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(220.dp),
+                            color = QervonColors.BackgroundDark.copy(alpha = 0.8f),
+                        ) {
+                            OsmMapView(
+                                modifier = Modifier.fillMaxSize(),
+                                center = mapCenter,
+                                markers = markers,
+                            )
+                        }
+                        Text(
+                            "DONANIM FİZİKSEL GPS CANLI",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = QervonColors.OnSurfaceMuted,
+                        )
+                        Text(
+                            if (state.isOnline) "Kurye konumu yayınlanıyor" else "Kurye oturumu gerekli; konum yayınlanmıyor",
+                            color = QervonColors.OnSurfaceMuted,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
-                    Switch(checked = state.isOnline, onCheckedChange = { viewModel.toggleOnline() }, enabled = !state.isTogglingOnline)
+                }
+            }
+
+            item {
+                QervonCard {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column {
+                            Text("Durum", style = MaterialTheme.typography.titleMedium)
+                            StatusPill(
+                                text = if (state.isOnline) "Çevrimiçi" else "Çevrimdışı",
+                                color = if (state.isOnline) QervonColors.Success else QervonColors.OnSurfaceMuted,
+                            )
+                        }
+                        Switch(checked = state.isOnline, onCheckedChange = { viewModel.toggleOnline() }, enabled = !state.isTogglingOnline)
+                    }
                 }
             }
 
             state.activeOrder?.let { order ->
-                QervonCard {
-                    Text("Aktif Görev", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(QervonSpacing.sm))
-                    Text(
-                        if (order.status == OrderStatus.COURIER_ASSIGNED) "Alım noktasına gidiliyor" else "Teslimata gidiliyor",
-                        color = QervonColors.Primary,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text("Alım: ${order.pickup.label ?: "Konum"}")
-                    Text("Teslim: ${order.dropoff.label ?: "Konum"}")
-                    Text("Ücret: ${order.fare.formatted()}", style = MaterialTheme.typography.titleMedium)
-                }
-            }
-
-            state.pendingOffer?.let { offer ->
-                QervonCard {
-                    Text("Yeni Sipariş Teklifi", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(QervonSpacing.sm))
-                    Text("Alım: ${offer.order.pickup.label ?: "Konum"}")
-                    Text("Teslim: ${offer.order.dropoff.label ?: "Konum"}")
-                    Text("Ücret: ${offer.order.fare.formatted()}", style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(QervonSpacing.sm))
-                    LinearProgressIndicator(
-                        progress = { (state.secondsRemaining / 30f).coerceIn(0f, 1f) },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text("${state.secondsRemaining} sn kaldı", style = MaterialTheme.typography.labelSmall, color = QervonColors.OnSurfaceMuted)
-                    Spacer(Modifier.height(QervonSpacing.sm))
-                    Row(horizontalArrangement = Arrangement.spacedBy(QervonSpacing.sm)) {
-                        OutlinedButton(onClick = viewModel::rejectOffer, enabled = !state.isRespondingToOffer, modifier = Modifier.weight(1f)) {
-                            Text("Reddet")
-                        }
-                        QervonPrimaryButton(text = "Kabul et", onClick = viewModel::acceptOffer, isLoading = state.isRespondingToOffer, modifier = Modifier.weight(1f))
+                item {
+                    QervonCard {
+                        Text("Aktif Görev", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(QervonSpacing.sm))
+                        Text(
+                            if (order.status == OrderStatus.COURIER_ASSIGNED) "Alım noktasına gidiliyor" else "Teslimata gidiliyor",
+                            color = QervonColors.Primary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text("Alım: ${order.pickup.label ?: "Konum"}")
+                        Text("Teslim: ${order.dropoff.label ?: "Konum"}")
+                        Text("Ücret: ${order.fare.formatted()}", style = MaterialTheme.typography.titleMedium)
                     }
                 }
             }
 
-            state.errorMessage?.let {
+            state.pendingOffer?.let { offer ->
+                item {
+                    QervonCard {
+                        Text("Yeni Sipariş Teklifi", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(QervonSpacing.sm))
+                        Text("Alım: ${offer.order.pickup.label ?: "Konum"}")
+                        Text("Teslim: ${offer.order.dropoff.label ?: "Konum"}")
+                        Text("Ücret: ${offer.order.fare.formatted()}", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(QervonSpacing.sm))
+                        LinearProgressIndicator(
+                            progress = { (state.secondsRemaining / 30f).coerceIn(0f, 1f) },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Text("${state.secondsRemaining} sn kaldı", style = MaterialTheme.typography.labelSmall, color = QervonColors.OnSurfaceMuted)
+                        Spacer(Modifier.height(QervonSpacing.sm))
+                        Row(horizontalArrangement = Arrangement.spacedBy(QervonSpacing.sm)) {
+                            OutlinedButton(onClick = viewModel::rejectOffer, enabled = !state.isRespondingToOffer, modifier = Modifier.weight(1f)) {
+                                Text("Reddet")
+                            }
+                            QervonPrimaryButton(text = "Kabul et", onClick = viewModel::acceptOffer, isLoading = state.isRespondingToOffer, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+
+        state.errorMessage?.let {
+            item {
                 Surface(color = QervonColors.Danger.copy(alpha = 0.1f)) {
                     Text(it, color = QervonColors.Danger, modifier = Modifier.padding(QervonSpacing.sm))
                 }

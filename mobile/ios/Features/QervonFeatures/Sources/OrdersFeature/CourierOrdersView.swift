@@ -30,7 +30,7 @@ public struct CourierOrdersView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: QervonSpacing.lg) {
-                Text("Aktif İşlerim")
+                Text("Teslimat İspatı (POD)")
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                     .padding(.top, QervonSpacing.lg)

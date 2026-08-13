@@ -25,7 +25,7 @@ public struct EarningsView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: QervonSpacing.lg) {
-                Text("Kazanç & İstatistik")
+                Text("Kazançlar")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                     .padding(.top, QervonSpacing.lg)

@@ -17,14 +17,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,39 +34,36 @@ import com.qervon.core.designsystem.QervonCard
 import com.qervon.core.designsystem.QervonColors
 import com.qervon.core.designsystem.QervonSpacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EarningsScreen(viewModel: EarningsViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Kazançlarım") }) }) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(QervonSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-        ) {
-            item {
-                QervonCard {
-                    Text("Bakiye", style = MaterialTheme.typography.bodyMedium, color = QervonColors.OnSurfaceMuted)
-                    Text(state.wallet?.balance?.formatted() ?: "—", style = MaterialTheme.typography.headlineMedium)
-                    state.averageRating?.let {
-                        Text(String.format("%.1f ★ ortalama puan", it), color = QervonColors.Warning)
-                    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(QervonSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+    ) {
+        item {
+            QervonCard {
+                Text("Bakiye", style = MaterialTheme.typography.bodyMedium, color = QervonColors.OnSurfaceMuted)
+                Text(state.wallet?.balance?.formatted() ?: "—", style = MaterialTheme.typography.headlineMedium)
+                state.averageRating?.let {
+                    Text(String.format("%.1f ★ ortalama puan", it), color = QervonColors.Warning)
                 }
             }
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QervonSpacing.sm)) {
-                    EarningsPeriodCard("Bugün", state.todayEarnings?.formatted())
-                    EarningsPeriodCard("Bu Hafta", state.weekEarnings?.formatted())
-                    EarningsPeriodCard("Bu Ay", state.monthEarnings?.formatted())
-                }
+        }
+        item {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(QervonSpacing.sm)) {
+                EarningsPeriodCard("Bugün", state.todayEarnings?.formatted())
+                EarningsPeriodCard("Bu Hafta", state.weekEarnings?.formatted())
+                EarningsPeriodCard("Bu Ay", state.monthEarnings?.formatted())
             }
-            item { Text("İşlem Geçmişi", style = MaterialTheme.typography.titleMedium) }
-            items(state.wallet?.transactions.orEmpty(), key = { it.id }) { transaction ->
-                TransactionRow(transaction)
-            }
+        }
+        item { Text("İşlem Geçmişi", style = MaterialTheme.typography.titleMedium) }
+        items(state.wallet?.transactions.orEmpty(), key = { it.id }) { transaction ->
+            TransactionRow(transaction)
         }
     }
 }

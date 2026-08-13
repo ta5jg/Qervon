@@ -21,10 +21,11 @@ import CustomerProfileFeature
 
 struct MainTabView: View {
     @EnvironmentObject private var session: AppSession
-    @State private var selectedTab = Tab.newOrder
+    @State private var selectedTab = Tab.liveTracking
     @State private var historyRefreshToken = UUID()
 
     enum Tab {
+        case liveTracking
         case newOrder
         case history
         case profile
@@ -33,6 +34,12 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
+            NavigationStack {
+                CustomerLiveTrackingView(api: session.api)
+            }
+            .tabItem { Label("Canlı Takip", systemImage: "location.fill") }
+            .tag(Tab.liveTracking)
+
             NavigationStack {
                 NewOrderView(api: session.api) { _ in
                     // Jump to the history tab so the customer can see (and
@@ -48,7 +55,7 @@ struct MainTabView: View {
                 OrderHistoryView(api: session.api)
                     .id(historyRefreshToken)
             }
-            .tabItem { Label("Siparişlerim", systemImage: "list.bullet.rectangle.fill") }
+            .tabItem { Label("Geçmiş", systemImage: "clock.fill") }
             .tag(Tab.history)
 
             NavigationStack {
@@ -56,7 +63,7 @@ struct MainTabView: View {
                     Task { await session.logout() }
                 }
             }
-            .tabItem { Label("Profil", systemImage: "person.fill") }
+            .tabItem { Label("Cüzdan", systemImage: "wallet.pass.fill") }
             .tag(Tab.profile)
 
             NavigationStack {

@@ -32,7 +32,7 @@ public struct CustomerProfileView: View {
     public var body: some View {
         ScrollView {
             VStack(spacing: QervonSpacing.lg) {
-                Text("Profil")
+                Text("Cüzdan")
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                     .padding(.top, QervonSpacing.lg)
@@ -59,12 +59,8 @@ public struct CustomerProfileView: View {
                 }
                 .padding(.horizontal, QervonSpacing.lg)
 
-                supportSection
-                notificationsSection
                 phoneSection
                 biometricSection
-                pushSection
-                serverSection
 
                 Button("Çıkış Yap") {
                     onLogout()
@@ -75,7 +71,7 @@ public struct CustomerProfileView: View {
             .padding(.bottom, QervonSpacing.xl)
         }
         .qervonScreenBackground()
-        .navigationTitle("Profil")
+        .navigationTitle("Cüzdan")
         .task { await viewModel.load() }
         .onAppear { viewModel.startLiveSupport() }
         .onDisappear { viewModel.stopLiveSupport() }

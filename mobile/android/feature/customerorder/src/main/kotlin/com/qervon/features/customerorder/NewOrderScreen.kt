@@ -24,13 +24,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,72 +86,70 @@ fun NewOrderScreen(
             },
             onClose = { step = NewOrderStep.FORM },
         )
-        NewOrderStep.FORM -> Scaffold(topBar = { TopAppBar(title = { Text("Yeni Sipariş") }) }) { padding ->
-            Column(
-                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(QervonSpacing.md),
-                verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-            ) {
-                AddressPickerRow("Alım Noktası", state.pickup?.label, onClick = { step = NewOrderStep.PICK_PICKUP })
-                AddressPickerRow("Teslim Noktası", state.dropoff?.label, onClick = { step = NewOrderStep.PICK_DROPOFF })
+        NewOrderStep.FORM -> Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(QervonSpacing.md),
+            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+        ) {
+            AddressPickerRow("Alım Noktası", state.pickup?.label, onClick = { step = NewOrderStep.PICK_PICKUP })
+            AddressPickerRow("Teslim Noktası", state.dropoff?.label, onClick = { step = NewOrderStep.PICK_DROPOFF })
 
-                if (state.fareQuote != null || state.isQuoting) {
-                    QervonCard {
-                        Text("Tahmini Ücret", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            if (state.isQuoting) "Hesaplanıyor…" else state.fareQuote?.money?.formatted().orEmpty(),
-                            style = MaterialTheme.typography.headlineMedium,
-                        )
-                        state.fareQuote?.let {
-                            Text(String.format("%.1f km", it.distanceKm), color = QervonColors.OnSurfaceMuted)
-                        }
+            if (state.fareQuote != null || state.isQuoting) {
+                QervonCard {
+                    Text("Tahmini Ücret", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (state.isQuoting) "Hesaplanıyor…" else state.fareQuote?.money?.formatted().orEmpty(),
+                        style = MaterialTheme.typography.headlineMedium,
+                    )
+                    state.fareQuote?.let {
+                        Text(String.format("%.1f km", it.distanceKm), color = QervonColors.OnSurfaceMuted)
                     }
                 }
-
-                Text("Ödeme Yöntemi", style = MaterialTheme.typography.titleMedium)
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    paymentOptions.forEachIndexed { index, (method, label) ->
-                        SegmentedButton(
-                            selected = state.paymentMethod == method.name.lowercase(),
-                            onClick = { viewModel.onPaymentMethodChanged(method.name.lowercase()) },
-                            shape = SegmentedButtonDefaults.itemShape(index, paymentOptions.size),
-                        ) { Text(label) }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = state.couponCode,
-                    onValueChange = viewModel::onCouponCodeChanged,
-                    label = { Text("Kupon kodu (opsiyonel)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = state.deliveryNote,
-                    onValueChange = viewModel::onDeliveryNoteChanged,
-                    label = { Text("Teslimat notu (opsiyonel)") },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = state.contactPhone,
-                    onValueChange = viewModel::onContactPhoneChanged,
-                    label = { Text("İletişim telefonu (opsiyonel)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-
-                state.errorMessage?.let {
-                    Surface(color = QervonColors.Danger.copy(alpha = 0.1f)) {
-                        Text(it, color = QervonColors.Danger, modifier = Modifier.padding(QervonSpacing.sm))
-                    }
-                }
-
-                QervonPrimaryButton(
-                    text = "Sipariş Ver",
-                    onClick = viewModel::submit,
-                    enabled = state.canSubmit,
-                    isLoading = state.isSubmitting,
-                )
             }
+
+            Text("Ödeme Yöntemi", style = MaterialTheme.typography.titleMedium)
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                paymentOptions.forEachIndexed { index, (method, label) ->
+                    SegmentedButton(
+                        selected = state.paymentMethod == method.name.lowercase(),
+                        onClick = { viewModel.onPaymentMethodChanged(method.name.lowercase()) },
+                        shape = SegmentedButtonDefaults.itemShape(index, paymentOptions.size),
+                    ) { Text(label) }
+                }
+            }
+
+            OutlinedTextField(
+                value = state.couponCode,
+                onValueChange = viewModel::onCouponCodeChanged,
+                label = { Text("Kupon kodu (opsiyonel)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = state.deliveryNote,
+                onValueChange = viewModel::onDeliveryNoteChanged,
+                label = { Text("Teslimat notu (opsiyonel)") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = state.contactPhone,
+                onValueChange = viewModel::onContactPhoneChanged,
+                label = { Text("İletişim telefonu (opsiyonel)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            state.errorMessage?.let {
+                Surface(color = QervonColors.Danger.copy(alpha = 0.1f)) {
+                    Text(it, color = QervonColors.Danger, modifier = Modifier.padding(QervonSpacing.sm))
+                }
+            }
+
+            QervonPrimaryButton(
+                text = "Sipariş Ver",
+                onClick = viewModel::submit,
+                enabled = state.canSubmit,
+                isLoading = state.isSubmitting,
+            )
         }
     }
 }

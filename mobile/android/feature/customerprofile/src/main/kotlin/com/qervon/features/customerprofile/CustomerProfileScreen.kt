@@ -14,28 +14,20 @@ package com.qervon.features.customerprofile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,7 +40,6 @@ import com.qervon.features.addressbook.MapAddressPickerScreen
 
 private enum class ProfileStep { MAIN, ADDRESS_LIST, ADDRESS_PICKER }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomerProfileScreen(
     onLoggedOut: () -> Unit,
@@ -57,15 +48,9 @@ fun CustomerProfileScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var step by remember { mutableStateOf(ProfileStep.MAIN) }
-    var supportSubject by remember { mutableStateOf("") }
-    var supportMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.refresh()
-        viewModel.startLiveSupport()
-    }
-    DisposableEffect(Unit) {
-        onDispose { viewModel.stopLiveSupport() }
     }
 
     if (step == ProfileStep.ADDRESS_LIST) {
@@ -83,69 +68,43 @@ fun CustomerProfileScreen(
         return
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Hesabım") }) }) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(QervonSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-        ) {
-            QervonCard {
-                Text("Sadakat Puanı", style = MaterialTheme.typography.labelSmall, color = QervonColors.OnSurfaceMuted)
-                Text("${state.profile?.loyaltyPoints ?: 0}", style = MaterialTheme.typography.headlineMedium)
-            }
-
-            OutlinedButton(onClick = { step = ProfileStep.ADDRESS_LIST }, modifier = Modifier.fillMaxWidth()) {
-                Text("Adres Defterim (${state.profile?.addresses?.size ?: 0})")
-            }
-
-            QervonCard {
-                Text("Destek Taleplerim (${state.tickets.size})", style = MaterialTheme.typography.titleMedium)
-                state.tickets.take(6).forEach { ticket ->
-                    Text("• ${ticket.subject} — ${ticket.status.displayName()}", color = QervonColors.OnSurfaceMuted)
-                }
-                OutlinedTextField(
-                    value = supportSubject,
-                    onValueChange = { supportSubject = it },
-                    label = { Text("Konu") },
-                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
-                    singleLine = true,
-                )
-                OutlinedTextField(
-                    value = supportMessage,
-                    onValueChange = { supportMessage = it },
-                    label = { Text("Mesaj") },
-                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
-                )
-                OutlinedButton(
-                    onClick = {
-                        viewModel.submitSupportTicket(supportSubject, supportMessage)
-                    },
-                    enabled = !state.isSubmittingSupportTicket &&
-                        supportSubject.isNotBlank() &&
-                        supportMessage.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
-                ) {
-                    Text(if (state.isSubmittingSupportTicket) "Gonderiliyor..." else "Canli Destek Talebi Olustur")
-                }
-            }
-
-            QervonCard {
-                Text("Bildirimler (${state.notifications.size})", style = MaterialTheme.typography.titleMedium)
-                state.notifications.take(3).forEach { notification ->
-                    Text("• ${notification.title}", color = QervonColors.OnSurfaceMuted)
-                }
-            }
-
-            QervonCard {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Biyometrik Kilit")
-                    Switch(checked = state.biometricLockEnabled, onCheckedChange = viewModel::setBiometricLockEnabled)
-                }
-            }
-
-            state.errorMessage?.let { Text(it, color = QervonColors.Danger) }
-            state.infoMessage?.let { Text(it, color = QervonColors.Success) }
-
-            OutlinedButton(onClick = { viewModel.logout(); onLoggedOut() }, modifier = Modifier.fillMaxWidth()) { Text("Çıkış Yap") }
+    Column(
+        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(QervonSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+    ) {
+        QervonCard {
+            Text("Sadakat Puanı", style = MaterialTheme.typography.labelSmall, color = QervonColors.OnSurfaceMuted)
+            Text("${state.profile?.loyaltyPoints ?: 0}", style = MaterialTheme.typography.headlineMedium)
         }
+
+        QervonCard {
+            Text("Kayıtlı Adresler", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "${state.profile?.addresses?.size ?: 0} adres kayıtlı",
+                style = MaterialTheme.typography.bodySmall,
+                color = QervonColors.OnSurfaceMuted,
+                modifier = Modifier.padding(top = QervonSpacing.xs),
+            )
+            OutlinedButton(
+                onClick = { step = ProfileStep.ADDRESS_LIST },
+                modifier = Modifier.fillMaxWidth().padding(top = QervonSpacing.sm),
+            ) {
+                Text("Adresleri Yönet")
+            }
+        }
+
+        QervonCard {
+            Text("Cüzdan/Bakiye", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Bu fazda cüzdan özelliği henüz aktif değil.",
+                color = QervonColors.OnSurfaceMuted,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = QervonSpacing.xs),
+            )
+        }
+
+        state.errorMessage?.let { Text(it, color = QervonColors.Danger) }
+
+        OutlinedButton(onClick = { viewModel.logout(); onLoggedOut() }, modifier = Modifier.fillMaxWidth()) { Text("Çıkış Yap") }
     }
 }

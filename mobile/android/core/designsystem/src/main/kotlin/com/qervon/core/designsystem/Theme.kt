@@ -30,6 +30,10 @@ private val lightScheme = lightColorScheme(
     secondary = QervonColors.Secondary,
     background = QervonColors.Background,
     surface = QervonColors.Surface,
+    onPrimary = QervonColors.Background,
+    onSecondary = QervonColors.Background,
+    onBackground = androidx.compose.ui.graphics.Color.White,
+    onSurface = androidx.compose.ui.graphics.Color.White,
     error = QervonColors.Danger,
 )
 
@@ -38,6 +42,10 @@ private val darkScheme = darkColorScheme(
     secondary = QervonColors.Secondary,
     background = QervonColors.BackgroundDark,
     surface = QervonColors.SurfaceDark,
+    onPrimary = QervonColors.BackgroundDark,
+    onSecondary = QervonColors.BackgroundDark,
+    onBackground = androidx.compose.ui.graphics.Color.White,
+    onSurface = androidx.compose.ui.graphics.Color.White,
     error = QervonColors.Danger,
 )
 

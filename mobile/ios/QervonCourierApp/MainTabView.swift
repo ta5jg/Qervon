@@ -29,24 +29,24 @@ struct MainTabView: View {
             NavigationStack {
                 DispatchHomeView(api: session.api)
             }
-            .tabItem { Label("Panel", systemImage: "dot.radiowaves.left.and.right") }
+            .tabItem { Label("Navigasyon", systemImage: "location.fill") }
 
             NavigationStack {
                 CourierOrdersView(api: session.api)
             }
-            .tabItem { Label("İşlerim", systemImage: "list.bullet.rectangle.fill") }
+            .tabItem { Label("POD / İmza", systemImage: "checkmark.seal.fill") }
 
             NavigationStack {
                 EarningsView(api: session.api)
             }
-            .tabItem { Label("Kazanç", systemImage: "wallet.pass.fill") }
+            .tabItem { Label("Kazançlar", systemImage: "wallet.pass.fill") }
 
             NavigationStack {
                 ProfileView(api: session.api) {
                     Task { await session.logout() }
                 }
             }
-            .tabItem { Label("Hesap", systemImage: "person.fill") }
+            .tabItem { Label("Profil", systemImage: "person.fill") }
         }
         .tint(QervonColor.accent)
     }

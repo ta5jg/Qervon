@@ -18,17 +18,18 @@ package com.qervon.core.designsystem
 import androidx.compose.ui.graphics.Color
 
 object QervonColors {
-    val Primary = Color(0xFF0F62FE)
-    val PrimaryDark = Color(0xFF0043CE)
-    val Secondary = Color(0xFF00B894)
-    val Warning = Color(0xFFF5A623)
+    val Primary = Color(0xFF10B981)
+    val PrimaryDark = Color(0xFF047857)
+    val Secondary = Color(0xFF38BDF8)
+    val Warning = Color(0xFFF59E0B)
     val Danger = Color(0xFFE64545)
-    val Success = Color(0xFF2ECC71)
+    val Success = Color(0xFF10B981)
 
-    val Background = Color(0xFFF5F7FA)
-    val Surface = Color(0xFFFFFFFF)
-    val OnSurfaceMuted = Color(0xFF6B7280)
+    val Background = Color(0xFF040711)
+    val Surface = Color(0xFF0F172A)
+    val OnSurfaceMuted = Color(0xFF94A3B8)
 
-    val BackgroundDark = Color(0xFF10131A)
-    val SurfaceDark = Color(0xFF1B1F2A)
+    val BackgroundDark = Color(0xFF040711)
+    val SurfaceDark = Color(0xFF0F172A)
+    val Border = Color(0x1AFFFFFF)
 }

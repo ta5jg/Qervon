@@ -17,13 +17,17 @@
 package com.qervon.core.designsystem
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,7 +37,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -44,10 +52,15 @@ fun QervonCard(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 2.dp,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        shadowElevation = 0.dp,
     ) {
-        Column(modifier = Modifier.padding(QervonSpacing.md), content = content)
+        Column(
+            modifier = Modifier
+                .border(1.dp, QervonColors.Border, RoundedCornerShape(16.dp))
+                .padding(QervonSpacing.md),
+            content = content,
+        )
     }
 }
 
@@ -59,12 +72,20 @@ fun QervonPrimaryButton(
     enabled: Boolean = true,
     isLoading: Boolean = false,
 ) {
+    val brush = Brush.horizontalGradient(
+        colors = listOf(QervonColors.Primary, QervonColors.PrimaryDark),
+    )
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(brush = brush, shape = RoundedCornerShape(14.dp)),
         enabled = enabled && !isLoading,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = QervonColors.Primary),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.45f),
+        ),
         contentPadding = PaddingValues(vertical = 14.dp),
     ) {
         if (isLoading) {
@@ -83,5 +104,57 @@ fun StatusPill(text: String, color: Color, modifier: Modifier = Modifier) {
             .padding(horizontal = 10.dp, vertical = 4.dp),
     ) {
         Text(text, color = color, style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+@Composable
+fun QervonTerminalHeader(
+    title: String,
+    subtitle: String,
+    badgeText: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = QervonColors.SurfaceDark,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = QervonSpacing.md, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 14.sp,
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = subtitle,
+                    color = QervonColors.Secondary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 9.sp,
+                )
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = QervonColors.Primary.copy(alpha = 0.18f),
+            ) {
+                Text(
+                    text = badgeText,
+                    color = QervonColors.Primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
+            Spacer(modifier = Modifier.width(2.dp))
+        }
     }
 }

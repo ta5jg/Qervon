@@ -18,14 +18,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,48 +35,45 @@ import com.qervon.core.designsystem.QervonColors
 import com.qervon.core.designsystem.QervonPrimaryButton
 import com.qervon.core.designsystem.QervonSpacing
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourierProfileScreen(onLoggedOut: () -> Unit, viewModel: CourierProfileViewModel = hiltViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) { viewModel.refresh() }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Hesabım") }) }) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(QervonSpacing.md),
-            verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
-        ) {
-            QervonCard {
-                Text(state.courier?.name ?: "—", style = MaterialTheme.typography.titleLarge)
-                Text(state.courier?.vehicle?.displayName() ?: "—", color = QervonColors.OnSurfaceMuted)
-            }
-
-            QervonCard {
-                Text("Telefon Numarası (SMS girişi için gerekli)", style = MaterialTheme.typography.titleMedium)
-                OutlinedTextField(
-                    value = state.phoneInput,
-                    onValueChange = viewModel::onPhoneInputChanged,
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                )
-                QervonPrimaryButton(text = "Kaydet", onClick = viewModel::bindPhone, isLoading = state.isLoading)
-            }
-
-            QervonCard {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Biyometrik Kilit")
-                    Switch(checked = state.biometricLockEnabled, onCheckedChange = viewModel::setBiometricLockEnabled)
-                }
-            }
-
-            state.infoMessage?.let { Text(it, color = QervonColors.Success) }
-            state.errorMessage?.let { Text(it, color = QervonColors.Danger) }
-
-            OutlinedButton(
-                onClick = { viewModel.logout(); onLoggedOut() },
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Çıkış Yap") }
+    Column(
+        modifier = Modifier.fillMaxSize().padding(QervonSpacing.md),
+        verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
+    ) {
+        QervonCard {
+            Text(state.courier?.name ?: "—", style = MaterialTheme.typography.titleLarge)
+            Text(state.courier?.vehicle?.displayName() ?: "—", color = QervonColors.OnSurfaceMuted)
         }
+
+        QervonCard {
+            Text("Telefon Numarası (SMS girişi için gerekli)", style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = state.phoneInput,
+                onValueChange = viewModel::onPhoneInputChanged,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+            )
+            QervonPrimaryButton(text = "Kaydet", onClick = viewModel::bindPhone, isLoading = state.isLoading)
+        }
+
+        QervonCard {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Biyometrik Kilit")
+                Switch(checked = state.biometricLockEnabled, onCheckedChange = viewModel::setBiometricLockEnabled)
+            }
+        }
+
+        state.infoMessage?.let { Text(it, color = QervonColors.Success) }
+        state.errorMessage?.let { Text(it, color = QervonColors.Danger) }
+
+        OutlinedButton(
+            onClick = { viewModel.logout(); onLoggedOut() },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Çıkış Yap") }
     }
 }

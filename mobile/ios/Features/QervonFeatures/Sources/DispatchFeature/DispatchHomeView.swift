@@ -97,7 +97,7 @@ public struct DispatchHomeView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("QERVON KURYE")
+                Text("KURYE TERMİNALİ")
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
                 Text(viewModel.isOnline ? "Çevrimiçi" : "Çevrimdışı")

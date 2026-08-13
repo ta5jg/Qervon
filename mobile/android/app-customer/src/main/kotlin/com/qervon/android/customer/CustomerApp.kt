@@ -23,11 +23,14 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -37,15 +40,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.qervon.core.designsystem.QervonColors
+import com.qervon.core.designsystem.QervonTerminalHeader
 import com.qervon.features.auth.BiometricLockScreen
 import com.qervon.features.auth.LoginScreen
 import com.qervon.features.auth.RegisterScreen
+import com.qervon.features.customerorder.CustomerLiveTrackingScreen
 import com.qervon.features.customerorder.NewOrderScreen
 import com.qervon.features.customerorder.OrderDetailScreen
 import com.qervon.features.customerorder.OrderHistoryScreen
@@ -57,6 +64,7 @@ private object Routes {
     const val REGISTER = "register"
     const val BIOMETRIC_LOCK = "biometric_lock"
     const val MAIN = "main"
+    const val HOME = "home"
     const val NEW_ORDER = "new_order"
     const val ORDERS = "orders"
     const val PROFILE = "profile"
@@ -135,42 +143,95 @@ private fun CustomerMainTabs(
     val tabNavController = rememberNavController()
 
     Scaffold(
+        topBar = {
+            QervonTerminalHeader(
+                title = "QERVON MÜŞTERİ",
+                subtitle = "NATIVE iOS / ANDROID SIMULATOR",
+                badgeText = "GPS LIVE",
+            )
+        },
         bottomBar = {
             val currentEntry by tabNavController.currentBackStackEntryAsState()
             val currentRoute = currentEntry?.destination?.route
-            NavigationBar {
+            NavigationBar(
+                modifier = Modifier.height(68.dp),
+                containerColor = QervonColors.SurfaceDark,
+                contentColor = QervonColors.OnSurfaceMuted,
+            ) {
+                NavigationBarItem(
+                    selected = currentRoute == Routes.HOME,
+                    onClick = { tabNavController.navigate(Routes.HOME) { launchSingleTop = true } },
+                    icon = { Icon(Icons.Filled.LocationOn, contentDescription = null) },
+                    label = { Text("Canlı Takip") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
+                )
                 NavigationBarItem(
                     selected = currentRoute == Routes.NEW_ORDER,
                     onClick = { tabNavController.navigate(Routes.NEW_ORDER) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.AddCircle, contentDescription = null) },
-                    label = { Text("Yeni Sipariş") },
+                    label = { Text("Sipariş Ver") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.ORDERS,
                     onClick = { tabNavController.navigate(Routes.ORDERS) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.List, contentDescription = null) },
-                    label = { Text("Siparişlerim") },
+                    label = { Text("Geçmiş") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.PROFILE,
                     onClick = { tabNavController.navigate(Routes.PROFILE) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.AccountCircle, contentDescription = null) },
-                    label = { Text("Hesabım") },
+                    label = { Text("Cüzdan") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
                 NavigationBarItem(
                     selected = currentRoute == Routes.SUPPORT,
                     onClick = { tabNavController.navigate(Routes.SUPPORT) { launchSingleTop = true } },
                     icon = { Icon(Icons.Filled.SupportAgent, contentDescription = null) },
                     label = { Text("Destek") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = QervonColors.Primary,
+                        selectedTextColor = QervonColors.Primary,
+                        indicatorColor = QervonColors.Primary.copy(alpha = 0.18f),
+                        unselectedIconColor = QervonColors.OnSurfaceMuted,
+                        unselectedTextColor = QervonColors.OnSurfaceMuted,
+                    ),
                 )
             }
         },
     ) { padding ->
         NavHost(
             navController = tabNavController,
-            startDestination = Routes.NEW_ORDER,
+            startDestination = Routes.HOME,
             modifier = Modifier.padding(padding),
         ) {
+            composable(Routes.HOME) { CustomerLiveTrackingScreen() }
             composable(Routes.NEW_ORDER) { NewOrderScreen(onOrderCreated = onOrderSelected) }
             composable(Routes.ORDERS) { OrderHistoryScreen(onOrderSelected = onOrderSelected) }
             composable(Routes.PROFILE) { CustomerProfileScreen(onLoggedOut = onLoggedOut) }

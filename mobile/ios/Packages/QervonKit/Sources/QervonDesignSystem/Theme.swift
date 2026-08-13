@@ -20,15 +20,17 @@ import UIKit
 #endif
 
 public enum QervonColor {
-    public static let background = Color(red: 0.02, green: 0.03, blue: 0.07)
-    public static let surface = Color(red: 0.06, green: 0.09, blue: 0.16)
-    public static let accent = Color(red: 0.22, green: 0.74, blue: 0.97)
-    public static let success = Color(red: 0.06, green: 0.72, blue: 0.51)
+    public static let background = Color(red: 0.015, green: 0.028, blue: 0.067)
+    public static let surface = Color(red: 0.059, green: 0.090, blue: 0.165)
+    public static let accent = Color(red: 0.063, green: 0.725, blue: 0.506)
+    public static let success = Color(red: 0.063, green: 0.725, blue: 0.506)
+    public static let cyan = Color(red: 0.220, green: 0.741, blue: 0.973)
+    public static let purple = Color(red: 0.545, green: 0.361, blue: 0.965)
     public static let danger = Color(red: 0.93, green: 0.27, blue: 0.27)
-    public static let warning = Color(red: 0.96, green: 0.62, blue: 0.11)
+    public static let warning = Color(red: 0.961, green: 0.620, blue: 0.114)
     public static let textPrimary = Color.white
-    public static let textSecondary = Color.white.opacity(0.6)
-    public static let border = Color.white.opacity(0.1)
+    public static let textSecondary = Color(red: 0.580, green: 0.659, blue: 0.722)
+    public static let border = Color.white.opacity(0.10)
 }
 
 public enum QervonSpacing {
@@ -89,7 +91,7 @@ public struct QervonButtonStyle: ButtonStyle {
     private var background: some View {
         let colors: [Color]
         switch kind {
-        case .primary: colors = [QervonColor.success, QervonColor.success.opacity(0.8)]
+        case .primary: colors = [QervonColor.success, Color(red: 0.016, green: 0.471, blue: 0.341)]
         case .destructive: colors = [QervonColor.danger, QervonColor.danger.opacity(0.8)]
         case .secondary: colors = [QervonColor.surface, QervonColor.surface.opacity(0.8)]
         }
