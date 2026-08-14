@@ -147,7 +147,35 @@
     .hero h1 { font-size: 52px; line-height: 1.12; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
     .hero h1 .accent { background: linear-gradient(120deg, var(--accent-green), var(--accent-cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
     .hero p.lead { font-size: 17px; line-height: 1.65; color: var(--text-muted); max-width: 520px; margin-bottom: 32px; }
-    .hero-ctas { display: flex; gap: 14px; margin-bottom: 40px; flex-wrap: wrap; }
+    .hero-ctas { display: flex; gap: 14px; margin-bottom: 28px; flex-wrap: wrap; }
+
+    .store-badges { display: flex; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; }
+    .store-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 16px 9px 12px;
+      border-radius: 12px;
+      position: relative;
+      opacity: 0.75;
+      cursor: default;
+    }
+    .store-badge .si { width: 22px; height: 22px; color: var(--text-muted); }
+    .store-badge .st { display: flex; flex-direction: column; line-height: 1.15; }
+    .store-badge .st .small { font-size: 9px; font-weight: 600; color: var(--text-faint); letter-spacing: 0.3px; }
+    .store-badge .st .big { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+    .soon-tag {
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: var(--accent-cyan);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 7px;
+      border-radius: 8px;
+      margin-left: 4px;
+      text-transform: uppercase;
+    }
 
     .hero-stats { display: flex; gap: 36px; flex-wrap: wrap; }
     .hero-stat-value { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text-main); }
@@ -342,6 +370,16 @@
         <div class="hero-ctas">
           <a class="btn btn-primary btn-lg" href="/setup"><i data-lucide="rocket" style="width:16px;height:16px;"></i> Ücretsiz Kurulum Yap</a>
           <a class="btn btn-ghost btn-lg" href="/mobile-courier"><i data-lucide="bike" style="width:16px;height:16px;"></i> Kurye Girişi</a>
+        </div>
+        <div class="store-badges">
+          <div class="store-badge glass" title="Native iOS uygulaması geliştirme aşamasında">
+            <i data-lucide="apple" class="si"></i>
+            <div class="st"><span class="small">App Store</span><span class="big">Yakında<span class="soon-tag">Soon</span></span></div>
+          </div>
+          <div class="store-badge glass" title="Native Android uygulaması geliştirme aşamasında">
+            <i data-lucide="play" class="si"></i>
+            <div class="st"><span class="small">Google Play</span><span class="big">Yakında<span class="soon-tag">Soon</span></span></div>
+          </div>
         </div>
         <div class="hero-stats">
           <div>
