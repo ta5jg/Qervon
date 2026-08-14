@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qervon — Lojistik İşletim Sistemi</title>
+  <meta name="description" content="Qervon; yemek, e-ticaret, kargo, eczane, market ve teknik servis işletmeleri için yapay zeka destekli, çok kiracılı bir Lojistik İşletim Sistemi (LOS). Canlı GPS takip, AI Dispatcher, native iOS/Android uygulamaları ve kurye terminali tek platformda.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #060913;
+      --bg-surface: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.55);
+      --bg-card-strong: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-green-dark: #047857;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(60vw 40vh at 85% -5%, rgba(16, 185, 129, 0.14), transparent 60%),
+        radial-gradient(50vw 40vh at 5% 15%, rgba(56, 189, 248, 0.10), transparent 60%);
+    }
+    a { color: inherit; text-decoration: none; }
+    img, svg { display: block; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+    .glass {
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(16px);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+    }
+
+    /* ---------- Top nav ---------- */
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: rgba(6, 9, 19, 0.72);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .topnav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 76px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      flex-shrink: 0;
+    }
+    .brand-text h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.5px; }
+    .brand-text span { font-size: 10px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1.5px; }
+
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { font-size: 14px; font-weight: 600; color: var(--text-muted); transition: color 0.2s ease; }
+    .nav-links a:hover { color: var(--text-main); }
+
+    .nav-actions { display: flex; align-items: center; gap: 12px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      color: #04120c;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 28px rgba(16, 185, 129, 0.55); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-ghost:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.18); }
+    .btn-lg { padding: 15px 26px; font-size: 14px; border-radius: 14px; }
+
+    .mobile-nav-toggle { display: none; }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      padding: 88px 0 60px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--accent-green);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      margin-bottom: 22px;
+    }
+    .pulse-dot { width: 7px; height: 7px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+    .hero h1 { font-size: 52px; line-height: 1.12; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
+    .hero h1 .accent { background: linear-gradient(120deg, var(--accent-green), var(--accent-cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.lead { font-size: 17px; line-height: 1.65; color: var(--text-muted); max-width: 520px; margin-bottom: 32px; }
+    .hero-ctas { display: flex; gap: 14px; margin-bottom: 40px; flex-wrap: wrap; }
+
+    .hero-stats { display: flex; gap: 36px; flex-wrap: wrap; }
+    .hero-stat-value { font-size: 22px; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--text-main); }
+    .hero-stat-label { font-size: 11.5px; color: var(--text-faint); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-top: 3px; }
+
+    /* Hero visual: mock live-ops card */
+    .hero-visual { position: relative; }
+    .ops-card {
+      border-radius: 22px;
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .ops-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .ops-card-head .title { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 18px;
+      background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--accent-green);
+      font-size: 10.5px; font-weight: 700;
+    }
+    .radar-wrap { position: relative; height: 220px; border-radius: 16px; background: radial-gradient(circle at 50% 50%, rgba(16,185,129,0.08), transparent 70%), #090d1a; border: 1px solid var(--border-color); margin-bottom: 16px; overflow: hidden; }
+    .radar-ring { position: absolute; border: 1px solid rgba(16, 185, 129, 0.18); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .radar-ring.r1 { width: 60px; height: 60px; }
+    .radar-ring.r2 { width: 120px; height: 120px; }
+    .radar-ring.r3 { width: 190px; height: 190px; animation: ripple 3s infinite ease-out; }
+    @keyframes ripple { 0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.6); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15); } }
+    .radar-dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 14px var(--accent-green); }
+    .radar-dot.d1 { top: 50%; left: 50%; }
+    .radar-dot.d2 { top: 32%; left: 68%; background: var(--accent-cyan); box-shadow: 0 0 14px var(--accent-cyan); }
+    .radar-dot.d3 { top: 68%; left: 30%; background: var(--accent-purple); box-shadow: 0 0 14px var(--accent-purple); }
+    .radar-label { position: absolute; bottom: 12px; left: 14px; font-size: 10.5px; color: var(--text-faint); font-weight: 600; }
+
+    .ops-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .ops-metric { padding: 12px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); }
+    .ops-metric .k { font-size: 10px; font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.3px; }
+    .ops-metric .v { font-size: 17px; font-weight: 800; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+    .ops-metric.g .v { color: var(--accent-green); }
+    .ops-metric.c .v { color: var(--accent-cyan); }
+    .ops-metric.p .v { color: var(--accent-purple); }
+
+    /* ---------- Section shells ---------- */
+    section { padding: 84px 0; }
+    .section-head { text-align: center; max-width: 640px; margin: 0 auto 52px; }
+    .section-tag { font-size: 12px; font-weight: 800; letter-spacing: 1.4px; color: var(--accent-cyan); text-transform: uppercase; margin-bottom: 12px; }
+    .section-head h2 { font-size: 34px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 14px; }
+    .section-head p { font-size: 15.5px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ---------- Services (5 pillars) ---------- */
+    .services-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+    .service-card {
+      border-radius: 20px;
+      padding: 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+    .service-card:hover { transform: translateY(-4px); border-color: rgba(16, 185, 129, 0.35); }
+    .service-icon {
+      width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+    }
+    .service-card h3 { font-size: 15.5px; font-weight: 700; line-height: 1.3; }
+    .service-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+
+    /* ---------- Features grid ---------- */
+    .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .feature-card { border-radius: 18px; padding: 24px 20px; }
+    .feature-icon {
+      width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+      background: rgba(16, 185, 129, 0.12); color: var(--accent-green); margin-bottom: 16px;
+    }
+    .feature-card h3 { font-size: 14.5px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+
+    /* ---------- Sectors ---------- */
+    .sectors-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .sector-pill {
+      display: inline-flex; align-items: center; gap: 9px; padding: 12px 20px; border-radius: 30px;
+      font-size: 13.5px; font-weight: 700;
+    }
+
+    /* ---------- How it works ---------- */
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; position: relative; }
+    .step-card { border-radius: 20px; padding: 30px 26px; position: relative; }
+    .step-num {
+      width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      color: #04120c; font-weight: 800; font-size: 15px; margin-bottom: 18px;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+    }
+    .step-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .step-card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.6; }
+
+    /* ---------- Trust / architecture strip ---------- */
+    .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .trust-card { border-radius: 18px; padding: 22px; text-align: center; }
+    .trust-card .ti { width: 34px; height: 34px; margin: 0 auto 14px; color: var(--accent-cyan); }
+    .trust-card h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+    .trust-card p { font-size: 11.5px; color: var(--text-faint); line-height: 1.5; }
+
+    /* ---------- CTA banner ---------- */
+    .cta-banner {
+      border-radius: 28px;
+      padding: 56px 48px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(56, 189, 248, 0.08));
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-banner h2 { font-size: 30px; font-weight: 800; margin-bottom: 14px; }
+    .cta-banner p { font-size: 15px; color: var(--text-muted); max-width: 520px; margin: 0 auto 30px; line-height: 1.6; }
+    .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ---------- Footer ---------- */
+    footer { border-top: 1px solid var(--border-color); padding: 56px 0 32px; }
+    .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+    .footer-brand p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-top: 14px; max-width: 280px; }
+    .footer-col h4 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-faint); margin-bottom: 16px; }
+    .footer-col a { display: block; font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px; transition: color 0.2s ease; }
+    .footer-col a:hover { color: var(--accent-green); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 28px; border-top: 1px solid var(--border-color); flex-wrap: wrap; gap: 12px; }
+    .footer-bottom p { font-size: 12px; color: var(--text-faint); }
+    .footer-badges { display: flex; gap: 10px; }
+    .footer-badge { font-size: 10.5px; font-weight: 700; color: var(--text-faint); padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border-color); }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 980px) {
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; padding-top: 48px; }
+      .hero h1 { font-size: 38px; }
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .trust-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: repeat(2, 1fr); gap: 28px; }
+    }
+    @media (max-width: 560px) {
+      .wrap { padding: 0 18px; }
+      section { padding: 56px 0; }
+      .hero { padding: 32px 0 40px; }
+      .hero h1 { font-size: 30px; }
+      .services-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .trust-grid { grid-template-columns: 1fr; }
+      .cta-banner { padding: 40px 24px; }
+      .cta-banner h2 { font-size: 24px; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; }
+      .nav-actions .btn-ghost { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ============ Top Navigation ============ -->
+  <nav class="topnav">
+    <div class="wrap topnav-inner">
+      <div class="brand">
+        <div class="brand-icon"><i data-lucide="box" style="color:white; width:20px; height:20px;"></i></div>
+        <div class="brand-text">
+          <h1>QERVON</h1>
+          <span>LOGISTICS OS</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#hizmetler">Hizmetler</a>
+        <a href="#ozellikler">Neden Qervon</a>
+        <a href="#sektorler">Sektörler</a>
+        <a href="#nasil-calisir">Nasıl Çalışır</a>
+        <a href="#iletisim">İletişim</a>
+      </div>
+      <div class="nav-actions">
+        <a class="btn btn-ghost" href="/login">Giriş Yap</a>
+        <a class="btn btn-primary" href="/setup">Ücretsiz Başlayın</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+
+    <!-- ============ Hero ============ -->
+    <section class="hero" style="padding-top:88px;">
+      <div>
+        <div class="eyebrow"><span class="pulse-dot"></span> CANLI GPS · YAPAY ZEKA · ÇOK KİRACILI</div>
+        <h1>İşletmenizin <span class="accent">Lojistik İşletim Sistemi</span></h1>
+        <p class="lead">
+          Yemek, e-ticaret, kargo, eczane, market ve teknik servis işletmeleri için tasarlanmış tek
+          platform. Yönetim paneli, müşteri portalı, native mobil uygulamalar ve kurye terminali —
+          hepsi aynı gerçek zamanlı altyapıda, aynı çekirdek üzerinde çalışır.
+        </p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary btn-lg" href="/setup"><i data-lucide="rocket" style="width:16px;height:16px;"></i> Ücretsiz Kurulum Yap</a>
+          <a class="btn btn-ghost btn-lg" href="/mobile-courier"><i data-lucide="bike" style="width:16px;height:16px;"></i> Kurye Girişi</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-value">%100</div>
+            <div class="hero-stat-label">Rust çekirdekli backend</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">iOS + Android</div>
+            <div class="hero-stat-label">Native kurye &amp; müşteri uygulaması</div>
+          </div>
+          <div>
+            <div class="hero-stat-value">Çok kiracılı</div>
+            <div class="hero-stat-label">Her firma kendi izole verisiyle</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="ops-card glass">
+          <div class="ops-card-head">
+            <span class="title">CANLI OPERASYON ÖNİZLEME</span>
+            <span class="status-badge"><span class="pulse-dot"></span> AKTİF</span>
+          </div>
+          <div class="radar-wrap">
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-ring r3"></div>
+            <div class="radar-dot d1"></div>
+            <div class="radar-dot d2"></div>
+            <div class="radar-dot d3"></div>
+            <div class="radar-label">Kurye konumları gerçek zamanlı yayınlanır</div>
+          </div>
+          <div class="ops-metrics">
+            <div class="ops-metric g"><div class="k">Kurye Ağı</div><div class="v">Canlı</div></div>
+            <div class="ops-metric c"><div class="k">AI Dispatcher</div><div class="v">Aktif</div></div>
+            <div class="ops-metric p"><div class="k">Fraud Guard</div><div class="v">İzliyor</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Services (5 pillars) ============ -->
+    <section id="hizmetler">
+      <div class="section-head">
+        <div class="section-tag">Platform</div>
+        <h2>Tek platform, beş bileşen</h2>
+        <p>Qervon; yönetim, müşteri, kurye ve yapay zeka katmanlarını aynı gerçek zamanlı çekirdek üzerinde birleştirir — dağınık araç setine gerek yok.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card glass">
+          <div class="service-icon" style="background:rgba(16,185,129,0.12); color:var(--accent-green);"><i data-lucide="layout-dashboard" style="width:22px;height:22px;"></i></div>
+          <h3>Yönetim Paneli</h3>
+          <p>Canlı GPS haritası, ısı haritası, AI atama, kurye/müşteri yönetimi ve finansal cüzdan raporları.</p>
+        </div>
+        <div class="service-card glass">
+          <div class="service-icon" style="background:rgba(56,189,248,0.12); color:var(--accent-cyan);"><i data-lucide="monitor" style="width:22px;height:22px;"></i></div>
+          <h3>Web Müşteri Portalı</h3>
+          <p>Kurumsal müşteriler için sipariş oluşturma, canlı harita takibi ve toplu sipariş yükleme.</p>
+        </div>
+        <div class="service-card glass">
+          <div class="service-icon" style="background:rgba(139,92,246,0.12); color:var(--accent-purple);"><i data-lucide="smartphone" style="width:22px;height:22px;"></i></div>
+          <h3>Mobil Müşteri Uygulaması</h3>
+          <p>iOS &amp; Android native. Gerçek donanımsal GPS takibi, sipariş oluşturma ve dijital cüzdan.</p>
+        </div>
+        <div class="service-card glass">
+          <div class="service-icon" style="background:rgba(249,115,22,0.12); color:var(--accent-orange);"><i data-lucide="navigation" style="width:22px;height:22px;"></i></div>
+          <h3>Kurye Mobil Terminali</h3>
+          <p>Arka planda kesintisiz GPS yayını, harici navigasyon, QR/imza ile teslimat ispatı.</p>
+        </div>
+        <div class="service-card glass">
+          <div class="service-icon" style="background:rgba(239,68,68,0.12); color:var(--accent-red);"><i data-lucide="cpu" style="width:22px;height:22px;"></i></div>
+          <h3>Yapay Zeka Motoru</h3>
+          <p>AI Dispatcher, dinamik ETA hesaplama ve sahte GPS/anomali tespiti (Fraud Guard).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Features ============ -->
+    <section id="ozellikler">
+      <div class="section-head">
+        <div class="section-tag">Neden Qervon</div>
+        <h2>Kurumsal lojistik için inşa edildi</h2>
+        <p>Basit bir kurye uygulaması değil — depo, kargo, soğuk zincir, vergi ve çoklu para birimi gibi kurumsal ihtiyaçları karşılayan bir işletim sistemi.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="radar" style="width:20px;height:20px;"></i></div>
+          <h3>Gerçek Zamanlı Takip</h3>
+          <p>WebSocket tabanlı canlı konum akışı; operatör, kurye ve müşteri aynı anda senkronize görür.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="shield-check" style="width:20px;height:20px;"></i></div>
+          <h3>Fraud Guard</h3>
+          <p>Fiziksel hız limiti aşımı ve GPS sıçraması gibi anomalileri otomatik tespit eder.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="building-2" style="width:20px;height:20px;"></i></div>
+          <h3>Çok Kiracılı Mimari</h3>
+          <p>Her firma kendi kullanıcı, sipariş ve konum verisiyle tam izole çalışır.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="warehouse" style="width:20px;height:20px;"></i></div>
+          <h3>Depo &amp; Cross-Dock</h3>
+          <p>Transfer merkezi kapasite takibi ve kurye başına manifesto sevkiyatı.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="thermometer-snowflake" style="width:20px;height:20px;"></i></div>
+          <h3>Soğuk Zincir Telemetrisi</h3>
+          <p>Medikal/gıda teslimatlarında sıcaklık ihlali algılama ve kayıt altına alma.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="file-check-2" style="width:20px;height:20px;"></i></div>
+          <h3>Teslimat İspatı (POD)</h3>
+          <p>QR/barkod doğrulama, dijital imza ve fotoğraf kanıtıyla teslimat kaydı.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="landmark" style="width:20px;height:20px;"></i></div>
+          <h3>Vergi &amp; Çoklu Para Birimi</h3>
+          <p>E-fatura taslağı üretimi ve gerçek zamanlı döviz çevrimi ile uluslararası operasyon desteği.</p>
+        </div>
+        <div class="feature-card glass">
+          <div class="feature-icon"><i data-lucide="headset" style="width:20px;height:20px;"></i></div>
+          <h3>Canlı Destek Hattı</h3>
+          <p>Müşteri, operatör ve kurye tarafında entegre, anlık destek talep akışı.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Sectors ============ -->
+    <section id="sektorler">
+      <div class="section-head">
+        <div class="section-tag">Sektörler</div>
+        <h2>Her sektöre uyarlanabilir teslimat altyapısı</h2>
+        <p>Aynı çekirdek, farklı operasyon modelleri için yapılandırılabilir.</p>
+      </div>
+      <div class="sectors-row">
+        <div class="sector-pill glass"><i data-lucide="utensils" style="width:16px;height:16px; color:var(--accent-orange);"></i> Yemek Teslimatı</div>
+        <div class="sector-pill glass"><i data-lucide="shopping-cart" style="width:16px;height:16px; color:var(--accent-green);"></i> E-ticaret</div>
+        <div class="sector-pill glass"><i data-lucide="package" style="width:16px;height:16px; color:var(--accent-cyan);"></i> Kargo &amp; Kurye</div>
+        <div class="sector-pill glass"><i data-lucide="pill" style="width:16px;height:16px; color:var(--accent-red);"></i> Eczane</div>
+        <div class="sector-pill glass"><i data-lucide="store" style="width:16px;height:16px; color:var(--accent-purple);"></i> Market</div>
+        <div class="sector-pill glass"><i data-lucide="wrench" style="width:16px;height:16px; color:var(--accent-cyan);"></i> Teknik Servis</div>
+      </div>
+    </section>
+
+    <!-- ============ How it works ============ -->
+    <section id="nasil-calisir">
+      <div class="section-head">
+        <div class="section-tag">Nasıl Çalışır</div>
+        <h2>Dakikalar içinde operasyona geçin</h2>
+        <p>Kurulum, ekip davetleri ve canlı operasyon — tek akış içinde.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card glass">
+          <div class="step-num">1</div>
+          <h3>Firmanızı oluşturun</h3>
+          <p>İlk kurulum ekranından firma bilgilerinizi ve yönetici hesabınızı bir dakikada tanımlayın.</p>
+        </div>
+        <div class="step-card glass">
+          <div class="step-num">2</div>
+          <h3>Ekibinizi davet edin</h3>
+          <p>Kurye ve operasyon ekibinizi panelden ekleyin; kuryeler mobil terminalden anında giriş yapar.</p>
+        </div>
+        <div class="step-card glass">
+          <div class="step-num">3</div>
+          <h3>Canlı operasyona geçin</h3>
+          <p>Siparişler otomatik atanır, konumlar gerçek zamanlı akar, müşteri kendi teslimatını canlı takip eder.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Trust / architecture ============ -->
+    <section id="mimari">
+      <div class="section-head">
+        <div class="section-tag">Mimari &amp; Güvenlik</div>
+        <h2>Sağlam bir temel üzerine inşa edildi</h2>
+        <p>Vitrin değil, gerçek üretim mimarisi.</p>
+      </div>
+      <div class="trust-grid">
+        <div class="trust-card glass">
+          <i data-lucide="hexagon" class="ti"></i>
+          <h4>Rust Backend</h4>
+          <p>Axum tabanlı, tip güvenli ve yüksek performanslı çekirdek.</p>
+        </div>
+        <div class="trust-card glass">
+          <i data-lucide="lock" class="ti"></i>
+          <h4>Oturum Güvenliği</h4>
+          <p>HttpOnly çerezler, çift-gönderim CSRF koruması, oran sınırlama.</p>
+        </div>
+        <div class="trust-card glass">
+          <i data-lucide="git-branch" class="ti"></i>
+          <h4>Modüler Mimari</h4>
+          <p>Domain/uygulama/altyapı ayrımıyla test edilebilir, genişletilebilir kod tabanı.</p>
+        </div>
+        <div class="trust-card glass">
+          <i data-lucide="server" class="ti"></i>
+          <h4>PostgreSQL + Bellek</h4>
+          <p>Geliştirmede bellek, üretimde tenant-izole PostgreSQL kalıcılığı.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA banner ============ -->
+    <section>
+      <div class="cta-banner">
+        <h2>Lojistik operasyonunuzu bugün dijitalleştirin</h2>
+        <p>Kurulum ekranından firmanızı bir dakikada oluşturun, ekibinizi davet edin ve canlı takibe geçin.</p>
+        <div class="cta-actions">
+          <a class="btn btn-primary btn-lg" href="/setup"><i data-lucide="rocket" style="width:16px;height:16px;"></i> Ücretsiz Kurulum Yap</a>
+          <a class="btn btn-ghost btn-lg" href="/customer"><i data-lucide="package" style="width:16px;height:16px;"></i> Müşteri Portalını İncele</a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ============ Footer ============ -->
+  <footer id="iletisim">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand">
+            <div class="brand-icon"><i data-lucide="box" style="color:white; width:20px; height:20px;"></i></div>
+            <div class="brand-text">
+              <h1>QERVON</h1>
+              <span>LOGISTICS OS</span>
+            </div>
+          </div>
+          <p>Yemek, e-ticaret, kargo, eczane, market ve teknik servis işletmeleri için yapay zeka destekli, çok kiracılı Lojistik İşletim Sistemi.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a href="#hizmetler">Hizmetler</a>
+          <a href="#ozellikler">Özellikler</a>
+          <a href="#sektorler">Sektörler</a>
+          <a href="#nasil-calisir">Nasıl Çalışır</a>
+        </div>
+        <div class="footer-col">
+          <h4>Erişim</h4>
+          <a href="/setup">Firma Kurulumu</a>
+          <a href="/login">Giriş Yap</a>
+          <a href="/customer">Müşteri Portalı</a>
+          <a href="/mobile-courier">Kurye Terminali</a>
+        </div>
+        <div class="footer-col">
+          <h4>İletişim</h4>
+          <a href="mailto:info@qervon.app">info@qervon.app</a>
+          <a href="https://github.com/ta5jg/Qervon" target="_blank" rel="noopener">GitHub</a>
+          <a href="/swagger-ui">API Dokümantasyonu</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 USDTG GROUP TECHNOLOGY LLC — Tüm hakları saklıdır.</p>
+        <div class="footer-badges">
+          <span class="footer-badge">RUST BACKEND</span>
+          <span class="footer-badge">iOS + ANDROID NATIVE</span>
+          <span class="footer-badge">ÇOK KİRACILI</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

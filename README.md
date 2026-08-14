@@ -42,7 +42,8 @@ Sistem 5 ana bileşenden oluşmaktadır:
 
 Backend sunucusu çalıştığında (`http://localhost:8080`), bunlar gerçek, çalışan sayfalardır (statik dosya değil, canlı API entegrasyonu vardır):
 
-- **Yönetim Paneli (Admin):** `http://localhost:8080/index.html`
+- **Kurumsal Tanıtım Sitesi:** `http://localhost:8080/` — dış dünyaya açık, Qervon'un ne olduğunu anlatan pazarlama sayfası (`home.html`). Herhangi bir API çağrısı yapmaz, tamamen statiktir.
+- **Yönetim Paneli (Admin):** `http://localhost:8080/admin` (eski `/index.html` yolu da geriye dönük uyumluluk için çalışır)
 - **Web Müşteri Portalı:** `http://localhost:8080/customer.html`
 - **Mobil Müşteri Simülatörü:** `http://localhost:8080/mobile-customer.html`
 - **Mobil Kurye Terminal Simülatörü:** `http://localhost:8080/mobile-courier.html`

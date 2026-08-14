@@ -213,7 +213,11 @@ async fn serve_mobile_admin() -> axum::response::Html<&'static str> {
 
 pub fn router(state: AppState) -> Router {
     let public = Router::new()
-        .route("/", get(serve_dashboard))
+        .route("/", get(serve_home))
+        .route("/home", get(serve_home))
+        .route("/home.html", get(serve_home))
+        .route("/admin", get(serve_dashboard))
+        .route("/admin.html", get(serve_dashboard))
         .route("/index.html", get(serve_dashboard))
         .route("/customer", get(serve_customer_portal))
         .route("/customer.html", get(serve_customer_portal))
@@ -1537,6 +1541,17 @@ async fn serve_dashboard() -> impl IntoResponse {
     (
         [(header::CACHE_CONTROL, "no-store, max-age=0")],
         axum::response::Html(include_str!("../static/index.html")),
+    )
+}
+
+/// Serves the public marketing homepage (`/`) — the site a visitor who is
+/// not yet a customer sees, distinct from the operator admin dashboard
+/// (now at `/admin`). Cacheable, since it is static marketing content with
+/// no per-request/session state, unlike the dashboard above.
+async fn serve_home() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "public, max-age=300")],
+        axum::response::Html(include_str!("../static/home.html")),
     )
 }
 
