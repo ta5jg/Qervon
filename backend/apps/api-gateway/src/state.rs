@@ -226,6 +226,11 @@ pub struct AppState {
     pub payment_gateway_bearer_token: Option<Arc<str>>,
     pub push_provider_url: Option<String>,
     pub push_provider_bearer_token: Option<Arc<str>>,
+    /// Real Apple Push Notification service client — `None` until
+    /// `APNS_*` env vars are configured (see `apns.rs`). When set,
+    /// `dispatch_native_push` prefers it over the generic
+    /// `push_provider_url` webhook for iOS device tokens.
+    pub apns: Option<Arc<crate::apns::ApnsClient>>,
     /// Local-filesystem root for uploaded files (delivery-proof photos
     /// today). Real, working persistence — but not a cloud object store;
     /// see QLS-000013 and BACKEND_BACKLOG.md. Configured via
@@ -285,6 +290,7 @@ impl AppState {
             .ok()
             .filter(|value| !value.trim().is_empty())
             .map(Arc::<str>::from);
+        state.apns = crate::apns::ApnsClient::from_env().map(Arc::new);
         Ok(state)
     }
 
@@ -520,6 +526,7 @@ impl AppState {
             payment_gateway_bearer_token: None,
             push_provider_url: None,
             push_provider_bearer_token: None,
+            apns: None,
             uploads_dir: std::path::PathBuf::from("./data/uploads"),
         }
     }

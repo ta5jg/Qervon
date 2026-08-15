@@ -59,7 +59,7 @@ pub use delivery_pricing::{
     DeliveryPricing, DEFAULT_BASE_FARE_MINOR, DEFAULT_CURRENCY, DEFAULT_MINIMUM_FARE_MINOR,
     DEFAULT_PER_KM_RATE_MINOR,
 };
-pub use device_push_token::{DevicePushToken, PushPlatform};
+pub use device_push_token::{AppVariant, DevicePushToken, PushPlatform};
 pub use dispatch::{Assignment, AssignmentStatus, OFFER_TTL};
 pub use error::DomainError;
 pub use field_service::{FieldServiceAppointment, FieldServiceScheduler, TimeSlotWindow};

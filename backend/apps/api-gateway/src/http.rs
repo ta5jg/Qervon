@@ -1263,8 +1263,9 @@ async fn set_own_phone(
 }
 
 /// Registers this device for native push delivery (iOS/Android). Re-sending
-/// the same token is idempotent. No APNs/FCM sending is wired up yet — see
-/// BACKEND_BACKLOG.md.
+/// the same token is idempotent. iOS/APNs delivery is real when
+/// `APNS_*` env vars are configured (see `apns.rs`); Android/FCM is not
+/// wired yet — see BACKEND_BACKLOG.md.
 async fn register_push_device(
     State(state): State<AppState>,
     Extension(claims): Extension<AccessClaims>,
@@ -1280,9 +1281,18 @@ async fn register_push_device(
         .platform
         .parse::<qervon_domain::PushPlatform>()
         .map_err(|_| ApiError::unprocessable("invalid push platform"))?;
+    let app_variant = request
+        .app
+        .parse::<qervon_domain::AppVariant>()
+        .map_err(|_| ApiError::unprocessable("invalid app variant"))?;
     let token = state
         .device_push
-        .register(UserId(claims.subject), platform, request.device_token)
+        .register(
+            UserId(claims.subject),
+            platform,
+            app_variant,
+            request.device_token,
+        )
         .await?;
     Ok((StatusCode::CREATED, Json((&token).into())))
 }
@@ -2353,6 +2363,12 @@ async fn courier_deliver_order(
         }
         order
     };
+    notify_user_push(
+        &state,
+        UserId(order.customer_id),
+        "Siparişiniz Teslim Edildi",
+        "Teslimatınız başarıyla tamamlandı. Değerlendirmenizi bekliyoruz.",
+    );
     Ok(Json((&order).into()))
 }
 
@@ -3338,6 +3354,48 @@ struct NativePushDispatchRequest {
     body: String,
 }
 
+/// Fire-and-forget native push notification triggered by a domain event
+/// (a new job offer, an order being delivered, ...). Never propagates a
+/// failure to the caller — push delivery is a best-effort side effect and
+/// must not turn an otherwise-successful assignment/delivery request into
+/// an HTTP error just because a device token is stale or APNs is
+/// unreachable. `AppState` is cheap to clone (every field is an `Arc` or a
+/// small `Copy`/`Clone` handle), so spawning with an owned clone is safe.
+fn notify_user_push(
+    state: &AppState,
+    user_id: UserId,
+    title: impl Into<String>,
+    body: impl Into<String>,
+) {
+    let state = state.clone();
+    let title = title.into();
+    let body = body.into();
+    tokio::spawn(async move {
+        let request = NativePushDispatchRequest {
+            user_id: user_id.0,
+            // Real recipient platform(s) are re-derived from the user's
+            // actual registered devices inside `dispatch_native_push`;
+            // this is only a descriptive hint for the generic-webhook
+            // fallback path's payload.
+            platform: "auto".to_string(),
+            title,
+            body,
+        };
+        if let Err(error) = dispatch_native_push(State(state), Json(request)).await {
+            tracing::warn!(
+                error = %error.detail,
+                user_id = %user_id.0,
+                "auto-triggered push notification failed"
+            );
+        }
+    });
+}
+
+/// Dispatches a native push to every device registered for `user_id`. iOS
+/// tokens go through the real `ApnsClient` when `state.apns` is configured
+/// (see `apns.rs`); anything else (Android — no FCM wired yet, see
+/// BACKEND_BACKLOG.md) falls back to the generic `push_provider_url`
+/// webhook, exactly as this endpoint behaved before APNs existed.
 async fn dispatch_native_push(
     State(state): State<AppState>,
     Json(request): Json<NativePushDispatchRequest>,
@@ -3353,6 +3411,67 @@ async fn dispatch_native_push(
             "reason": "no_device_tokens"
         })));
     }
+
+    let Some(apns) = &state.apns else {
+        return dispatch_via_generic_push_webhook(&state, &request, devices).await;
+    };
+
+    let (ios_devices, other_devices): (Vec<_>, Vec<_>) = devices
+        .into_iter()
+        .partition(|device| device.platform == qervon_domain::PushPlatform::Ios);
+
+    let mut apns_sent = 0usize;
+    let mut apns_failed = 0usize;
+    for device in &ios_devices {
+        match apns
+            .send(
+                &device.device_token,
+                device.app_variant,
+                &request.title,
+                &request.body,
+            )
+            .await
+        {
+            Ok(()) => apns_sent += 1,
+            Err(error) => {
+                apns_failed += 1;
+                tracing::warn!(
+                    error = %error,
+                    device_id = %device.id,
+                    "APNs push delivery failed"
+                );
+            }
+        }
+    }
+
+    if other_devices.is_empty() {
+        return Ok(Json(json!({
+            "status": if apns_failed == 0 {
+                "sent"
+            } else if apns_sent == 0 {
+                "failed"
+            } else {
+                "partial"
+            },
+            "provider": "apns",
+            "sent": apns_sent,
+            "failed": apns_failed
+        })));
+    }
+
+    let Json(webhook_result) =
+        dispatch_via_generic_push_webhook(&state, &request, other_devices).await?;
+    Ok(Json(json!({
+        "apns": { "sent": apns_sent, "failed": apns_failed },
+        "other": webhook_result
+    })))
+}
+
+async fn dispatch_via_generic_push_webhook(
+    state: &AppState,
+    request: &NativePushDispatchRequest,
+    devices: Vec<qervon_domain::DevicePushToken>,
+) -> Result<Json<Value>, ApiError> {
     let Some(url) = &state.push_provider_url else {
         return Ok(Json(json!({
             "status": "simulated",
@@ -3674,10 +3793,18 @@ async fn offer_for_tenant(
             candidates.push(courier);
         }
     }
-    state
+    let assignment = state
         .dispatch
         .offer_from_candidates(order_id, &candidates)
         .await?;
+    if let Some(assignment) = assignment {
+        notify_user_push(
+            state,
+            UserId(assignment.courier_id),
+            "Yeni Teslimat Teklifi",
+            "Bir teslimat teklifi aldınız. 45 saniye içinde kabul veya reddedin.",
+        );
+    }
     Ok(())
 }
 
@@ -3705,10 +3832,18 @@ async fn reoffer_for_tenant(
             candidates.push(courier);
         }
     }
-    state
+    let assignment = state
         .dispatch
         .reoffer_from_candidates(order_id, excluded, &candidates)
         .await?;
+    if let Some(assignment) = assignment {
+        notify_user_push(
+            state,
+            UserId(assignment.courier_id),
+            "Yeni Teslimat Teklifi",
+            "Bir teslimat teklifi aldınız. 45 saniye içinde kabul veya reddedin.",
+        );
+    }
     Ok(())
 }
 
@@ -4397,6 +4532,12 @@ async fn deliver_order(
     require_order_tenant(&state, order_id, claims.as_ref()).await?;
     let order = state.dispatch.deliver_order(order_id).await?;
     create_delivery_financial_records(&state, &order).await?;
+    notify_user_push(
+        &state,
+        UserId(order.customer_id),
+        "Siparişiniz Teslim Edildi",
+        "Teslimatınız başarıyla tamamlandı. Değerlendirmenizi bekliyoruz.",
+    );
     Ok(Json((&order).into()))
 }
 

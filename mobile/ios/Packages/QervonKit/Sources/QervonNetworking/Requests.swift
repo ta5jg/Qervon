@@ -91,6 +91,9 @@ public struct DeliverOrderBody: Encodable, Sendable {
 
 struct RegisterPushDeviceBody: Encodable {
     let platform: String
+    /// "courier" or "customer" — see `AppVariant`. Tells the backend which
+    /// bundle id's `apns-topic` this token belongs to.
+    let app: String
     let deviceToken: String
 }
 

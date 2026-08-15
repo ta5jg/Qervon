@@ -64,6 +64,7 @@ governor = "0.10.4"
 reqwest = { workspace = true }
 async-stream = "0.3"
 futures-core = "0.3"
+jsonwebtoken = { workspace = true }
 
 [dev-dependencies]
 http-body-util = { workspace = true }

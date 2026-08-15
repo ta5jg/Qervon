@@ -1664,6 +1664,7 @@ struct DevicePushTokenRow {
     id: Uuid,
     user_id: Uuid,
     platform: String,
+    app_variant: String,
     device_token: String,
     created_at: DateTime<Utc>,
 }
@@ -1674,24 +1675,28 @@ impl DevicePushTokenRow {
             id: self.id,
             user_id: UserId(self.user_id),
             platform: self.platform.parse()?,
+            app_variant: self.app_variant.parse()?,
             device_token: self.device_token,
             created_at: self.created_at,
         })
     }
 }
 
-const DEVICE_PUSH_TOKEN_COLUMNS: &str = "id, user_id, platform, device_token, created_at";
+const DEVICE_PUSH_TOKEN_COLUMNS: &str =
+    "id, user_id, platform, app_variant, device_token, created_at";
 
 #[async_trait]
 impl DevicePushTokenRepository for PgDevicePushTokenRepository {
     async fn create(&self, token: &DevicePushToken) -> Result<(), DomainError> {
         sqlx::query(
             "INSERT INTO notifications.device_push_tokens \
-             (id, user_id, platform, device_token, created_at) VALUES ($1, $2, $3, $4, $5)",
+             (id, user_id, platform, app_variant, device_token, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6)",
         )
         .bind(token.id)
         .bind(token.user_id.0)
         .bind(token.platform.as_str())
+        .bind(token.app_variant.as_str())
         .bind(&token.device_token)
         .bind(token.created_at)
         .execute(&self.pool)

@@ -315,7 +315,12 @@ async fn native_push_dispatch_is_forwarded_to_the_configured_push_provider() {
     let user_id = UserId::new();
     state
         .device_push
-        .register(user_id, PushPlatform::Ios, "device-token-abc".into())
+        .register(
+            user_id,
+            PushPlatform::Ios,
+            qervon_domain::AppVariant::Courier,
+            "device-token-abc".into(),
+        )
         .await
         .expect("register device token");
 

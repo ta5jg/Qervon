@@ -38,7 +38,7 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         let token = deviceToken.map { String(format: "%02.2hhx", $0) }.joined()
         guard let api else { return }
         Task {
-            try? await api.registerPushDevice(platform: .ios, deviceToken: token)
+            try? await api.registerPushDevice(platform: .ios, appVariant: .courier, deviceToken: token)
         }
     }
 

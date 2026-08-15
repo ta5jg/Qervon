@@ -3360,7 +3360,7 @@ async fn push_device_registration_is_idempotent_and_scoped_to_the_owner() {
         app.clone(),
         "POST",
         "/v1/push/devices",
-        json!({ "platform": "windows_phone", "device_token": "abc" }),
+        json!({ "platform": "windows_phone", "app": "courier", "device_token": "abc" }),
         &user_token,
     )
     .await;
@@ -3370,7 +3370,7 @@ async fn push_device_registration_is_idempotent_and_scoped_to_the_owner() {
         app.clone(),
         "POST",
         "/v1/push/devices",
-        json!({ "platform": "ios", "device_token": "device-token-1" }),
+        json!({ "platform": "ios", "app": "courier", "device_token": "device-token-1" }),
         &user_token,
     )
     .await;
@@ -3382,7 +3382,7 @@ async fn push_device_registration_is_idempotent_and_scoped_to_the_owner() {
         app.clone(),
         "POST",
         "/v1/push/devices",
-        json!({ "platform": "ios", "device_token": "device-token-1" }),
+        json!({ "platform": "ios", "app": "courier", "device_token": "device-token-1" }),
         &user_token,
     )
     .await;

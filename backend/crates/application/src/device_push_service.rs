@@ -18,7 +18,7 @@
 // =============================================================================
 
 use chrono::Utc;
-use qervon_domain::{DevicePushToken, DevicePushTokenRepository, PushPlatform, UserId};
+use qervon_domain::{AppVariant, DevicePushToken, DevicePushTokenRepository, PushPlatform, UserId};
 use uuid::Uuid;
 
 use crate::error::ApplicationError;
@@ -45,6 +45,7 @@ where
         &self,
         user_id: UserId,
         platform: PushPlatform,
+        app_variant: AppVariant,
         device_token: String,
     ) -> Result<DevicePushToken, ApplicationError> {
         if let Some(existing) = self
@@ -54,7 +55,8 @@ where
         {
             return Ok(existing);
         }
-        let token = DevicePushToken::register(user_id, platform, device_token, Utc::now())?;
+        let token =
+            DevicePushToken::register(user_id, platform, app_variant, device_token, Utc::now())?;
         self.tokens.create(&token).await?;
         Ok(token)
     }
@@ -84,11 +86,21 @@ mod tests {
         let user_id = UserId::new();
 
         let first = service
-            .register(user_id, PushPlatform::Ios, "device-abc".into())
+            .register(
+                user_id,
+                PushPlatform::Ios,
+                AppVariant::Courier,
+                "device-abc".into(),
+            )
             .await
             .expect("first registration");
         let second = service
-            .register(user_id, PushPlatform::Ios, "device-abc".into())
+            .register(
+                user_id,
+                PushPlatform::Ios,
+                AppVariant::Courier,
+                "device-abc".into(),
+            )
             .await
             .expect("second registration");
         assert_eq!(first.id, second.id);
@@ -105,7 +117,12 @@ mod tests {
         let stranger = UserId::new();
 
         let token = service
-            .register(owner, PushPlatform::Android, "device-xyz".into())
+            .register(
+                owner,
+                PushPlatform::Android,
+                AppVariant::Customer,
+                "device-xyz".into(),
+            )
             .await
             .expect("register");
 

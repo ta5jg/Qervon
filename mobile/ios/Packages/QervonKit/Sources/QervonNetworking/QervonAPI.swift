@@ -232,10 +232,18 @@ public struct QervonAPI: Sendable {
 
     // MARK: - Native push registration
 
-    public func registerPushDevice(platform: PushPlatform, deviceToken: String) async throws -> DevicePushToken {
+    public func registerPushDevice(
+        platform: PushPlatform,
+        appVariant: AppVariant,
+        deviceToken: String
+    ) async throws -> DevicePushToken {
         try await client.send(
             .post, "/v1/push/devices",
-            body: RegisterPushDeviceBody(platform: platform.rawValue, deviceToken: deviceToken)
+            body: RegisterPushDeviceBody(
+                platform: platform.rawValue,
+                app: appVariant.rawValue,
+                deviceToken: deviceToken
+            )
         )
     }
 

@@ -91,6 +91,10 @@ targets:
         LSApplicationQueriesSchemes:
           - comgooglemaps
           - yandexnavi
+    entitlements:
+      path: QervonCourierApp/QervonCourierApp.entitlements
+      properties:
+        aps-environment: development
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.courier
@@ -98,7 +102,10 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        # USDTG GROUP TECHNOLOGY LLC — required for a real provisioning
+        # profile that actually supports the Push Notifications capability;
+        # an empty team id cannot request that entitlement from Apple.
+        DEVELOPMENT_TEAM: "27575FW23Y"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SUPPORTS_MACCATALYST: NO
@@ -139,6 +146,10 @@ targets:
           cihazınızda saklanan oturumun kilidini açar; sunucu tarafında
           biyometrik bir kimlik doğrulama yapılmaz.
         ITSAppUsesNonExemptEncryption: false
+    entitlements:
+      path: QervonCustomerApp/QervonCustomerApp.entitlements
+      properties:
+        aps-environment: development
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.customer
@@ -146,7 +157,10 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_VERSION: "5.0"
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: ""
+        # USDTG GROUP TECHNOLOGY LLC — required for a real provisioning
+        # profile that actually supports the Push Notifications capability;
+        # an empty team id cannot request that entitlement from Apple.
+        DEVELOPMENT_TEAM: "27575FW23Y"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SUPPORTS_MACCATALYST: NO

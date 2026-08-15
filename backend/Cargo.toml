@@ -66,6 +66,7 @@ base64 = "0.22"
 aes-gcm = "0.10"
 hmac = "0.12"
 sha2 = "0.10"
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "json"] }
+jsonwebtoken = "9"
 web-push = { version = "0.10", default-features = false }
 openssl = { version = "0.10", features = ["vendored"] }

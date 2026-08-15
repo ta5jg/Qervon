@@ -173,25 +173,30 @@ provider URL at a local test server and asserts on what arrives.
   itself: the courier's own confirmation that they physically collected the
   amount, via `payment_collected` on
   `POST /v1/courier/orders/{id}/deliver`.
-- **Native push dispatch.** `DevicePushToken`
+- **Native push dispatch — iOS/APNs is real as of 2026-08-16; Android/FCM is
+  not.** `DevicePushToken`
   (`backend/crates/domain/src/device_push_token.rs`) and
   `POST /v1/push/devices` / `DELETE /v1/push/devices/{id}` are a real,
-  tenant-agnostic, per-user registry of iOS/Android device tokens with
-  idempotent re-registration and ownership-scoped deletion.
-  `POST /v1/push/native/dispatch` reads a user's registered tokens and, if
-  any exist, POSTs `{user_id, platform, title, body, tokens}` to
-  `QERVON_PUSH_PROVIDER_URL` with a bearer token; with no tokens registered
-  it returns `"skipped"`, and with no provider URL configured it returns
-  `"simulated"`. This mirrors the existing browser web-push split already in
-  the codebase (`notifications.web_push_subscriptions` registration vs. the
-  delivery logic in `backend/apps/worker`). Two things are still missing
-  before this is a real APNs/FCM integration rather than a generic webhook:
-  (1) no code path calls this endpoint automatically on domain events (order
-  assigned/delivered, new support-ticket reply) — it must be invoked
-  explicitly — and (2) `QERVON_PUSH_PROVIDER_URL` would need to point at
-  something that actually speaks APNs/FCM's request shape (a real push
-  gateway or a thin translation service), since this client sends a generic
-  JSON body, not Apple/Google's native wire format.
+  tenant-agnostic, per-user registry of device tokens, each tagged with an
+  `app_variant` (`courier` | `customer`) so a push provider knows which iOS
+  bundle id's `apns-topic` to address — the two apps have distinct bundle
+  ids. `backend/apps/api-gateway/src/apns.rs` is a real APNs HTTP/2 client:
+  it builds an ES256-signed provider JWT (cached ~45 minutes, per Apple's
+  guidance) and POSTs an alert payload to Apple's sandbox/production gateway.
+  `POST /v1/push/native/dispatch` sends every iOS device token through it
+  when `APNS_TEAM_ID`/`APNS_KEY_ID`/`APNS_PRIVATE_KEY_PATH`/
+  `APNS_BUNDLE_ID_COURIER`/`APNS_BUNDLE_ID_CUSTOMER` are configured (see
+  `.env.example`); with any of those missing, iOS tokens fall back to the
+  same generic `QERVON_PUSH_PROVIDER_URL` webhook Android tokens still use
+  (or `"simulated"` if that is unset too). Two domain events now call this
+  automatically rather than requiring an explicit trigger: a courier
+  receiving a new job offer (`offer_for_tenant`/`reoffer_for_tenant`) and a
+  customer's order being delivered (`deliver_order`/`courier_deliver_order`)
+  — both fire-and-forget (`notify_user_push`), so a push failure never turns
+  an otherwise-successful assignment or delivery into an HTTP error.
+  Android/FCM remains entirely unwired — see the Faz-2.4 section below for
+  why (a `google-services.json` Firebase credential is required at Android
+  *build* time, which this environment does not have).
 
 None of the above blocks local development or testing: every code path,
 including the outbound HTTP call itself, is exercised by an integration test

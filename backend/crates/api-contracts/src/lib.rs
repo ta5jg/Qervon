@@ -18,10 +18,10 @@
 
 use chrono::{DateTime, NaiveDate, Utc};
 use qervon_domain::{
-    Address, Assignment, AssignmentStatus, Coupon, Courier, CourierStatus, CourierWallet,
-    CustomerRating, DevicePushToken, Location, Money, Order, OrderStatus, PushPlatform,
-    SupportTicket, TicketStatus, Vehicle, VehicleStatus, VehicleType, WalletTransaction,
-    WalletTransactionType, OFFER_TTL,
+    Address, AppVariant, Assignment, AssignmentStatus, Coupon, Courier, CourierStatus,
+    CourierWallet, CustomerRating, DevicePushToken, Location, Money, Order, OrderStatus,
+    PushPlatform, SupportTicket, TicketStatus, Vehicle, VehicleStatus, VehicleType,
+    WalletTransaction, WalletTransactionType, OFFER_TTL,
 };
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -103,6 +103,10 @@ pub struct OpenSupportTicketRequest {
 pub struct RegisterPushDeviceRequest {
     /// "ios" or "android".
     pub platform: String,
+    /// "courier" or "customer" — which app issued this token. Required so a
+    /// push provider (APNs in particular) knows which bundle id's
+    /// `apns-topic` to address; the two iOS apps have distinct bundle ids.
+    pub app: String,
     pub device_token: String,
 }
 
@@ -110,6 +114,7 @@ pub struct RegisterPushDeviceRequest {
 pub struct DevicePushTokenResponse {
     pub id: Uuid,
     pub platform: PushPlatform,
+    pub app_variant: AppVariant,
     pub device_token: String,
     pub created_at: DateTime<Utc>,
 }
@@ -119,6 +124,7 @@ impl From<&DevicePushToken> for DevicePushTokenResponse {
         Self {
             id: token.id,
             platform: token.platform,
+            app_variant: token.app_variant,
             device_token: token.device_token.clone(),
             created_at: token.created_at,
         }
