@@ -19,5 +19,12 @@
 package com.qervon.core.location
 
 interface LocationReporter {
-    suspend fun reportLocation(latitude: Double, longitude: Double, speedKmh: Double?, batteryPct: Int?)
+    /**
+     * Sends one GPS sample to the backend. Returns `true` on success and
+     * `false` on any failure (network drop, timeout, non-2xx response) so
+     * the caller (see [CourierLocationService]'s retry queue) knows whether
+     * to keep the sample for a retry on the next location tick, rather than
+     * silently dropping it.
+     */
+    suspend fun reportLocation(latitude: Double, longitude: Double, speedKmh: Double?, batteryPct: Int?): Boolean
 }

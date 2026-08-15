@@ -76,7 +76,23 @@ fun CourierApp(rootViewModel: CourierRootViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+    // Android 10+ (API 29+) requires ACCESS_BACKGROUND_LOCATION to be
+    // requested in its own, separate call — the OS silently denies it if
+    // bundled with ACCESS_FINE_LOCATION in the same request. This is what
+    // keeps the foreground location Service receiving GPS fixes once the
+    // courier backgrounds the app or opens another one; without it, some
+    // OEM builds throttle or stop delivery outside the visible foreground UI.
+    val backgroundLocationLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission(),
+    ) {}
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions(),
+    ) { granted ->
+        val fineLocationGranted = granted[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        if (fineLocationGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            backgroundLocationLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+    }
     LaunchedEffect(Unit) {
         val permissions = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

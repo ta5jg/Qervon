@@ -70,13 +70,19 @@ class DispatchViewModel @Inject constructor(
 
     init {
         CourierLocationService.reporter = object : LocationReporter {
-            override suspend fun reportLocation(latitude: Double, longitude: Double, speedKmh: Double?, batteryPct: Int?) {
-                try {
-                    api.updateOwnLocation(latitude, longitude, speedKmh, batteryPct)
-                } catch (_: QervonApiException) {
-                    // Best-effort: a single missed location beat is not
-                    // surfaced to the courier, it will retry on the next tick.
-                }
+            override suspend fun reportLocation(
+                latitude: Double,
+                longitude: Double,
+                speedKmh: Double?,
+                batteryPct: Int?,
+            ): Boolean = try {
+                api.updateOwnLocation(latitude, longitude, speedKmh, batteryPct)
+                true
+            } catch (_: QervonApiException) {
+                // Failure is surfaced (not swallowed) so CourierLocationService's
+                // retry queue can hold onto this sample and resend it on the
+                // next location tick instead of losing it outright.
+                false
             }
         }
         refreshCourier()

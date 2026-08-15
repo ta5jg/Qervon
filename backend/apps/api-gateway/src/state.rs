@@ -322,8 +322,24 @@ impl AppState {
     pub async fn postgres() -> Result<Self, Box<dyn std::error::Error>> {
         let database_url = std::env::var("DATABASE_URL")
             .map_err(|_| "DATABASE_URL is required when QERVON_STORAGE=postgres")?;
+        // A pool this small (the previous hardcoded default was 5) becomes a
+        // hard bottleneck under real courier-fleet load: every location ping
+        // (`persist_courier_location`) issues two writes, and a fleet of a
+        // few thousand couriers reporting every few seconds sustains well
+        // over a thousand requests/second. Each request holds a pooled
+        // connection only for the duration of its own queries, so raising
+        // this does not change per-request behavior — it just removes an
+        // artificial queueing point ahead of the real limits (Postgres'
+        // own `max_connections`, CPU, disk I/O). Configurable so an
+        // operator can tune it to their Postgres instance's actual
+        // `max_connections` and hardware.
+        let max_connections = std::env::var("QERVON_POSTGRES_MAX_CONNECTIONS")
+            .ok()
+            .and_then(|value| value.parse::<u32>().ok())
+            .filter(|value| *value > 0)
+            .unwrap_or(20);
         let pool = PgPoolOptions::new()
-            .max_connections(5)
+            .max_connections(max_connections)
             .connect(&database_url)
             .await?;
 

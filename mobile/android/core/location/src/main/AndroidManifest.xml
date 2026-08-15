@@ -21,6 +21,16 @@ License:
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!--
+    Required on Android 10+ (API 29+) for FusedLocationProviderClient to keep
+    delivering updates once the app is no longer the foreground UI (screen
+    off, another app on top) — a foreground service alone is not always
+    sufficient on every OEM skin. Must be requested as a separate runtime
+    permission request *after* ACCESS_FINE_LOCATION is granted; the OS
+    silently denies it if bundled into the same request (see
+    CourierApp.kt's two-step permission flow).
+    -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

@@ -14,6 +14,15 @@
 //   `CourierLocationBroadcaster`, but as an explicit Android foreground
 //   service (required for reliable updates while the screen is off).
 //
+//   Failed sends are held in a small bounded retry queue (oldest-first,
+//   capped at MAX_PENDING_SAMPLES) rather than dropped outright, so a brief
+//   connectivity gap (e.g. switching cell towers, another app briefly
+//   starving network I/O) does not silently lose location beats — they are
+//   flushed on the next successful tick. The queue is intentionally *not*
+//   persisted to disk: it survives only within this Service's lifetime,
+//   which matches its purpose (smoothing over seconds-scale gaps, not
+//   surviving an app kill or device reboot).
+//
 // License:
 //   Qervon License v1.0 — see LICENSE in the repository root.
 // =============================================================================
@@ -42,10 +51,21 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.ArrayDeque
 
 private const val NOTIFICATION_CHANNEL_ID = "qervon_courier_location"
 private const val NOTIFICATION_ID = 4200
 private const val UPDATE_INTERVAL_MS = 8_000L
+private const val MAX_PENDING_SAMPLES = 20
+
+private data class PendingSample(
+    val latitude: Double,
+    val longitude: Double,
+    val speedKmh: Double?,
+    val batteryPct: Int?,
+)
 
 class CourierLocationService : Service() {
 
@@ -72,12 +92,37 @@ class CourierLocationService : Service() {
         LocationServices.getFusedLocationProviderClient(this)
     }
 
+    private val pendingSamples = ArrayDeque<PendingSample>()
+    private val pendingSamplesLock = Mutex()
+
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
             val location = result.lastLocation ?: return
             val speedKmh = if (location.hasSpeed()) (location.speed * 3.6) else null
-            serviceScope.launch {
-                reporter?.reportLocation(location.latitude, location.longitude, speedKmh, batteryPercent())
+            val sample = PendingSample(location.latitude, location.longitude, speedKmh, batteryPercent())
+            serviceScope.launch { enqueueAndFlush(sample) }
+        }
+    }
+
+    /**
+     * Appends [sample] to the retry queue (evicting the oldest entry if
+     * already at capacity, so the queue never grows unbounded during a
+     * long outage), then attempts to flush the queue oldest-first. Stops
+     * at the first failure so ordering is preserved and a single tick does
+     * not hammer a still-unreachable backend repeatedly.
+     */
+    private suspend fun enqueueAndFlush(sample: PendingSample) {
+        val reporter = reporter ?: return
+        pendingSamplesLock.withLock {
+            if (pendingSamples.size >= MAX_PENDING_SAMPLES) {
+                pendingSamples.removeFirst()
+            }
+            pendingSamples.addLast(sample)
+            while (pendingSamples.isNotEmpty()) {
+                val next = pendingSamples.first()
+                val sent = reporter.reportLocation(next.latitude, next.longitude, next.speedKmh, next.batteryPct)
+                if (!sent) break
+                pendingSamples.removeFirst()
             }
         }
     }
