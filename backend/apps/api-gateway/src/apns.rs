@@ -345,4 +345,44 @@ MKsIEHjTboKrzx554l4lPtt3ZxORMc3ADzkWxJihgIuKr9l45aKq7QpD3w==
             ApnsError::MissingBundleId(AppVariant::Customer)
         ));
     }
+
+    /// Opt-in smoke test against Apple's *real* sandbox gateway, using real
+    /// `APNS_*` credentials from the environment (never hardcoded — see
+    /// `.env.example`). Sends to a syntactically valid but definitely-
+    /// unregistered 64-hex-char device token. A real credential problem
+    /// (bad team id, bad key id, key/team mismatch, wrong topic) surfaces as
+    /// `InvalidProviderToken` or `TopicDisallowed`; a *working* credential
+    /// against a fake token surfaces as `BadDeviceToken` — proving the JWT
+    /// signature and topic were accepted by Apple before the (expected)
+    /// device lookup failure. Never prints the key or the signed JWT.
+    #[tokio::test]
+    #[ignore = "requires real APNS_* env vars; run with --ignored after setting them"]
+    async fn real_credentials_are_accepted_by_apples_sandbox_gateway() {
+        let client = ApnsClient::from_env().expect(
+            "APNS_TEAM_ID/APNS_KEY_ID/APNS_PRIVATE_KEY_PATH(or _PEM)/APNS_BUNDLE_ID_* must be set",
+        );
+        let placeholder_token = "0".repeat(64);
+        let result = client
+            .send(
+                &placeholder_token,
+                AppVariant::Courier,
+                "Qervon Smoke Test",
+                "İlk gerçek APNs kimlik doğrulama testi",
+            )
+            .await;
+        match result {
+            Err(ApnsError::Rejected { status, reason }) => {
+                println!("Apple responded: HTTP {status} — reason: {reason}");
+                assert_eq!(
+                    reason, "BadDeviceToken",
+                    "expected only the placeholder device token to be rejected — a different \
+                     reason (e.g. InvalidProviderToken, TopicDisallowed) means the credentials \
+                     themselves are the problem, not the fake token"
+                );
+            }
+            other => panic!(
+                "expected Apple to reject the placeholder device token with BadDeviceToken, got: {other:?}"
+            ),
+        }
+    }
 }
