@@ -48,7 +48,13 @@
     const message = document.getElementById('message');
     const signupForm = document.getElementById('signup-form');
     const requestedReturn = new URLSearchParams(location.search).get('return_to');
-    const returnTo = requestedReturn && requestedReturn.startsWith('/') && !requestedReturn.startsWith('//') ? requestedReturn : '/';
+    // Most direct /login visits (e.g. from the marketing site's "Giriş Yap"
+    // link) are tenant staff heading to the operations dashboard, not
+    // customers or couriers — those flows always pass an explicit
+    // `return_to`. Falling back to `/` here just bounced people back to the
+    // public homepage after a successful login, which looked exactly like a
+    // failed login. Default to the dashboard instead.
+    const returnTo = requestedReturn && requestedReturn.startsWith('/') && !requestedReturn.startsWith('//') ? requestedReturn : '/admin';
     const tenantFromUrl = new URLSearchParams(location.search).get('tenant');
     if (tenantFromUrl) tenant.value = tenantFromUrl;
     if (returnTo.includes('mobile-courier')) document.getElementById('heading').textContent = 'Kurye terminaline giriş yapın.';
