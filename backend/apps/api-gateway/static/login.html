@@ -23,7 +23,7 @@
     <p id="heading">Tenant hesabınıza giriş yapın.</p>
     <p class="hint">Kurye hesabı, firmanızın tenant yöneticisi tarafından oluşturulur.</p>
     <form id="form">
-      <label for="tenant">Tenant kodu</label><input id="tenant" autocomplete="organization" required>
+      <label for="tenant">Tenant kodu</label><input id="tenant" autocomplete="organization" required style="text-transform:lowercase;">
       <label for="email">E-posta</label><input id="email" type="email" autocomplete="username" required>
       <label for="password">Parola</label><input id="password" type="password" autocomplete="current-password" required>
       <button type="submit">Giriş yap</button>
@@ -62,7 +62,7 @@
       message.textContent = '';
       const response = await fetch('/v1/browser/auth/login', {
         method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin',
-        body:JSON.stringify({ tenant_slug:tenant.value.trim(), email:email.value.trim(), password:password.value })
+        body:JSON.stringify({ tenant_slug:tenant.value.trim().toLowerCase(), email:email.value.trim(), password:password.value })
       });
       if (!response.ok) { message.textContent = 'Giriş bilgileri veya tenant erişimi geçersiz.'; return; }
       location.assign(returnTo);
@@ -70,7 +70,7 @@
     signupForm.addEventListener('submit', async event => {
       event.preventDefault();
       message.textContent = '';
-      const tenantSlug = tenant.value.trim();
+      const tenantSlug = tenant.value.trim().toLowerCase();
       if (!tenantSlug) { message.textContent = 'Önce tenant kodunu girin.'; tenant.focus(); return; }
       const response = await fetch('/v1/auth/register', {
         method:'POST', headers:{'content-type':'application/json'}, credentials:'same-origin',

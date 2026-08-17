@@ -895,6 +895,28 @@ async fn customer_registration_joins_the_selected_tenant_and_can_open_a_browser_
 }
 
 #[tokio::test]
+async fn auth_login_accepts_a_tenant_slug_typed_in_a_different_case() {
+    let app = tenant_auth_app().await;
+    let (status, login) = request(
+        app,
+        "POST",
+        "/v1/auth/login",
+        json!({
+            "email": "operator@qervon.test",
+            "password": "a-long-enough-test-password",
+            // A human typing the tenant code into the /login form's text
+            // input may capitalize it; the slug itself is always stored
+            // lowercase, so login must tolerate this instead of returning a
+            // confusing "invalid credentials" error.
+            "tenant_slug": "  Qervon-Test  "
+        }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(login["token_type"], "Bearer");
+}
+
+#[tokio::test]
 async fn login_refresh_and_logout_require_a_real_tenant_membership() {
     let app = tenant_auth_app().await;
     let (status, login) = request(

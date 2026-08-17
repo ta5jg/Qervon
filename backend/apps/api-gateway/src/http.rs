@@ -840,7 +840,7 @@ async fn browser_login(
         .map_err(|_| invalid_credentials())?;
     let tenant = state
         .tenants
-        .find_by_slug(&request.tenant_slug)
+        .find_by_slug(&normalize_slug_lookup(&request.tenant_slug))
         .await?
         .ok_or_else(invalid_credentials)?;
     if state
@@ -1023,6 +1023,15 @@ async fn provision_company_admin(
     Ok((StatusCode::CREATED, Json((&user).into())))
 }
 
+/// Tenant slugs are always stored lowercase (see `tenant_slug` below), but
+/// login-adjacent callers (browser/API/OTP) must tolerate whatever casing a
+/// human typed into a form. Trim + lowercase before lookup so "Qervon" and
+/// "qervon" both resolve to the same tenant instead of failing with a
+/// confusing "invalid credentials" error.
+fn normalize_slug_lookup(value: &str) -> String {
+    value.trim().to_ascii_lowercase()
+}
+
 fn tenant_slug(value: String) -> Result<String, ApiError> {
     let value = value.trim().to_ascii_lowercase();
     let valid = (3..=63).contains(&value.len())
@@ -1098,7 +1107,7 @@ async fn auth_login(
         .map_err(|_| invalid_credentials())?;
     let tenant = state
         .tenants
-        .find_by_slug(&request.tenant_slug)
+        .find_by_slug(&normalize_slug_lookup(&request.tenant_slug))
         .await?
         .ok_or_else(invalid_credentials)?;
     if state
@@ -1120,7 +1129,7 @@ async fn auth_otp_request(
 ) -> Result<Json<OtpRequestResponse>, ApiError> {
     let tenant = state
         .tenants
-        .find_by_slug(&request.tenant_slug)
+        .find_by_slug(&normalize_slug_lookup(&request.tenant_slug))
         .await?
         .ok_or_else(invalid_credentials)?;
     let code = state
@@ -1161,7 +1170,7 @@ async fn auth_otp_verify(
 ) -> Result<Json<AuthResponse>, ApiError> {
     let tenant = state
         .tenants
-        .find_by_slug(&request.tenant_slug)
+        .find_by_slug(&normalize_slug_lookup(&request.tenant_slug))
         .await?
         .ok_or_else(invalid_credentials)?;
     let user = state
