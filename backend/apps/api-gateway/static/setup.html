@@ -26,7 +26,8 @@
         <label>Tenant kodu<input id="tenant-slug" required pattern="[a-z0-9-]{3,63}" placeholder="qervon-lojistik"></label>
         <label>Yönetici adı<input id="admin-name" required placeholder="Ad Soyad"></label>
         <label>Yönetici e-posta<input id="admin-email" type="email" required placeholder="yonetici@firma.com"></label>
-        <label>İlk yönetici parolası<input id="admin-password" type="password" minlength="12" autocomplete="new-password" required placeholder="En az 12 karakter"></label>
+        <label>İlk yönetici parolası<input id="admin-password" type="password" minlength="12" autocomplete="new-password" required placeholder="En az 12 karakter" aria-describedby="admin-password-hint"></label>
+        <p id="admin-password-hint" class="note full" style="margin:-8px 0 0;">Parola en az 12 karakter olmalı.</p>
         <label id="setup-token-field" hidden>VPS ilk kurulum anahtarı<input id="setup-token" type="password" autocomplete="off"></label>
       </div>
       <button id="submit" type="submit">Platform yöneticisi ve tenant oluştur</button>
@@ -75,7 +76,10 @@
         })
       });
       if (!login.ok) { message.textContent = 'Kurulum tamamlandı ancak ilk oturum açılamadı. Aynı bilgilerle giriş sayfasını kullanın.'; return; }
-      location.assign('/');
+      // Landing on the public marketing homepage after a successful setup
+      // looked identical to a failed one (see /login's same historical bug).
+      // Send the brand-new platform admin straight to the dashboard instead.
+      location.assign('/admin');
     });
     checkSetup().catch(() => { message.textContent = 'Kurulum durumu alınamadı.'; });
   </script>

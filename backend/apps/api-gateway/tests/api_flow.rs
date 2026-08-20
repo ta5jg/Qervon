@@ -917,6 +917,108 @@ async fn auth_login_accepts_a_tenant_slug_typed_in_a_different_case() {
 }
 
 #[tokio::test]
+async fn forgot_password_issues_a_working_reset_link_and_the_old_password_stops_working() {
+    let app = tenant_auth_app().await;
+
+    let (status, forgot) = request(
+        app.clone(),
+        "POST",
+        "/v1/auth/password/forgot",
+        json!({ "email": "operator@qervon.test" }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(forgot["status"], "sent");
+    // Memory storage with no email provider configured surfaces the link
+    // directly (see auth_password_forgot) so this stays testable without
+    // real email infrastructure.
+    let reset_url = forgot["dev_reset_url"].as_str().expect("dev reset url");
+    let token = reset_url
+        .split("token=")
+        .nth(1)
+        .expect("token query param")
+        .to_string();
+
+    let (status, _) = request(
+        app.clone(),
+        "POST",
+        "/v1/auth/password/reset",
+        json!({ "token": token, "new_password": "a-brand-new-long-password" }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::NO_CONTENT);
+
+    // The old password no longer works.
+    let (status, _) = request(
+        app.clone(),
+        "POST",
+        "/v1/auth/login",
+        json!({
+            "email": "operator@qervon.test",
+            "password": "a-long-enough-test-password",
+            "tenant_slug": "qervon-test"
+        }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNAUTHORIZED);
+
+    // The new password works.
+    let (status, _) = request(
+        app.clone(),
+        "POST",
+        "/v1/auth/login",
+        json!({
+            "email": "operator@qervon.test",
+            "password": "a-brand-new-long-password",
+            "tenant_slug": "qervon-test"
+        }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+
+    // The token is single-use — replaying it fails even with a valid token.
+    let (status, _) = request(
+        app,
+        "POST",
+        "/v1/auth/password/reset",
+        json!({ "token": token, "new_password": "yet-another-long-password" }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn forgot_password_gives_the_same_generic_response_for_an_unknown_email() {
+    let app = tenant_auth_app().await;
+    let (status, forgot) = request(
+        app,
+        "POST",
+        "/v1/auth/password/forgot",
+        json!({ "email": "nobody-registered@qervon.test" }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(forgot["status"], "sent");
+    // No account exists, so there is nothing to link to — and the response
+    // shape must not otherwise reveal that (see the doc comment on the
+    // handler for why this can't be a 404).
+    assert!(forgot.get("dev_reset_url").is_none());
+}
+
+#[tokio::test]
+async fn password_reset_rejects_a_garbage_token() {
+    let app = tenant_auth_app().await;
+    let (status, _) = request(
+        app,
+        "POST",
+        "/v1/auth/password/reset",
+        json!({ "token": "not-a-real-token", "new_password": "a-brand-new-long-password" }),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
 async fn login_refresh_and_logout_require_a_real_tenant_membership() {
     let app = tenant_auth_app().await;
     let (status, login) = request(
@@ -2887,6 +2989,45 @@ async fn coupon_can_be_applied_to_a_customer_order_and_is_tenant_isolated() {
     )
     .await;
     assert_eq!(status, axum::http::StatusCode::CONFLICT);
+}
+
+#[tokio::test]
+async fn geocode_search_requires_a_signed_in_user_and_short_circuits_short_queries() {
+    let app = tenant_auth_app().await;
+
+    // No real signed-in user — must be rejected before ever reaching the
+    // Nominatim proxy call.
+    let (status, _) = request(
+        app.clone(),
+        "GET",
+        "/v1/geocode/search?q=Kadikoy",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNAUTHORIZED);
+
+    let secret = b"test-signing-secret-must-be-at-least-32-characters";
+    let customer_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        Uuid::now_v7(),
+        UserRole::Customer,
+        Duration::minutes(5),
+    )
+    .expect("customer token");
+
+    // Below the 3-character floor: short-circuits to an empty result with no
+    // outbound network call, so this stays a fast, offline unit test.
+    let (status, results) = authorized_request(
+        app,
+        "GET",
+        "/v1/geocode/search?q=ka",
+        json!({}),
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(results.as_array().unwrap().len(), 0);
 }
 
 #[tokio::test]

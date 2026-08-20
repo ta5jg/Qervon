@@ -26,7 +26,7 @@ use crate::cold_chain::ColdChainTelemetry;
 use crate::coupon::Coupon;
 use crate::courier::Courier;
 use crate::courier_wallet::{CourierWallet, WalletTransaction};
-use crate::credential::{Credential, RefreshSession};
+use crate::credential::{Credential, PasswordResetToken, RefreshSession};
 use crate::customer::{CustomerId, CustomerProfile};
 use crate::customer_feedback::{CustomerRating, SupportTicket};
 use crate::delivery_pricing::DeliveryPricing;
@@ -56,6 +56,19 @@ pub trait CredentialRepository: Send + Sync {
         token_hash: &str,
     ) -> Result<Option<RefreshSession>, DomainError>;
     async fn revoke_refresh_session(&self, id: Uuid) -> Result<(), DomainError>;
+    async fn save_password_reset_token(
+        &self,
+        token: &PasswordResetToken,
+    ) -> Result<(), DomainError>;
+    async fn find_password_reset_token(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<PasswordResetToken>, DomainError>;
+    async fn mark_password_reset_token_used(
+        &self,
+        id: Uuid,
+        used_at: DateTime<Utc>,
+    ) -> Result<(), DomainError>;
 }
 
 #[async_trait]
@@ -151,6 +164,25 @@ impl CredentialRepository for Arc<dyn CredentialRepository> {
     }
     async fn revoke_refresh_session(&self, id: Uuid) -> Result<(), DomainError> {
         (**self).revoke_refresh_session(id).await
+    }
+    async fn save_password_reset_token(
+        &self,
+        token: &PasswordResetToken,
+    ) -> Result<(), DomainError> {
+        (**self).save_password_reset_token(token).await
+    }
+    async fn find_password_reset_token(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<PasswordResetToken>, DomainError> {
+        (**self).find_password_reset_token(token_hash).await
+    }
+    async fn mark_password_reset_token_used(
+        &self,
+        id: Uuid,
+        used_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        (**self).mark_password_reset_token_used(id, used_at).await
     }
 }
 

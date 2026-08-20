@@ -61,7 +61,8 @@ use tower_http::cors::{AllowOrigin, CorsLayer};
 
 use crate::api_error::ApiError;
 use crate::auth::{
-    hash_refresh_token, issue_access_token, new_refresh_token, verify_access_token, AccessClaims,
+    hash_password_reset_token, hash_refresh_token, issue_access_token, new_password_reset_token,
+    new_refresh_token, verify_access_token, AccessClaims,
 };
 use crate::rate_limit::ClientIpKeyExtractor;
 use crate::state::AppState;
@@ -225,6 +226,8 @@ pub fn router(state: AppState) -> Router {
         .route("/login.html", get(serve_login))
         .route("/setup", get(serve_setup))
         .route("/setup.html", get(serve_setup))
+        .route("/reset-password", get(serve_reset_password))
+        .route("/reset-password.html", get(serve_reset_password))
         .route("/mobile-customer", get(serve_mobile_customer))
         .route("/mobile-customer.html", get(serve_mobile_customer))
         .route("/mobile-courier", get(serve_mobile_courier))
@@ -258,6 +261,8 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/browser/auth/login", post(browser_login))
         .route("/v1/auth/otp/request", post(auth_otp_request))
         .route("/v1/auth/otp/verify", post(auth_otp_verify))
+        .route("/v1/auth/password/forgot", post(auth_password_forgot))
+        .route("/v1/auth/password/reset", post(auth_password_reset))
         .route_layer(rate_limit_layer(10, std::time::Duration::from_secs(3)));
 
     let operations = Router::new()
@@ -458,6 +463,13 @@ pub fn router(state: AppState) -> Router {
         )
         .route("/v1/push/devices/{id}", delete(delete_push_device))
         .route_layer(middleware::from_fn(require_signed_user));
+    // Own rate limit tier well below Nominatim's 1 req/sec public-instance
+    // ceiling, since every signed-in customer/courier typing an address
+    // shares our server's single outbound IP against that limit.
+    let geocode_operations = Router::new()
+        .route("/v1/geocode/search", get(geocode_search))
+        .route_layer(rate_limit_layer(5, std::time::Duration::from_secs(2)))
+        .route_layer(middleware::from_fn(require_signed_user));
     // Location events currently lack a tenant key in the delivery aggregate.
     // Do not expose an all-tenant stream to signed end users until the event
     // and assignment models carry that boundary end-to-end.
@@ -470,6 +482,7 @@ pub fn router(state: AppState) -> Router {
         .merge(tracking_consumers)
         .merge(push_operations)
         .merge(session_operations)
+        .merge(geocode_operations)
         .route_layer(middleware::from_fn_with_state(
             state.clone(),
             require_api_access,
@@ -1556,6 +1569,136 @@ async fn deliver_otp_sms(state: &AppState, phone: &str, code: &str) -> Result<()
     }
 }
 
+async fn deliver_password_reset_email(
+    state: &AppState,
+    email: &str,
+    reset_url: &str,
+) -> Result<(), String> {
+    let Some(url) = &state.email_provider_url else {
+        return Ok(());
+    };
+    let client = reqwest::Client::new();
+    let mut request = client
+        .post(url)
+        .header("content-type", "application/json")
+        .body(
+            json!({
+                "to": email,
+                "subject": "Qervon parola sıfırlama",
+                "text": format!(
+                    "Parolanızı sıfırlamak için bu bağlantıya tıklayın (30 dakika geçerlidir): {reset_url}"
+                ),
+            })
+            .to_string(),
+        );
+    if let Some(token) = &state.email_provider_bearer_token {
+        request = request.bearer_auth(token.as_ref());
+    }
+    let response = request.send().await.map_err(|error| error.to_string())?;
+    if response.status().is_success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "email provider responded with {}",
+            response.status()
+        ))
+    }
+}
+
+#[derive(Deserialize)]
+struct PasswordForgotRequest {
+    email: String,
+}
+
+#[derive(Serialize)]
+struct PasswordForgotResponse {
+    status: &'static str,
+    /// Only populated on `QERVON_STORAGE=memory` (local/dev) when no real
+    /// email provider is configured, so the flow stays exercisable without
+    /// standing up email infrastructure. Never set against Postgres/prod.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    dev_reset_url: Option<String>,
+}
+
+/// Always returns the same generic response whether or not the email has an
+/// account — revealing that would let an attacker enumerate registered
+/// emails. Real work (token issuance + delivery) only happens when a
+/// matching, active user is found.
+async fn auth_password_forgot(
+    State(state): State<AppState>,
+    Json(request): Json<PasswordForgotRequest>,
+) -> Result<Json<PasswordForgotResponse>, ApiError> {
+    let email = request.email.trim();
+    let mut dev_reset_url = None;
+    if !email.is_empty() {
+        if let Ok(Some(user)) = state.auth.find_by_email(email).await {
+            let raw_token = new_password_reset_token();
+            let now = Utc::now();
+            state
+                .credentials
+                .save_password_reset_token(&qervon_domain::PasswordResetToken {
+                    id: uuid::Uuid::now_v7(),
+                    user_id: user.id,
+                    token_hash: hash_password_reset_token(&raw_token),
+                    expires_at: now + Duration::minutes(30),
+                    used_at: None,
+                    created_at: now,
+                })
+                .await?;
+            let reset_url = format!("https://qervon.io/reset-password?token={raw_token}");
+            if let Err(error) = deliver_password_reset_email(&state, email, &reset_url).await {
+                tracing::warn!(
+                    email = %email,
+                    error = %error,
+                    "password reset email delivery failed; returning generic response regardless"
+                );
+            }
+            if matches!(state.storage_backend, crate::state::StorageBackend::Memory) {
+                tracing::info!(email = %email, reset_url = %reset_url, "password reset link (dev/memory storage)");
+                dev_reset_url = Some(reset_url);
+            }
+        }
+    }
+    Ok(Json(PasswordForgotResponse {
+        status: "sent",
+        dev_reset_url,
+    }))
+}
+
+#[derive(Deserialize)]
+struct PasswordResetRequest {
+    token: String,
+    new_password: String,
+}
+
+async fn auth_password_reset(
+    State(state): State<AppState>,
+    Json(request): Json<PasswordResetRequest>,
+) -> Result<StatusCode, ApiError> {
+    let invalid_token = || ApiError {
+        status: StatusCode::BAD_REQUEST,
+        detail: "this reset link is invalid or has expired".into(),
+    };
+    let token_hash = hash_password_reset_token(&request.token);
+    let reset_token = state
+        .credentials
+        .find_password_reset_token(&token_hash)
+        .await?
+        .ok_or_else(invalid_token)?;
+    if !reset_token.is_usable_at(Utc::now()) {
+        return Err(invalid_token());
+    }
+    state
+        .auth
+        .reset_password(reset_token.user_id, &request.new_password)
+        .await?;
+    state
+        .credentials
+        .mark_password_reset_token_used(reset_token.id, Utc::now())
+        .await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 async fn serve_dashboard() -> impl IntoResponse {
     (
         [(header::CACHE_CONTROL, "no-store, max-age=0")],
@@ -1592,6 +1735,13 @@ async fn serve_setup() -> impl IntoResponse {
     (
         [(header::CACHE_CONTROL, "no-store, max-age=0")],
         axum::response::Html(include_str!("../static/setup.html")),
+    )
+}
+
+async fn serve_reset_password() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "no-store, max-age=0")],
+        axum::response::Html(include_str!("../static/reset-password.html")),
     )
 }
 
@@ -4014,6 +4164,90 @@ struct FareQuoteQuery {
     pickup_longitude: f64,
     dropoff_latitude: f64,
     dropoff_longitude: f64,
+}
+
+#[derive(serde::Deserialize)]
+struct GeocodeQuery {
+    q: String,
+}
+
+#[derive(serde::Serialize)]
+struct GeocodeResult {
+    label: String,
+    latitude: f64,
+    longitude: f64,
+}
+
+/// Free-text address search backing the customer web portal's pickup/dropoff
+/// pickers. Proxies OpenStreetMap Nominatim server-side rather than calling
+/// it from the browser: Nominatim's usage policy requires a descriptive
+/// `User-Agent` identifying the application, which browser `fetch` cannot
+/// set, and a server-side proxy lets us rate-limit our own aggregate call
+/// volume against Nominatim's public 1 req/sec ceiling regardless of how
+/// many customers are typing at once. Route-level rate limiting is applied
+/// in the router (see `geocode_operations`).
+async fn geocode_search(
+    Query(query): Query<GeocodeQuery>,
+) -> Result<Json<Vec<GeocodeResult>>, ApiError> {
+    let text = query.q.trim();
+    if text.chars().count() < 3 {
+        return Ok(Json(Vec::new()));
+    }
+    let client = reqwest::Client::new();
+    let response = client
+        .get("https://nominatim.openstreetmap.org/search")
+        .query(&[
+            ("q", text),
+            ("format", "jsonv2"),
+            ("limit", "5"),
+            ("countrycodes", "tr"),
+            ("addressdetails", "0"),
+        ])
+        .header(
+            "User-Agent",
+            "Qervon-LOS/1.0 (+https://qervon.io; contact: info@qervon.app)",
+        )
+        .send()
+        .await
+        .map_err(|error| {
+            tracing::warn!(error = %error, "geocoding provider request failed");
+            ApiError {
+                status: StatusCode::SERVICE_UNAVAILABLE,
+                detail: "address search is temporarily unavailable".into(),
+            }
+        })?;
+    if !response.status().is_success() {
+        return Err(ApiError {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+            detail: "address search is temporarily unavailable".into(),
+        });
+    }
+    #[derive(serde::Deserialize)]
+    struct NominatimHit {
+        display_name: String,
+        lat: String,
+        lon: String,
+    }
+    let hits: Vec<NominatimHit> = response.json().await.map_err(|error| {
+        tracing::warn!(error = %error, "geocoding provider returned an unparsable response");
+        ApiError {
+            status: StatusCode::SERVICE_UNAVAILABLE,
+            detail: "address search is temporarily unavailable".into(),
+        }
+    })?;
+    let results = hits
+        .into_iter()
+        .filter_map(|hit| {
+            let latitude = hit.lat.parse::<f64>().ok()?;
+            let longitude = hit.lon.parse::<f64>().ok()?;
+            Some(GeocodeResult {
+                label: hit.display_name,
+                latitude,
+                longitude,
+            })
+        })
+        .collect();
+    Ok(Json(results))
 }
 
 async fn get_pricing(

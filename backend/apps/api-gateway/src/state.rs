@@ -222,6 +222,8 @@ pub struct AppState {
     pub payment_reconciliations: Arc<std::sync::RwLock<Vec<serde_json::Value>>>,
     pub sms_provider_url: Option<String>,
     pub sms_provider_bearer_token: Option<Arc<str>>,
+    pub email_provider_url: Option<String>,
+    pub email_provider_bearer_token: Option<Arc<str>>,
     pub payment_gateway_url: Option<String>,
     pub payment_gateway_bearer_token: Option<Arc<str>>,
     pub push_provider_url: Option<String>,
@@ -273,6 +275,13 @@ impl AppState {
             .ok()
             .filter(|value| !value.trim().is_empty());
         state.sms_provider_bearer_token = std::env::var("QERVON_SMS_PROVIDER_TOKEN")
+            .ok()
+            .filter(|value| !value.trim().is_empty())
+            .map(Arc::from);
+        state.email_provider_url = std::env::var("QERVON_EMAIL_PROVIDER_URL")
+            .ok()
+            .filter(|value| !value.trim().is_empty());
+        state.email_provider_bearer_token = std::env::var("QERVON_EMAIL_PROVIDER_TOKEN")
             .ok()
             .filter(|value| !value.trim().is_empty())
             .map(Arc::<str>::from);
@@ -522,6 +531,8 @@ impl AppState {
             payment_reconciliations: Arc::new(std::sync::RwLock::new(Vec::new())),
             sms_provider_url: None,
             sms_provider_bearer_token: None,
+            email_provider_url: None,
+            email_provider_bearer_token: None,
             payment_gateway_url: None,
             payment_gateway_bearer_token: None,
             push_provider_url: None,

@@ -134,7 +134,7 @@
         <label for="pod-recipient" style="font-size:11px; color:var(--text-muted);">Teslim alan kişi</label>
         <input id="pod-recipient" aria-required="true" placeholder="Teslim alan kişinin adı" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
         <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:10px;"><input id="pod-qr" type="checkbox"> QR / barkod doğrulandı</label>
-        <button id="btn-deliver" class="btn-main" type="button" onclick="completeDelivery()" disabled>🏁 TESLİMATI TAMAMLA</button>
+        <button id="btn-deliver" class="btn-main" type="button" onclick="completeDelivery()" disabled><i data-lucide="flag"></i> TESLİMATI TAMAMLA</button>
       </div>
     </div>
 
@@ -162,6 +162,9 @@
         <div id="courier-name" style="font-size:14px; font-weight:800;">Kurye profili yükleniyor…</div>
         <div id="courier-meta" style="font-size:11px; color:var(--text-muted);"></div>
         <div id="courier-status" style="font-size:11px; color:var(--accent-green); font-weight:700; margin-top:6px;"></div>
+      </div>
+      <div class="card">
+        <button id="btn-logout" type="button" onclick="logout()" style="width:100%; padding:12px; border-radius:12px; background:transparent; border:1px solid var(--border-color); color:var(--text-muted); font-size:12px; font-weight:700; cursor:pointer;">Çıkış yap</button>
       </div>
     </div>
 
@@ -196,7 +199,12 @@
 
     async function api(path, options = {}) {
       const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
-      if (!response.ok) throw new Error(`API ${response.status}`);
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        const error = new Error(problem.detail || `API ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
       return response.status === 204 ? null : response.json();
     }
 
@@ -226,7 +234,7 @@
 
     function renderWallet(wallet) {
       document.getElementById('wallet-balance').textContent = formatMoney(wallet.balance_minor, wallet.currency);
-      document.getElementById('wallet-total').textContent = `Toplam kazanç: ${formatMoney(wallet.total_earned_minor, wallet.currency)} 💰`;
+      document.getElementById('wallet-total').textContent = `Toplam kazanç: ${formatMoney(wallet.total_earned_minor, wallet.currency)}`;
       const transactionsEl = document.getElementById('wallet-transactions');
       const recent = wallet.transactions.slice(-5).reverse();
       transactionsEl.innerHTML = recent.length
@@ -243,8 +251,15 @@
         return;
       }
       const average = ratings.reduce((sum, r) => sum + r.rating_stars, 0) / ratings.length;
-      summaryEl.textContent = `⭐ ${average.toFixed(1)} / 5.0`;
+      summaryEl.textContent = `${average.toFixed(1)} / 5.0`;
       countEl.textContent = `${ratings.length} değerlendirme`;
+    }
+
+    async function logout() {
+      const button = document.getElementById('btn-logout');
+      button.disabled = true;
+      try { await api('/v1/browser/auth/logout', { method: 'POST' }); }
+      finally { location.assign('/login'); }
     }
 
     async function loadCourierWorkspace() {
@@ -274,7 +289,7 @@
     async function startPickup() {
       if (!activeOrder) return;
       try { showTask(await api(`/v1/courier/orders/${activeOrder.id}/pickup`, { method: 'POST' })); }
-      catch (_) { document.getElementById('task-meta').textContent = 'Teslim alma işlemi tamamlanamadı.'; }
+      catch (error) { document.getElementById('task-meta').textContent = `Teslim alma işlemi tamamlanamadı: ${error.message}`; }
     }
 
     async function completeDelivery() {
@@ -286,7 +301,7 @@
         showTask(await api(`/v1/courier/orders/${activeOrder.id}/deliver`, { method: 'POST', body: JSON.stringify({ recipient_name: recipient, qr_barcode_verified: qrVerified }) }));
         await loadCourierWorkspace();
       }
-      catch (_) { document.getElementById('task-meta').textContent = 'Teslimat tamamlanamadı.'; }
+      catch (error) { document.getElementById('task-meta').textContent = `Teslimat tamamlanamadı: ${error.message}`; }
     }
 
     function vapidKeyBytes(value) {
@@ -298,15 +313,15 @@
     async function enablePushNotifications() {
       const gpsText = document.getElementById('gps-text');
       try {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('unsupported');
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) throw new Error('Bu tarayıcı push bildirimlerini desteklemiyor');
         const permission = await Notification.requestPermission();
-        if (permission !== 'granted') throw new Error('permission');
+        if (permission !== 'granted') throw new Error('Bildirim izni verilmedi — tarayıcı ayarlarından izin verin');
         const config = await api('/v1/push/config', { method: 'GET' });
         const registration = await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: vapidKeyBytes(config.vapid_public_key) });
         await api('/v1/push/subscriptions', { method: 'POST', body: JSON.stringify(subscription) });
         gpsText.textContent = 'Push bildirimleri etkinleştirildi';
-      } catch (_) { gpsText.textContent = 'Push bildirimi etkinleştirilemedi'; }
+      } catch (error) { gpsText.textContent = `Push bildirimi etkinleştirilemedi: ${error.message}`; }
     }
 
     async function publishLocation(position) {
@@ -351,10 +366,10 @@
     function updateStatusButton() {
       const btn = document.getElementById('btn-status');
       if (isOnline) {
-        btn.innerText = "ONLINE 🟢";
+        btn.innerText = "ONLİNE";
         btn.className = "toggle-online is-online";
       } else {
-        btn.innerText = "OFFLINE 🔴";
+        btn.innerText = "OFFLİNE";
         btn.className = "toggle-online";
       }
     }
@@ -370,7 +385,7 @@
         document.getElementById('courier-status').textContent = `Durum: ${courier.status}`;
         updateStatusButton();
         if (isOnline) startLocationWatch();
-      } catch (_) { document.getElementById('gps-text').textContent = 'Kurye durumu değiştirilemedi'; }
+      } catch (error) { document.getElementById('gps-text').textContent = `Kurye durumu değiştirilemedi: ${error.message}`; }
     }
 
     function switchCourierTab(tabId, el) {

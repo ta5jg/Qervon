@@ -1,23 +1,205 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Qervon Field Service Console</title>
-    <style>
-      body { font-family: system-ui, sans-serif; margin: 2rem; background: #0b1020; color: #e5e7eb; }
-      h1 { margin-bottom: 0.5rem; }
-      .card { background: #11182f; border-radius: 12px; padding: 1rem; margin-top: 1rem; }
-      code { color: #93c5fd; }
-    </style>
-  </head>
-  <body>
-    <h1>Field Service Console</h1>
-    <p>Admin/customer service surface for appointment scheduling.</p>
-    <div class="card">
-      <p>Use API endpoint:</p>
-      <p><code>POST /v1/field-service/appointments</code></p>
-      <p><code>GET /v1/field-service/appointments</code></p>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qervon LOS — Saha Servisi Randevu Konsolu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #060913;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-cyan: #38bdf8;
+      --accent-purple: #8b5cf6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); min-height: 100vh; }
+    .glass { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; }
+    header { padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: rgba(9, 13, 26, 0.8); flex-wrap: wrap; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-purple), #6d28d9); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    main { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    h2 { font-size: 15px; font-weight: 800; margin-bottom: 14px; }
+    label { font-size: 11px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 11px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; font-size: 12px; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 10px; align-items: end; }
+    .btn-action { background: linear-gradient(135deg, var(--accent-purple), #6d28d9); color: white; border: none; padding: 11px 18px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 10px 12px; font-size: 10px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-transform: uppercase; }
+    td { padding: 12px; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .tag { padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .tag-green { background: rgba(16,185,129,0.15); color: var(--accent-green); border: 1px solid rgba(16,185,129,0.3); }
+    .tag-cyan { background: rgba(56,189,248,0.15); color: var(--accent-cyan); border: 1px solid rgba(56,189,248,0.3); }
+    #message { min-height: 20px; font-size: 12px; color: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: 1fr; }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="wrench" style="color:white"></i></div>
+      <div>
+        <div style="font-size:16px; font-weight:800;">SAHA SERVİSİ RANDEVU KONSOLU</div>
+        <div style="font-size:10px; color:var(--accent-purple); font-weight:700;">TEKNİK SERVİS & MONTAJ ZAMANLAMASI</div>
+      </div>
     </div>
-  </body>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="/admin" class="btn-ghost" style="text-decoration:none;">Yönetim Paneline dön</a>
+      <button id="btn-logout" type="button" onclick="logout()" class="btn-ghost">Çıkış yap</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="auth-banner" class="glass" style="padding:20px; display:none;">
+      <p>Bu konsol operasyon ekibi girişi gerektirir. <a href="/login?return_to=/field-service.html" style="color:var(--accent-cyan); font-weight:800;">Giriş yap</a></p>
+    </div>
+
+    <div id="workspace" style="display:none;">
+      <section class="glass" style="padding:20px;">
+        <h2>Yeni Randevu Oluştur</h2>
+        <form id="appointment-form" onsubmit="createAppointment(event)">
+          <div class="form-grid">
+            <div><label for="appt-customer">Müşteri ID</label><input id="appt-customer" required placeholder="Müşterinin UUID'si"></div>
+            <div>
+              <label for="appt-service-type">Servis Türü</label>
+              <input id="appt-service-type" list="service-type-options" required placeholder="Bakım, Kurulum…">
+              <datalist id="service-type-options">
+                <option value="Maintenance">Bakım</option>
+                <option value="Installation">Kurulum</option>
+                <option value="ScheduledDelivery">Planlı Teslimat</option>
+              </datalist>
+            </div>
+            <div><label for="appt-date">Tarih</label><input id="appt-date" type="date" required></div>
+            <div>
+              <label for="appt-slot">Zaman Dilimi</label>
+              <select id="appt-slot">
+                <option value="Morning">Sabah (09:00–12:00)</option>
+                <option value="Afternoon">Öğleden sonra (12:00–16:00)</option>
+                <option value="Evening">Akşam (16:00–20:00)</option>
+              </select>
+            </div>
+            <button class="btn-action" type="submit"><i data-lucide="calendar-plus"></i> Randevu Oluştur</button>
+          </div>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">Müşteri ID'sini bulmak için müşteriyi önce Yönetim Paneli → Sipariş Yönetimi ekranındaki bir siparişten kopyalayın.</p>
+          <div id="appointment-form-message" style="margin-top:8px; font-size:11px; color:var(--text-muted);"></div>
+        </form>
+      </section>
+
+      <section class="glass" style="padding:20px;">
+        <h2>Planlanan Randevular</h2>
+        <table>
+          <thead>
+            <tr><th>Müşteri</th><th>Servis Türü</th><th>Tarih</th><th>Zaman Dilimi</th><th>Teknisyen</th><th>Durum</th></tr>
+          </thead>
+          <tbody id="appointments-body"><tr><td colspan="6">Randevular yükleniyor…</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    const SLOT_LABELS = { Morning: 'Sabah', Afternoon: 'Öğleden sonra', Evening: 'Akşam' };
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        const error = new Error(problem.detail || `API ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+      return response.status === 204 ? null : response.json();
+    }
+
+    async function logout() {
+      try { await api('/v1/browser/auth/logout', { method: 'POST' }); }
+      finally { location.assign('/login'); }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+    }
+
+    function renderAppointments(appointments) {
+      const body = document.getElementById('appointments-body');
+      body.innerHTML = appointments.length ? appointments.map(appt => `
+        <tr>
+          <td style="font-family:'JetBrains Mono';">#${appt.customer_id.slice(0, 8)}</td>
+          <td>${escapeHtml(appt.service_type)}</td>
+          <td>${escapeHtml(appt.appointment_date)}</td>
+          <td><span class="tag tag-cyan">${SLOT_LABELS[appt.slot_window] || escapeHtml(appt.slot_window)}</span></td>
+          <td>${appt.technician_id ? '#' + appt.technician_id.slice(0, 8) : '<span style="color:var(--text-muted);">Atanmadı</span>'}</td>
+          <td><span class="tag ${appt.is_confirmed ? 'tag-green' : 'tag-cyan'}">${appt.is_confirmed ? 'Onaylı' : 'Beklemede'}</span></td>
+        </tr>
+      `).join('') : '<tr><td colspan="6">Bu tenant için henüz randevu yok.</td></tr>';
+    }
+
+    async function loadAppointments() {
+      try { renderAppointments(await api('/v1/field-service/appointments', { method: 'GET' })); }
+      catch (error) { handleWorkspaceError(error); }
+    }
+
+    async function createAppointment(event) {
+      event.preventDefault();
+      const message = document.getElementById('appointment-form-message');
+      const customerId = document.getElementById('appt-customer').value.trim();
+      const serviceTypeInput = document.getElementById('appt-service-type').value.trim();
+      const serviceTypeMap = { 'Bakım': 'Maintenance', 'Kurulum': 'Installation', 'Planlı Teslimat': 'ScheduledDelivery' };
+      const serviceType = serviceTypeMap[serviceTypeInput] || serviceTypeInput;
+      const date = document.getElementById('appt-date').value;
+      const slot = document.getElementById('appt-slot').value;
+      if (!customerId || !serviceType || !date) { message.textContent = 'Müşteri ID, servis türü ve tarih zorunludur.'; return; }
+      try {
+        await api('/v1/field-service/appointments', {
+          method: 'POST',
+          body: JSON.stringify({ customer_id: customerId, service_type: serviceType, appointment_date: date, slot_window: slot }),
+        });
+        message.textContent = 'Randevu oluşturuldu.';
+        document.getElementById('appointment-form').reset();
+        await loadAppointments();
+      } catch (error) { message.textContent = `Randevu oluşturulamadı: ${error.message}`; }
+    }
+
+    function handleWorkspaceError(error) {
+      if ([401, 403].includes(error?.status)) {
+        document.getElementById('auth-banner').style.display = 'block';
+        document.getElementById('workspace').style.display = 'none';
+      }
+    }
+
+    async function loadWorkspace() {
+      try {
+        const appointments = await api('/v1/field-service/appointments', { method: 'GET' });
+        document.getElementById('auth-banner').style.display = 'none';
+        document.getElementById('workspace').style.display = 'flex';
+        document.getElementById('workspace').style.flexDirection = 'column';
+        document.getElementById('workspace').style.gap = '20px';
+        renderAppointments(appointments);
+      } catch (error) { handleWorkspaceError(error); }
+    }
+
+    loadWorkspace();
+  </script>
+</body>
 </html>

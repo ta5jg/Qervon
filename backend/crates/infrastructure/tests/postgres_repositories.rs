@@ -7,16 +7,17 @@
 use chrono::{Duration, NaiveDate, Utc};
 use qervon_domain::{
     ColdChainTelemetry, ColdChainTelemetryRepository, Courier, CourierPayout,
-    CourierPayoutRepository, CourierRepository, CustomerId, CustomerProfile, CustomerRepository,
-    FieldServiceAppointmentRepository, FieldServiceScheduler, Location, Money,
-    RouteBreadcrumbRepository, SavedAddress, TenantId, TimeSlotWindow, User, UserId,
-    UserRepository, UserRole, Vehicle, VehicleId, VehicleRepository, VehicleType, WarehouseHub,
-    WarehouseHubRepository,
+    CourierPayoutRepository, CourierRepository, CredentialRepository, CustomerId, CustomerProfile,
+    CustomerRepository, FieldServiceAppointmentRepository, FieldServiceScheduler, Location, Money,
+    PasswordResetToken, RouteBreadcrumbRepository, SavedAddress, TenantId, TimeSlotWindow, User,
+    UserId, UserRepository, UserRole, Vehicle, VehicleId, VehicleRepository, VehicleType,
+    WarehouseHub, WarehouseHubRepository,
 };
 use qervon_infrastructure::{
     postgres::PgPoolOptions, PgColdChainTelemetryRepository, PgCourierPayoutRepository,
-    PgCourierRepository, PgCustomerRepository, PgFieldServiceAppointmentRepository,
-    PgRouteBreadcrumbRepository, PgUserRepository, PgVehicleRepository, PgWarehouseHubRepository,
+    PgCourierRepository, PgCredentialRepository, PgCustomerRepository,
+    PgFieldServiceAppointmentRepository, PgRouteBreadcrumbRepository, PgUserRepository,
+    PgVehicleRepository, PgWarehouseHubRepository,
 };
 use uuid::Uuid;
 
@@ -232,4 +233,36 @@ async fn postgres_repositories_round_trip() {
         .expect("list breadcrumbs");
     assert_eq!(breadcrumbs_for_day.len(), 1);
     assert_eq!(breadcrumbs_for_day[0].id, breadcrumb.id);
+
+    let credentials = PgCredentialRepository::new(pool.clone());
+    let reset_token = PasswordResetToken {
+        id: Uuid::now_v7(),
+        user_id: user.id,
+        token_hash: format!("hash-{suffix}"),
+        expires_at: now + Duration::minutes(30),
+        used_at: None,
+        created_at: now,
+    };
+    credentials
+        .save_password_reset_token(&reset_token)
+        .await
+        .expect("persist password reset token");
+    let loaded_reset_token = credentials
+        .find_password_reset_token(&reset_token.token_hash)
+        .await
+        .expect("read password reset token")
+        .expect("token exists");
+    assert_eq!(loaded_reset_token.user_id, user.id);
+    assert!(loaded_reset_token.is_usable_at(now));
+
+    credentials
+        .mark_password_reset_token_used(reset_token.id, now)
+        .await
+        .expect("mark password reset token used");
+    let used_reset_token = credentials
+        .find_password_reset_token(&reset_token.token_hash)
+        .await
+        .expect("read password reset token again")
+        .expect("token still exists");
+    assert!(!used_reset_token.is_usable_at(now));
 }

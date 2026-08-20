@@ -1,24 +1,292 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Qervon Warehouse Console</title>
-    <style>
-      body { font-family: system-ui, sans-serif; margin: 2rem; background: #0b1020; color: #e5e7eb; }
-      h1 { margin-bottom: 0.5rem; }
-      .card { background: #11182f; border-radius: 12px; padding: 1rem; margin-top: 1rem; }
-      code { color: #93c5fd; }
-    </style>
-  </head>
-  <body>
-    <h1>Warehouse Hub Console</h1>
-    <p>Admin surface for LOS warehouse operations.</p>
-    <div class="card">
-      <p>Use API endpoints:</p>
-      <p><code>POST /v1/warehouse/hubs</code></p>
-      <p><code>POST /v1/warehouse/hubs/{id}/receive</code></p>
-      <p><code>POST /v1/warehouse/hubs/{id}/dispatch</code></p>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qervon LOS — Depo & Sevkiyat Konsolu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
+
+  <style>
+    :root {
+      --bg-base: #060913;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-cyan: #38bdf8;
+      --accent-orange: #f97316;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg-base); color: var(--text-main); min-height: 100vh; }
+    .glass { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; }
+    header { padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); background: rgba(9, 13, 26, 0.8); flex-wrap: wrap; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent-orange), #c2410c); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+    main { padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; max-width: 1200px; margin: 0 auto; }
+    h2 { font-size: 15px; font-weight: 800; margin-bottom: 14px; }
+    label { font-size: 11px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 4px; }
+    input, select { width: 100%; padding: 11px; border-radius: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; font-size: 12px; }
+    .form-grid { display: grid; grid-template-columns: repeat(4, 1fr) auto; gap: 10px; align-items: end; }
+    .btn-action { background: linear-gradient(135deg, var(--accent-orange), #c2410c); color: white; border: none; padding: 11px 18px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .btn-ghost { background: transparent; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 14px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 10px 12px; font-size: 10px; font-weight: 700; color: var(--text-muted); border-bottom: 1px solid var(--border-color); text-transform: uppercase; }
+    td { padding: 12px; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .tag { padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 700; display: inline-block; }
+    .tag-green { background: rgba(16,185,129,0.15); color: var(--accent-green); border: 1px solid rgba(16,185,129,0.3); }
+    .tag-orange { background: rgba(249,115,22,0.15); color: var(--accent-orange); border: 1px solid rgba(249,115,22,0.3); }
+    .receive-input { width: 70px; display: inline-block; }
+    #message { min-height: 20px; font-size: 12px; color: var(--text-muted); }
+    .order-picker { max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; padding: 8px; }
+    .order-picker label { display: flex; align-items: center; gap: 8px; font-weight: 500; color: var(--text-main); padding: 6px 4px; margin-bottom: 0; }
+    .address-suggestions { position: absolute; z-index: 20; margin-top: 4px; background: #0b1220; border: 1px solid var(--border-color); border-radius: 10px; max-height: 200px; overflow-y: auto; display: none; width: 100%; }
+    .address-suggestions.open { display: block; }
+    .address-suggestion { padding: 9px 12px; font-size: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .address-suggestion:hover { background: rgba(56,189,248,0.12); }
+
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: 1fr; }
+      main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon"><i data-lucide="warehouse" style="color:white"></i></div>
+      <div>
+        <div style="font-size:16px; font-weight:800;">DEPO & SEVKİYAT KONSOLU</div>
+        <div style="font-size:10px; color:var(--accent-orange); font-weight:700;">CROSS-DOCKING HUB YÖNETİMİ</div>
+      </div>
     </div>
-  </body>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a href="/admin" class="btn-ghost" style="text-decoration:none;">Yönetim Paneline dön</a>
+      <button id="btn-logout" type="button" onclick="logout()" class="btn-ghost">Çıkış yap</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="auth-banner" class="glass" style="padding:20px; display:none;">
+      <p>Bu konsol operasyon ekibi girişi gerektirir. <a href="/login?return_to=/warehouse.html" style="color:var(--accent-cyan); font-weight:800;">Giriş yap</a></p>
+    </div>
+
+    <div id="workspace" style="display:none;">
+      <section class="glass" style="padding:20px;">
+        <h2>Yeni Depo / Hub Oluştur</h2>
+        <form id="hub-form" onsubmit="createHub(event)">
+          <div class="form-grid">
+            <div><label for="hub-code">Hub Kodu</label><input id="hub-code" required placeholder="HUB-IST-01"></div>
+            <div><label for="hub-name">Hub Adı</label><input id="hub-name" required placeholder="İstanbul Ana Transfer Merkezi"></div>
+            <div style="position:relative;"><label for="hub-address">Adres (koordinat için ara)</label><input id="hub-address" autocomplete="off" placeholder="Sokak, mahalle veya semt yazın…" oninput="onHubAddressInput()"><div id="hub-address-suggestions" class="address-suggestions"></div></div>
+            <div><label for="hub-capacity">Kapasite (parsel)</label><input id="hub-capacity" type="number" min="1" required placeholder="1000"></div>
+            <button class="btn-action" type="submit"><i data-lucide="plus"></i> Hub Oluştur</button>
+          </div>
+          <div id="hub-form-message" style="margin-top:8px; font-size:11px; color:var(--text-muted);"></div>
+        </form>
+      </section>
+
+      <section class="glass" style="padding:20px;">
+        <h2>Depo Hub'ları</h2>
+        <table>
+          <thead>
+            <tr><th>Hub Kodu</th><th>Ad</th><th>Konum</th><th>Doluluk</th><th>Parsel Al</th></tr>
+          </thead>
+          <tbody id="hubs-body"><tr><td colspan="5">Hub'lar yükleniyor…</td></tr></tbody>
+        </table>
+      </section>
+
+      <section class="glass" style="padding:20px;">
+        <h2>Sevkiyat Manifestosu Oluştur</h2>
+        <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Bir hub, bir kurye ve manifestoya dahil edilecek siparişleri seçin. Hub'ın aktif parsel sayısı seçilen sipariş sayısından az olamaz.</p>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; margin-bottom:12px;">
+          <div><label for="manifest-hub">Hub</label><select id="manifest-hub"></select></div>
+          <div><label for="manifest-courier">Kurye</label><select id="manifest-courier"></select></div>
+          <button class="btn-action" type="button" onclick="createManifest()"><i data-lucide="truck"></i> Sevkiyat Oluştur</button>
+        </div>
+        <label>Siparişler</label>
+        <div id="order-picker" class="order-picker"><span style="font-size:11px; color:var(--text-muted);">Siparişler yükleniyor…</span></div>
+        <div id="manifest-message" style="margin-top:10px; font-size:12px; color:var(--text-muted);"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    lucide.createIcons();
+
+    let hubsCache = [];
+    let addressSearchTimer = null;
+    let selectedHubAddress = null;
+
+    function csrfHeaders() {
+      const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+      return { 'content-type': 'application/json', 'x-csrf-token': csrf };
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, { credentials: 'same-origin', ...options, headers: { ...csrfHeaders(), ...(options.headers || {}) } });
+      if (!response.ok) {
+        const problem = await response.json().catch(() => ({}));
+        const error = new Error(problem.detail || `API ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+      return response.status === 204 ? null : response.json();
+    }
+
+    async function logout() {
+      try { await api('/v1/browser/auth/logout', { method: 'POST' }); }
+      finally { location.assign('/login'); }
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', "'":'&#39;', '"':'&quot;' }[char]));
+    }
+
+    function onHubAddressInput() {
+      selectedHubAddress = null;
+      clearTimeout(addressSearchTimer);
+      const query = document.getElementById('hub-address').value.trim();
+      const container = document.getElementById('hub-address-suggestions');
+      if (query.length < 3) { container.classList.remove('open'); container.innerHTML = ''; return; }
+      addressSearchTimer = setTimeout(async () => {
+        try {
+          const results = await api(`/v1/geocode/search?q=${encodeURIComponent(query)}`, { method: 'GET' });
+          if (!results.length) { container.classList.remove('open'); container.innerHTML = ''; return; }
+          container.innerHTML = results.map((r, i) => `<div class="address-suggestion" data-index="${i}">${escapeHtml(r.label)}</div>`).join('');
+          container.classList.add('open');
+          container.querySelectorAll('.address-suggestion').forEach((el, i) => el.addEventListener('click', () => {
+            selectedHubAddress = results[i];
+            document.getElementById('hub-address').value = results[i].label;
+            container.classList.remove('open');
+            container.innerHTML = '';
+          }));
+        } catch (_) { /* ignore transient search failures */ }
+      }, 400);
+    }
+
+    async function createHub(event) {
+      event.preventDefault();
+      const message = document.getElementById('hub-form-message');
+      if (!selectedHubAddress) { message.textContent = 'Adresi öneri listesinden seçmelisiniz (koordinat gerekli).'; return; }
+      try {
+        await api('/v1/warehouse/hubs', {
+          method: 'POST',
+          body: JSON.stringify({
+            hub_code: document.getElementById('hub-code').value.trim(),
+            hub_name: document.getElementById('hub-name').value.trim(),
+            latitude: selectedHubAddress.latitude,
+            longitude: selectedHubAddress.longitude,
+            capacity_parcels: Number(document.getElementById('hub-capacity').value),
+          }),
+        });
+        message.textContent = 'Hub oluşturuldu.';
+        document.getElementById('hub-form').reset();
+        selectedHubAddress = null;
+        await loadHubs();
+      } catch (error) { message.textContent = `Hub oluşturulamadı: ${error.message}`; }
+    }
+
+    async function receiveParcels(hubId) {
+      const input = document.getElementById(`receive-${hubId}`);
+      const count = Number(input.value);
+      if (!count || count < 1) return;
+      try {
+        await api(`/v1/warehouse/hubs/${hubId}/receive`, { method: 'POST', body: JSON.stringify({ count }) });
+        input.value = '';
+        await loadHubs();
+      } catch (error) { alert(`Parsel alınamadı: ${error.message}`); }
+    }
+
+    function renderHubs(hubs) {
+      hubsCache = hubs;
+      const body = document.getElementById('hubs-body');
+      body.innerHTML = hubs.length ? hubs.map(hub => `
+        <tr>
+          <td style="font-family:'JetBrains Mono'; font-weight:700;">${escapeHtml(hub.hub_code)}</td>
+          <td>${escapeHtml(hub.hub_name)}</td>
+          <td style="font-size:11px; color:var(--text-muted);">${hub.location.latitude.toFixed(4)}, ${hub.location.longitude.toFixed(4)}</td>
+          <td><span class="tag ${hub.active_parcels >= hub.capacity_parcels ? 'tag-orange' : 'tag-green'}">${hub.active_parcels} / ${hub.capacity_parcels}</span></td>
+          <td><input id="receive-${hub.id}" class="receive-input" type="number" min="1" placeholder="Adet"> <button class="btn-ghost" onclick="receiveParcels('${hub.id}')">Al</button></td>
+        </tr>
+      `).join('') : '<tr><td colspan="5">Bu tenant için henüz hub yok.</td></tr>';
+      const hubSelect = document.getElementById('manifest-hub');
+      hubSelect.innerHTML = hubs.map(hub => `<option value="${hub.id}">${escapeHtml(hub.hub_code)} — ${hub.active_parcels} parsel</option>`).join('') || '<option value="">Hub yok</option>';
+    }
+
+    async function loadHubs() {
+      try { renderHubs(await api('/v1/warehouse/hubs', { method: 'GET' })); }
+      catch (error) { handleWorkspaceError(error); }
+    }
+
+    async function loadCouriersForManifest() {
+      try {
+        const couriers = await api('/v1/couriers', { method: 'GET' });
+        document.getElementById('manifest-courier').innerHTML = couriers.length
+          ? couriers.map(courier => `<option value="${courier.id}">${escapeHtml(courier.name)} — ${escapeHtml(courier.status)}</option>`).join('')
+          : '<option value="">Kayıtlı kurye yok</option>';
+      } catch (_) { /* non-fatal for the rest of the workspace */ }
+    }
+
+    async function loadOrdersForManifest() {
+      const picker = document.getElementById('order-picker');
+      try {
+        const orders = await api('/v1/orders', { method: 'GET' });
+        const eligible = orders.filter(order => ['pending', 'courier_assigned'].includes(order.status));
+        picker.innerHTML = eligible.length
+          ? eligible.map(order => `<label><input type="checkbox" value="${order.id}"> #${order.id.slice(0, 8)} — ${escapeHtml(order.pickup.label || 'Alım')} ➔ ${escapeHtml(order.dropoff.label || 'Teslim')} <span class="tag tag-green" style="margin-left:auto;">${escapeHtml(order.status.replaceAll('_', ' '))}</span></label>`).join('')
+          : '<span style="font-size:11px; color:var(--text-muted);">Manifestoya eklenebilecek sipariş yok.</span>';
+      } catch (_) { picker.innerHTML = '<span style="font-size:11px; color:var(--text-muted);">Siparişler yüklenemedi.</span>'; }
+    }
+
+    async function createManifest() {
+      const message = document.getElementById('manifest-message');
+      const hubId = document.getElementById('manifest-hub').value;
+      const courierId = document.getElementById('manifest-courier').value;
+      const orderIds = Array.from(document.querySelectorAll('#order-picker input[type=checkbox]:checked')).map(el => el.value);
+      if (!hubId || !courierId) { message.textContent = 'Hub ve kurye seçimi zorunludur.'; return; }
+      if (!orderIds.length) { message.textContent = 'En az bir sipariş seçmelisiniz.'; return; }
+      try {
+        const manifest = await api(`/v1/warehouse/hubs/${hubId}/dispatch`, {
+          method: 'POST',
+          body: JSON.stringify({ courier_id: courierId, order_ids: orderIds }),
+        });
+        message.textContent = `Manifesto oluşturuldu: #${manifest.id.slice(0, 8)} — ${manifest.order_ids.length} sipariş kuryeye sevk edildi.`;
+        document.querySelectorAll('#order-picker input[type=checkbox]:checked').forEach(el => { el.checked = false; });
+        await Promise.all([loadHubs(), loadOrdersForManifest()]);
+      } catch (error) { message.textContent = `Sevkiyat oluşturulamadı: ${error.message}`; }
+    }
+
+    function handleWorkspaceError(error) {
+      if ([401, 403].includes(error?.status)) {
+        document.getElementById('auth-banner').style.display = 'block';
+        document.getElementById('workspace').style.display = 'none';
+      }
+    }
+
+    async function loadWorkspace() {
+      try {
+        // /v1/warehouse/hubs itself requires operational access (SuperAdmin/
+        // Admin/Operator/Dispatcher/FleetManager) — using it as the gate
+        // avoids a separate lighter session check that could briefly reveal
+        // the workspace to a signed-in customer/courier who isn't allowed
+        // to see it.
+        const hubs = await api('/v1/warehouse/hubs', { method: 'GET' });
+        document.getElementById('auth-banner').style.display = 'none';
+        document.getElementById('workspace').style.display = 'flex';
+        document.getElementById('workspace').style.flexDirection = 'column';
+        document.getElementById('workspace').style.gap = '20px';
+        renderHubs(hubs);
+        await Promise.all([loadCouriersForManifest(), loadOrdersForManifest()]);
+      } catch (error) { handleWorkspaceError(error); }
+    }
+
+    loadWorkspace();
+  </script>
+</body>
 </html>

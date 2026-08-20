@@ -93,6 +93,45 @@
       align-items: center;
       justify-content: center;
     }
+
+    .new-order-layout { display: grid; grid-template-columns: 380px 1fr; gap: 16px; height: 520px; }
+
+    .address-suggestions {
+      position: absolute; top: 100%; left: 0; right: 0; z-index: 20; margin-top: 4px;
+      background: #0b1220; border: 1px solid var(--border-color); border-radius: 10px;
+      max-height: 220px; overflow-y: auto; display: none;
+    }
+    .address-suggestions.open { display: block; }
+    .address-suggestion {
+      padding: 10px 12px; font-size: 12px; color: var(--text-main); cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .address-suggestion:last-child { border-bottom: none; }
+    .address-suggestion:hover, .address-suggestion.highlighted { background: rgba(56, 189, 248, 0.12); }
+    .address-suggestion.empty { color: var(--text-muted); cursor: default; }
+    .address-suggestion.empty:hover { background: transparent; }
+
+    /* Below this width there isn't room for a fixed 260px sidebar next to
+       380px-plus-map content — collapse to a top bar and stack sections. */
+    @media (max-width: 900px) {
+      body { flex-direction: column; height: auto; overflow-y: auto; }
+      sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 12px; gap: 4px; }
+      sidebar .brand { margin-bottom: 0; flex-shrink: 0; }
+      sidebar > div { flex-direction: row !important; flex-shrink: 0; }
+      .nav-item { white-space: nowrap; border-left: none !important; }
+      .nav-item:hover, .nav-item.active { border-bottom: 2px solid var(--accent-cyan); }
+      main { height: auto; overflow-y: visible; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .new-order-layout { grid-template-columns: 1fr; height: auto; }
+      #map { height: 280px; }
+      .support-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .metrics-grid { grid-template-columns: 1fr; padding: 16px; }
+      header { padding: 0 16px; flex-wrap: wrap; height: auto; padding-top: 12px; padding-bottom: 12px; gap: 8px; }
+      .view-section { padding: 0 16px 20px 16px; }
+      .package-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -109,7 +148,7 @@
     <div style="display:flex; flex-direction:column; gap:6px;">
       <div class="nav-item active" onclick="switchTab('new-order')"><i data-lucide="plus-circle"></i> Yeni Kurye Çağır & Canlı Takip</div>
       <div class="nav-item" onclick="switchTab('addresses')"><div i data-lucide="book-open"></div> Adres Defteri</div>
-      <div class="nav-item" onclick="switchTab('bulk')"><i data-lucide="file-spreadsheet"></i> Toplu Excel Sipariş Yükle</div>
+      <div class="nav-item" onclick="switchTab('bulk')"><i data-lucide="file-spreadsheet"></i> Toplu Excel Sipariş Yükle <span style="margin-left:auto; font-size:9px; font-weight:800; color:var(--text-muted); border:1px solid var(--border-color); border-radius:6px; padding:2px 6px;">YAKINDA</span></div>
       <div class="nav-item" onclick="switchTab('history')"><i data-lucide="history"></i> Geçmiş Siparişler & Faturalar</div>
       <div class="nav-item" onclick="switchTab('support')"><i data-lucide="messages-square"></i> Canlı Destek <span id="support-unread-badge" class="support-badge">0</span></div>
     </div>
@@ -118,8 +157,11 @@
   <main>
     <header>
       <h2 style="font-size:18px; font-weight:800;">Müşteri Kontrol Paneli</h2>
-      <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--accent-green); font-weight:700;">
-        <i data-lucide="shield-check"></i> SUNUCU KORUMALI İZOLE GPS CANLI
+      <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:12px; color:var(--accent-green); font-weight:700;">
+          <i data-lucide="shield-check"></i> SUNUCU KORUMALI İZOLE GPS CANLI
+        </div>
+        <button id="btn-logout" type="button" onclick="logout()" style="background:transparent; border:1px solid var(--border-color); color:var(--text-muted); padding:8px 14px; border-radius:10px; font-size:12px; font-weight:700; cursor:pointer;">Çıkış yap</button>
       </div>
     </header>
 
@@ -144,19 +186,21 @@
 
     <!-- TAB 1: NEW ORDER & LIVE TRACKING -->
     <div id="tab-new-order" class="view-section active">
-      <div style="display:grid; grid-template-columns: 380px 1fr; gap:16px; height:520px;">
+      <div class="new-order-layout">
         
         <div class="glass" style="border-radius:20px; padding:20px; display:flex; flex-direction:column; gap:14px;">
           <h3 style="font-size:15px; font-weight:800;">Yeni Kurye Talebi</h3>
           
-          <div>
+          <div style="position:relative;">
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Alım Adresi (Nereden?)</label>
-            <input id="customer-pickup" aria-label="Alım adresi" type="text" value="Yıldıztabya Mahallesi, Gaziosmanpaşa" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-pickup" aria-label="Alım adresi" aria-autocomplete="list" aria-controls="customer-pickup-suggestions" autocomplete="off" type="text" placeholder="Sokak, mahalle veya semt yazın…" oninput="onAddressInput('pickup')" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <div id="customer-pickup-suggestions" role="listbox" class="address-suggestions"></div>
           </div>
 
-          <div>
+          <div style="position:relative;">
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslimat Adresi (Nereye?)</label>
-            <input id="customer-dropoff" aria-label="Teslimat adresi" type="text" value="Maslak Plaza No:14, Sarıyer" oninput="refreshFareQuotePreview()" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <input id="customer-dropoff" aria-label="Teslimat adresi" aria-autocomplete="list" aria-controls="customer-dropoff-suggestions" autocomplete="off" type="text" placeholder="Sokak, mahalle veya semt yazın…" oninput="onAddressInput('dropoff')" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+            <div id="customer-dropoff-suggestions" role="listbox" class="address-suggestions"></div>
           </div>
 
           <div>
@@ -174,7 +218,7 @@
           </div>
 
           <div id="fare-quote-preview" style="font-size:11px; color:var(--text-muted);">Ücret, adresler girildikten sonra sunucudan gerçek mesafeye göre hesaplanır.</div>
-          <button class="btn-action" id="btn-call" onclick="createCustomerOrder()">⚡ KURYEYİ ÇAĞIR & TAKİP ET</button>
+          <button class="btn-action" id="btn-call" onclick="createCustomerOrder()"><i data-lucide="zap"></i> KURYEYİ ÇAĞIR & TAKİP ET</button>
           <div id="customer-message" role="status" aria-live="polite" style="min-height:18px; font-size:12px; color:var(--text-muted);"></div>
         </div>
 
@@ -190,9 +234,13 @@
         <div id="addresses-list" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-bottom:16px;"></div>
         <div style="display:grid; grid-template-columns: 1fr 2fr auto; gap:10px;">
           <input id="address-label" aria-label="Adres etiketi" placeholder="Etiket (Ev, Ofis)" style="padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white;">
-          <input id="address-full" aria-label="Açık adres" placeholder="Açık adres" style="padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white;">
+          <div style="position:relative;">
+            <input id="address-full" aria-label="Açık adres" aria-autocomplete="list" aria-controls="address-full-suggestions" autocomplete="off" placeholder="Sokak, mahalle veya semt yazın…" oninput="onAddressInput('addressBook')" style="width:100%; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white;">
+            <div id="address-full-suggestions" role="listbox" class="address-suggestions"></div>
+          </div>
           <button class="btn-action" style="width:auto;" onclick="saveAddress()">Adresi kaydet</button>
         </div>
+        <p style="font-size:11px; color:var(--text-muted); margin-top:8px;">Önerilerden birini seçin — kurye gerçek konuma bu seçimle yönlendirilir.</p>
       </div>
     </div>
 
@@ -272,18 +320,71 @@
       selectedPaymentMethod = card.dataset.method;
     }
 
-    // Demo coordinates only — this portal has no real geocoding, unlike the
-    // native iOS/Android apps' osmdroid/MapKit address pickers.
-    function demoPickupAddress(label) { return { latitude: 41.0638, longitude: 28.9351, label }; }
-    function demoDropoffAddress(label) { return { latitude: 41.1120, longitude: 29.0210, label }; }
+    // Real address search backed by the server-side Nominatim proxy
+    // (/v1/geocode/search) — replaces the previous fixed demo coordinates
+    // that ignored whatever the customer actually typed.
+    const ADDRESS_FIELD_CONFIG = {
+      pickup: { input: 'customer-pickup', suggestions: 'customer-pickup-suggestions' },
+      dropoff: { input: 'customer-dropoff', suggestions: 'customer-dropoff-suggestions' },
+      addressBook: { input: 'address-full', suggestions: 'address-full-suggestions' },
+    };
+    const selectedAddress = { pickup: null, dropoff: null, addressBook: null };
+    const addressSearchTimers = {};
+
+    function onAddressInput(key) {
+      selectedAddress[key] = null;
+      clearTimeout(addressSearchTimers[key]);
+      const config = ADDRESS_FIELD_CONFIG[key];
+      const query = document.getElementById(config.input).value.trim();
+      if (query.length < 3) { renderAddressSuggestions(key, []); return; }
+      addressSearchTimers[key] = setTimeout(() => searchAddress(key, query), 400);
+    }
+
+    async function searchAddress(key, query) {
+      try { renderAddressSuggestions(key, await api(`/v1/geocode/search?q=${encodeURIComponent(query)}`, { method: 'GET' })); }
+      catch (_) { renderAddressSuggestions(key, []); }
+    }
+
+    function renderAddressSuggestions(key, results) {
+      const container = document.getElementById(ADDRESS_FIELD_CONFIG[key].suggestions);
+      if (!results.length) { container.classList.remove('open'); container.innerHTML = ''; return; }
+      container.innerHTML = results
+        .map((result, index) => `<div class="address-suggestion" role="option" data-index="${index}">${escapeHtml(result.label)}</div>`)
+        .join('');
+      container.classList.add('open');
+      container.querySelectorAll('.address-suggestion').forEach((el, index) => {
+        el.addEventListener('click', () => selectAddress(key, results[index]));
+      });
+    }
+
+    function selectAddress(key, result) {
+      selectedAddress[key] = result;
+      document.getElementById(ADDRESS_FIELD_CONFIG[key].input).value = result.label;
+      const container = document.getElementById(ADDRESS_FIELD_CONFIG[key].suggestions);
+      container.classList.remove('open');
+      container.innerHTML = '';
+      if (key === 'pickup' || key === 'dropoff') refreshFareQuotePreview();
+    }
+
+    document.addEventListener('click', event => {
+      Object.values(ADDRESS_FIELD_CONFIG).forEach(config => {
+        const container = document.getElementById(config.suggestions);
+        const input = document.getElementById(config.input);
+        if (container && !container.contains(event.target) && event.target !== input) {
+          container.classList.remove('open');
+        }
+      });
+    });
 
     async function refreshFareQuotePreview() {
       const preview = document.getElementById('fare-quote-preview');
-      const pickupLabel = document.getElementById('customer-pickup')?.value.trim();
-      const dropoffLabel = document.getElementById('customer-dropoff')?.value.trim();
-      if (!pickupLabel || !dropoffLabel || !preview) return;
-      const pickup = demoPickupAddress(pickupLabel);
-      const dropoff = demoDropoffAddress(dropoffLabel);
+      if (!preview) return;
+      const pickup = selectedAddress.pickup;
+      const dropoff = selectedAddress.dropoff;
+      if (!pickup || !dropoff) {
+        preview.textContent = 'Ücret önizlemesi için alım ve teslimat adreslerini öneri listesinden seçin.';
+        return;
+      }
       try {
         const quote = await api(`/v1/customer/fare-quote?pickup_latitude=${pickup.latitude}&pickup_longitude=${pickup.longitude}&dropoff_latitude=${dropoff.latitude}&dropoff_longitude=${dropoff.longitude}`, { method: 'GET' });
         preview.textContent = `Tahmini ücret: ${formatMoney(quote.fare_amount_minor, quote.currency)} (${quote.distance_km.toFixed(1)} km) — bağlayıcı değildir, kesin ücret sipariş oluşturulduğunda sunucuda hesaplanır.`;
@@ -304,6 +405,13 @@
         throw error;
       }
       return response.status === 204 ? null : response.json();
+    }
+
+    async function logout() {
+      const button = document.getElementById('btn-logout');
+      button.disabled = true;
+      try { await api('/v1/browser/auth/logout', { method: 'POST' }); }
+      finally { location.assign('/login'); }
     }
 
     function showCustomerError(target, error) {
@@ -473,15 +581,18 @@
 
     async function createCustomerOrder() {
       const message = document.getElementById('customer-message');
-      const pickupLabel = document.getElementById('customer-pickup').value.trim();
-      const dropoffLabel = document.getElementById('customer-dropoff').value.trim();
-      if (!pickupLabel || !dropoffLabel) { message.textContent = 'Alım ve teslimat adresleri zorunludur.'; return; }
+      const pickup = selectedAddress.pickup;
+      const dropoff = selectedAddress.dropoff;
+      if (!pickup || !dropoff) {
+        message.textContent = 'Alım ve teslimat adreslerini öneri listesinden seçmelisiniz — serbest metin yeterli değil.';
+        return;
+      }
       try {
         const order = await api('/v1/customer/orders', {
           method: 'POST',
           body: JSON.stringify({
-            pickup: demoPickupAddress(pickupLabel),
-            dropoff: demoDropoffAddress(dropoffLabel),
+            pickup: { latitude: pickup.latitude, longitude: pickup.longitude, label: pickup.label },
+            dropoff: { latitude: dropoff.latitude, longitude: dropoff.longitude, label: dropoff.label },
             coupon_code: document.getElementById('customer-coupon')?.value.trim() || null,
             payment_method: selectedPaymentMethod,
             delivery_note: null,
@@ -489,17 +600,25 @@
           }),
         });
         message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)} • ${formatMoney(order.fare.amount_minor, order.fare.currency)}`;
+        selectedAddress.pickup = null;
+        selectedAddress.dropoff = null;
+        document.getElementById('customer-pickup').value = '';
+        document.getElementById('customer-dropoff').value = '';
         await loadCustomerWorkspace();
       } catch (error) { showCustomerError(message, error); }
     }
 
     async function saveAddress() {
       const label = document.getElementById('address-label').value.trim();
-      const fullAddress = document.getElementById('address-full').value.trim();
-      if (!label || !fullAddress) return;
+      const selected = selectedAddress.addressBook;
+      if (!label || !selected) {
+        showCustomerError(document.getElementById('customer-message'), { message: 'Etiket girin ve adresi öneri listesinden seçin.' });
+        return;
+      }
       try {
-        const profile = await api('/v1/customer/profile/addresses', { method: 'POST', body: JSON.stringify({ label, full_address: fullAddress, latitude: 41.0638, longitude: 28.9351 }) });
+        const profile = await api('/v1/customer/profile/addresses', { method: 'POST', body: JSON.stringify({ label, full_address: selected.label, latitude: selected.latitude, longitude: selected.longitude }) });
         renderAddresses(profile);
+        selectedAddress.addressBook = null;
         document.getElementById('address-label').value = '';
         document.getElementById('address-full').value = '';
       } catch (error) { showCustomerError(document.getElementById('customer-message'), error); }

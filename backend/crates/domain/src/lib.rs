@@ -52,7 +52,7 @@ pub use coupon::Coupon;
 pub use courier::{Courier, CourierStatus, VehicleType};
 pub use courier_shift::{CourierShiftAssignment, ShiftType};
 pub use courier_wallet::{CourierWallet, WalletTransaction, WalletTransactionType};
-pub use credential::{Credential, RefreshSession};
+pub use credential::{Credential, PasswordResetToken, RefreshSession};
 pub use customer::{CustomerId, CustomerProfile, SavedAddress};
 pub use customer_feedback::{CustomerRating, SupportTicket, TicketStatus};
 pub use delivery_pricing::{

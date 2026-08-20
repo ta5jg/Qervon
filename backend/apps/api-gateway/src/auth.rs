@@ -100,6 +100,19 @@ pub fn new_refresh_token() -> String {
     format!("qvr1.{}", Uuid::now_v7().simple())
 }
 
+/// Raw, single-use "forgot password" token. Only its SHA-256 hash is ever
+/// persisted (see `hash_password_reset_token`); the raw value is emailed
+/// once to the account holder and never stored.
+pub fn new_password_reset_token() -> String {
+    format!("qvpr1.{}", Uuid::now_v7().simple())
+}
+
+pub fn hash_password_reset_token(token: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(token.as_bytes());
+    format!("{:x}", hasher.finalize())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

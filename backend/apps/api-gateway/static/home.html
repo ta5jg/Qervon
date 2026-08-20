@@ -589,10 +589,20 @@
         <p>Kurulum ekranından firmanızı bir dakikada oluşturun, ekibinizi davet edin ve canlı takibe geçin.</p>
         <div class="cta-actions">
           <a class="btn btn-primary btn-lg" href="/setup"><i data-lucide="rocket" style="width:16px;height:16px;"></i> Ücretsiz Kurulum Yap</a>
-          <a class="btn btn-ghost btn-lg" href="/customer"><i data-lucide="package" style="width:16px;height:16px;"></i> Müşteri Portalını İncele</a>
+          <a class="btn btn-ghost btn-lg" id="cta-customer-portal-link" href="/customer"><i data-lucide="package" style="width:16px;height:16px;"></i> Müşteri Portalını İncele</a>
         </div>
       </div>
     </section>
+    <script>
+      // Phones/small screens get the mobile-optimized customer PWA instead
+      // of the fixed-width desktop portal, which has no responsive layout.
+      (function () {
+        var link = document.getElementById('cta-customer-portal-link');
+        if (link && window.matchMedia('(max-width: 720px)').matches) {
+          link.href = '/mobile-customer.html';
+        }
+      })();
+    </script>
 
   </div>
 
@@ -621,7 +631,8 @@
           <h4>Erişim</h4>
           <a href="/setup">Firma Kurulumu</a>
           <a href="/login?return_to=/admin">Giriş Yap</a>
-          <a href="/customer">Müşteri Portalı</a>
+          <a href="/customer">Müşteri Portalı (Masaüstü)</a>
+          <a href="/mobile-customer.html">Müşteri Portalı (Mobil Web)</a>
           <a href="/mobile-courier">Kurye Terminali</a>
         </div>
         <div class="footer-col">

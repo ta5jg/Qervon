@@ -90,6 +90,41 @@ where
         Ok(())
     }
 
+    /// Looks up a user by email without verifying a password — used by the
+    /// "forgot password" flow to find who to email a reset link to. Callers
+    /// must still return a generic response regardless of the result to
+    /// avoid leaking which emails have accounts.
+    pub async fn find_by_email(&self, email: &str) -> Result<Option<User>, ApplicationError> {
+        Ok(self.users.find_by_email(email).await?)
+    }
+
+    /// Overwrites a user's password without requiring the previous one —
+    /// only safe to call after verifying a single-use password reset token.
+    pub async fn reset_password(
+        &self,
+        user_id: UserId,
+        new_password: &str,
+    ) -> Result<(), ApplicationError> {
+        if new_password.len() < 12 {
+            return Err(ApplicationError::Conflict(
+                "password must contain at least 12 characters".into(),
+            ));
+        }
+        let salt = SaltString::generate(&mut OsRng);
+        let password_hash = Argon2::default()
+            .hash_password(new_password.as_bytes(), &salt)
+            .map_err(|_| ApplicationError::Conflict("could not secure password".into()))?
+            .to_string();
+        self.credentials
+            .save_credential(&Credential {
+                user_id,
+                password_hash,
+                password_changed_at: Utc::now(),
+            })
+            .await?;
+        Ok(())
+    }
+
     pub fn now() -> chrono::DateTime<Utc> {
         Utc::now()
     }

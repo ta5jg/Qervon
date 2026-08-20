@@ -30,12 +30,12 @@ use qervon_domain::{
     DeliveryPricingRepository, DevicePushToken, DevicePushTokenRepository, DomainError,
     FieldServiceAppointment, FieldServiceAppointmentRepository, HubManifestAssignment, Invoice,
     InvoiceId, InvoiceRepository, Notification, NotificationId, NotificationRepository, Order,
-    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, ProofOfDeliveryRecord,
-    ProofOfDeliveryRepository, RefreshSession, RouteBreadcrumb, RouteBreadcrumbRepository,
-    SupportTicket, SupportTicketRepository, TenantCompany, TenantId, TenantMembership,
-    TenantRepository, TrackingPoint, TrackingRepository, TrackingSession, TrackingSessionStatus,
-    User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository, VehicleStatus,
-    WalletTransaction, WarehouseHub, WarehouseHubRepository, WebhookRepository,
+    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, PasswordResetToken,
+    ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, RouteBreadcrumb,
+    RouteBreadcrumbRepository, SupportTicket, SupportTicketRepository, TenantCompany, TenantId,
+    TenantMembership, TenantRepository, TrackingPoint, TrackingRepository, TrackingSession,
+    TrackingSessionStatus, User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository,
+    VehicleStatus, WalletTransaction, WarehouseHub, WarehouseHubRepository, WebhookRepository,
     WebhookSubscription,
 };
 use uuid::Uuid;
@@ -59,6 +59,7 @@ pub struct InMemoryStore {
     customers: Arc<RwLock<HashMap<CustomerId, CustomerProfile>>>,
     credentials: Arc<RwLock<HashMap<UserId, Credential>>>,
     refresh_sessions: Arc<RwLock<HashMap<Uuid, RefreshSession>>>,
+    password_reset_tokens: Arc<RwLock<HashMap<Uuid, PasswordResetToken>>>,
     tenants: Arc<RwLock<HashMap<String, TenantCompany>>>,
     tenant_memberships: Arc<RwLock<HashMap<(TenantId, UserId), TenantMembership>>>,
     courier_tenants: Arc<RwLock<HashMap<Uuid, TenantId>>>,
@@ -204,6 +205,7 @@ impl InMemoryStore {
         InMemoryCredentialRepository {
             credentials: Arc::clone(&self.credentials),
             sessions: Arc::clone(&self.refresh_sessions),
+            reset_tokens: Arc::clone(&self.password_reset_tokens),
         }
     }
     pub fn tenant_repository(&self) -> InMemoryTenantRepository {
@@ -371,6 +373,7 @@ impl TenantRepository for InMemoryTenantRepository {
 pub struct InMemoryCredentialRepository {
     credentials: Arc<RwLock<HashMap<UserId, Credential>>>,
     sessions: Arc<RwLock<HashMap<Uuid, RefreshSession>>>,
+    reset_tokens: Arc<RwLock<HashMap<Uuid, PasswordResetToken>>>,
 }
 
 #[async_trait]
@@ -410,6 +413,40 @@ impl CredentialRepository for InMemoryCredentialRepository {
             .get_mut(&id)
             .ok_or_else(|| DomainError::NotFound("refresh session not found".into()))?;
         session.revoked_at = Some(chrono::Utc::now());
+        Ok(())
+    }
+    async fn save_password_reset_token(
+        &self,
+        token: &PasswordResetToken,
+    ) -> Result<(), DomainError> {
+        self.reset_tokens
+            .write()
+            .unwrap()
+            .insert(token.id, token.clone());
+        Ok(())
+    }
+    async fn find_password_reset_token(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<PasswordResetToken>, DomainError> {
+        Ok(self
+            .reset_tokens
+            .read()
+            .unwrap()
+            .values()
+            .find(|token| token.token_hash == token_hash)
+            .cloned())
+    }
+    async fn mark_password_reset_token_used(
+        &self,
+        id: Uuid,
+        used_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let mut tokens = self.reset_tokens.write().unwrap();
+        let token = tokens
+            .get_mut(&id)
+            .ok_or_else(|| DomainError::NotFound("password reset token not found".into()))?;
+        token.used_at = Some(used_at);
         Ok(())
     }
 }

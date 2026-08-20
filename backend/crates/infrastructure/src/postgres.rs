@@ -27,13 +27,14 @@ use qervon_domain::{
     FieldServiceAppointment, FieldServiceAppointmentRepository, HubManifestAssignment, Invoice,
     InvoiceId, InvoiceRepository, InvoiceStatus, Location, Money, Notification,
     NotificationChannel, NotificationId, NotificationRepository, NotificationStatus, Order,
-    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, PayoutStatus,
-    ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession, RouteBreadcrumb,
-    RouteBreadcrumbRepository, SavedAddress, SupportTicket, SupportTicketRepository, TenantCompany,
-    TenantId, TenantMemberRole, TenantMembership, TenantRepository, TrackingPoint,
-    TrackingRepository, TrackingSession, TrackingSessionStatus, User, UserId, UserRepository,
-    Vehicle, VehicleId, VehicleRepository, VehicleStatus, WalletTransaction, WarehouseHub,
-    WarehouseHubRepository, WebhookRepository, WebhookSubscription,
+    OrderId, OrderRepository, OtpChallenge, OtpChallengeRepository, PasswordResetToken,
+    PayoutStatus, ProofOfDeliveryRecord, ProofOfDeliveryRepository, RefreshSession,
+    RouteBreadcrumb, RouteBreadcrumbRepository, SavedAddress, SupportTicket,
+    SupportTicketRepository, TenantCompany, TenantId, TenantMemberRole, TenantMembership,
+    TenantRepository, TrackingPoint, TrackingRepository, TrackingSession, TrackingSessionStatus,
+    User, UserId, UserRepository, Vehicle, VehicleId, VehicleRepository, VehicleStatus,
+    WalletTransaction, WarehouseHub, WarehouseHubRepository, WebhookRepository,
+    WebhookSubscription,
 };
 use sqlx::{FromRow, PgPool, Postgres, Transaction};
 use uuid::Uuid;
@@ -2289,6 +2290,16 @@ struct CredentialRow {
 }
 
 #[derive(FromRow)]
+struct PasswordResetTokenRow {
+    id: Uuid,
+    user_id: Uuid,
+    token_hash: String,
+    expires_at: DateTime<Utc>,
+    used_at: Option<DateTime<Utc>>,
+    created_at: DateTime<Utc>,
+}
+
+#[derive(FromRow)]
 struct RefreshSessionRow {
     id: Uuid,
     user_id: Uuid,
@@ -2378,6 +2389,69 @@ impl CredentialRepository for PgCredentialRepository {
             "UPDATE identity.refresh_sessions SET revoked_at = COALESCE(revoked_at, now()) WHERE id = $1",
         )
         .bind(id)
+        .execute(&self.pool)
+        .await
+        .map_err(map_db_error)?
+        .rows_affected();
+        if affected == 0 {
+            return Err(map_row_absent());
+        }
+        Ok(())
+    }
+
+    async fn save_password_reset_token(
+        &self,
+        token: &PasswordResetToken,
+    ) -> Result<(), DomainError> {
+        sqlx::query(
+            "INSERT INTO identity.password_reset_tokens \
+             (id, user_id, token_hash, expires_at, used_at, created_at) \
+             VALUES ($1, $2, $3, $4, $5, $6)",
+        )
+        .bind(token.id)
+        .bind(token.user_id.0)
+        .bind(&token.token_hash)
+        .bind(token.expires_at)
+        .bind(token.used_at)
+        .bind(token.created_at)
+        .execute(&self.pool)
+        .await
+        .map(|_| ())
+        .map_err(map_db_error)
+    }
+
+    async fn find_password_reset_token(
+        &self,
+        token_hash: &str,
+    ) -> Result<Option<PasswordResetToken>, DomainError> {
+        let row: Option<PasswordResetTokenRow> = sqlx::query_as(
+            "SELECT id, user_id, token_hash, expires_at, used_at, created_at \
+             FROM identity.password_reset_tokens WHERE token_hash = $1",
+        )
+        .bind(token_hash)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(map_db_error)?;
+        Ok(row.map(|row| PasswordResetToken {
+            id: row.id,
+            user_id: UserId(row.user_id),
+            token_hash: row.token_hash,
+            expires_at: row.expires_at,
+            used_at: row.used_at,
+            created_at: row.created_at,
+        }))
+    }
+
+    async fn mark_password_reset_token_used(
+        &self,
+        id: Uuid,
+        used_at: DateTime<Utc>,
+    ) -> Result<(), DomainError> {
+        let affected = sqlx::query(
+            "UPDATE identity.password_reset_tokens SET used_at = COALESCE(used_at, $2) WHERE id = $1",
+        )
+        .bind(id)
+        .bind(used_at)
         .execute(&self.pool)
         .await
         .map_err(map_db_error)?

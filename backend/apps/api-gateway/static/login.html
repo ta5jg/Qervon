@@ -29,13 +29,23 @@
       <button type="submit">Giriş yap</button>
     </form>
     <div id="message" role="alert" aria-live="polite"></div>
+    <details id="forgot-password">
+      <summary>Şifremi unuttum</summary>
+      <p class="hint">E-posta adresinize bir sıfırlama bağlantısı göndereceğiz.</p>
+      <form id="forgot-form">
+        <label for="forgot-email">E-posta</label><input id="forgot-email" type="email" autocomplete="email" required>
+        <button type="submit">Sıfırlama bağlantısı gönder</button>
+      </form>
+      <div id="forgot-message" role="status" aria-live="polite" style="margin-top:10px; color:#6ee7b7; font-size:13px;"></div>
+    </details>
     <details id="customer-signup">
       <summary>Müşteri hesabı oluştur</summary>
       <p class="hint">Bu tenant için teslimat oluşturacak müşteri hesabı açın.</p>
       <form id="signup-form">
         <label for="signup-name">Ad soyad</label><input id="signup-name" autocomplete="name" required>
         <label for="signup-email">E-posta</label><input id="signup-email" type="email" autocomplete="email" required>
-        <label for="signup-password">Parola</label><input id="signup-password" type="password" minlength="12" autocomplete="new-password" required>
+        <label for="signup-password">Parola</label><input id="signup-password" type="password" minlength="12" autocomplete="new-password" required aria-describedby="signup-password-hint">
+        <p id="signup-password-hint" class="hint" style="margin-top:4px;">En az 12 karakter olmalı.</p>
         <button type="submit">Müşteri hesabını oluştur</button>
       </form>
     </details>
@@ -95,6 +105,33 @@
       email.value = document.getElementById('signup-email').value.trim();
       password.value = document.getElementById('signup-password').value;
       form.requestSubmit();
+    });
+
+    document.getElementById('forgot-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const forgotMessage = document.getElementById('forgot-message');
+      const forgotEmail = document.getElementById('forgot-email').value.trim();
+      forgotMessage.textContent = 'Gönderiliyor…';
+      try {
+        const response = await fetch('/v1/auth/password/forgot', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: forgotEmail }),
+        });
+        // Always show the same message whether or not the email has an
+        // account — revealing that would let an attacker enumerate emails.
+        forgotMessage.textContent = 'Bu e-posta kayıtlıysa, sıfırlama bağlantısı gönderildi. Gelen kutunuzu kontrol edin.';
+        if (response.ok) {
+          const body = await response.json().catch(() => ({}));
+          if (body.dev_reset_url) {
+            // Local/dev only (no email provider configured against memory
+            // storage) — surface the link directly instead of requiring a
+            // real inbox to exercise the flow.
+            forgotMessage.innerHTML += `<br><a href="${body.dev_reset_url}" style="color:#38bdf8;">${body.dev_reset_url}</a>`;
+          }
+        }
+      } catch (_) {
+        forgotMessage.textContent = 'Bir bağlantı hatası oluştu. Tekrar deneyin.';
+      }
     });
   </script>
 </body>
