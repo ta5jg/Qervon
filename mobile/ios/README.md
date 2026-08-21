@@ -141,22 +141,19 @@ IP from the Profile screen's "Sunucu Adresi" field (present in both apps).
 
 ### Courier app
 
-- **Pickup has no proof-of-delivery capture** because
-  `POST /v1/courier/orders/{id}/pickup` takes no body server-side — the
-  backend only models delivery evidence, not pickup evidence. The Pickup
-  screen is therefore a single honest confirmation step, not a fake
-  QR/photo capture with no effect.
+- **Pickup evidence**: the courier captures a real camera photo, uploads it
+  through `POST /v1/courier/orders/{id}/photo-evidence`, and submits the
+  returned URL as `pickup_photo_evidence_url`. Capture or upload failure
+  leaves the order assigned instead of advancing it without proof.
 - **Delivery evidence**: QR/barcode scanning uses `VisionKit`'s
   `DataScannerViewController` for real (iOS 16+, works on a physical
   device; `DataScannerViewController.isSupported` is `false` on the
   Simulator, so a manual "doğrulandı" toggle is offered as an honest
   fallback — never a fake scan result). The signature pad is fully real
   end-to-end (`digital_signature_base64` is a real backend field). The
-  camera photo capture is real, but is stored **locally only**
-  (`QervonCourierApp`'s Documents directory) and is *not* sent as
-  `photo_evidence_url` — the backend expects an already-hosted URL and has
-  no image upload endpoint yet, so sending a fabricated or local-only path
-  would misrepresent that field.
+  camera photo capture is real and uploaded to the authenticated order
+  evidence endpoint before its returned URL is sent as
+  `photo_evidence_url`.
 - **Statistics** never show total distance — the backend has no per-courier
   distance aggregation, so no such number is fabricated. Period earnings
   (today/week/month) are computed client-side from the wallet's transaction

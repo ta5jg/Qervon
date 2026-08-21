@@ -178,14 +178,14 @@
           
           <div style="position:relative;">
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Alım Adresi (Nereden?)</label>
-            <select id="saved-pickup-address" onchange="useSavedAddress('pickup', this.value)" style="width:100%; margin-top:4px; padding:9px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
+            <select id="saved-pickup-address" aria-label="Kayıtlı alım adresi" onchange="useSavedAddress('pickup', this.value)" style="width:100%; margin-top:4px; padding:9px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
             <input id="customer-pickup" aria-label="Alım adresi" aria-autocomplete="list" aria-controls="customer-pickup-suggestions" autocomplete="off" type="text" placeholder="Sokak, mahalle veya semt yazın…" oninput="onAddressInput('pickup')" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
             <div id="customer-pickup-suggestions" role="listbox" class="address-suggestions"></div>
           </div>
 
           <div style="position:relative;">
             <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslimat Adresi (Nereye?)</label>
-            <select id="saved-dropoff-address" onchange="useSavedAddress('dropoff', this.value)" style="width:100%; margin-top:4px; padding:9px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
+            <select id="saved-dropoff-address" aria-label="Kayıtlı teslimat adresi" onchange="useSavedAddress('dropoff', this.value)" style="width:100%; margin-top:4px; padding:9px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
             <input id="customer-dropoff" aria-label="Teslimat adresi" aria-autocomplete="list" aria-controls="customer-dropoff-suggestions" autocomplete="off" type="text" placeholder="Sokak, mahalle veya semt yazın…" oninput="onAddressInput('dropoff')" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
             <div id="customer-dropoff-suggestions" role="listbox" class="address-suggestions"></div>
           </div>

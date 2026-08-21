@@ -7,11 +7,9 @@
 // Version:        0.1.0
 //
 // Description:
-//   Proof-of-delivery flow: ML Kit on-device QR/barcode scan (CameraX
-//   preview), a finger-drawn signature canvas, and a delivery photo
-//   (CameraX capture, stored locally — no upload endpoint exists on the
-//   backend, matching the iOS client's documented honesty note), plus
-//   cash-collection confirmation for cash-method orders.
+//   Pickup and proof-of-delivery flows: CameraX photo evidence uploaded to
+//   the authenticated order endpoint, ML Kit on-device QR/barcode scan,
+//   a finger-drawn signature canvas, and cash-collection confirmation.
 //
 // License:
 //   Qervon License v1.0 — see LICENSE in the repository root.

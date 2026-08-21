@@ -58,6 +58,7 @@ import com.qervon.features.earnings.EarningsScreen
 import com.qervon.features.orders.OrdersScreen
 import com.qervon.features.profile.CourierProfileScreen
 import com.qervon.features.proof.ProofOfDeliveryScreen
+import com.qervon.features.proof.PickupProofScreen
 
 private object Routes {
     const val LOGIN = "login"
@@ -67,6 +68,7 @@ private object Routes {
     const val ORDERS = "orders"
     const val EARNINGS = "earnings"
     const val PROFILE = "profile"
+    fun pickup(orderId: String) = "pickup/$orderId"
     fun proof(orderId: String, isCash: Boolean) = "proof/$orderId/$isCash"
 }
 
@@ -131,11 +133,20 @@ fun CourierApp(rootViewModel: CourierRootViewModel = hiltViewModel()) {
         }
         composable(Routes.MAIN) {
             CourierMainTabs(
+                onStartPickup = { orderId -> navController.navigate(Routes.pickup(orderId)) },
                 onStartDelivery = { orderId, isCash -> navController.navigate(Routes.proof(orderId, isCash)) },
                 onLoggedOut = {
                     rootViewModel.onLoggedOut()
                     navController.navigate(Routes.LOGIN) { popUpTo(Routes.MAIN) { inclusive = true } }
                 },
+            )
+        }
+        composable("pickup/{orderId}") { backStackEntry ->
+            val orderId = backStackEntry.arguments?.getString("orderId").orEmpty()
+            PickupProofScreen(
+                orderId = orderId,
+                onPickedUp = { navController.popBackStack() },
+                onClose = { navController.popBackStack() },
             )
         }
         composable("proof/{orderId}/{isCash}") { backStackEntry ->
@@ -153,6 +164,7 @@ fun CourierApp(rootViewModel: CourierRootViewModel = hiltViewModel()) {
 
 @Composable
 private fun CourierMainTabs(
+    onStartPickup: (orderId: String) -> Unit,
     onStartDelivery: (orderId: String, isCash: Boolean) -> Unit,
     onLoggedOut: () -> Unit,
 ) {
@@ -236,7 +248,7 @@ private fun CourierMainTabs(
         ) {
             composable(Routes.DISPATCH) { DispatchScreen() }
             composable(Routes.ORDERS) {
-                OrdersScreen(onStartDelivery = onStartDelivery)
+                OrdersScreen(onStartPickup = onStartPickup, onStartDelivery = onStartDelivery)
             }
             composable(Routes.EARNINGS) { EarningsScreen() }
             composable(Routes.PROFILE) { CourierProfileScreen(onLoggedOut = onLoggedOut) }

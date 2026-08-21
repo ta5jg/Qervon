@@ -417,16 +417,27 @@ async fn courier_can_upload_a_delivery_photo_and_use_it_as_proof_of_delivery() {
         .expect("response");
     assert_eq!(foreign_response.status(), axum::http::StatusCode::FORBIDDEN);
 
-    // The courier now delivers the order, citing the uploaded photo as proof.
+    // Pickup evidence is mandatory and must be persisted before the order can advance.
     let (status, _) = authorized_request(
         app.clone(),
         "POST",
         &format!("/v1/courier/orders/{order_id}/pickup"),
-        json!({}),
+        json!({ "pickup_photo_evidence_url": "   " }),
+        &courier_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        &format!("/v1/courier/orders/{order_id}/pickup"),
+        json!({ "pickup_photo_evidence_url": photo_url }),
         &courier_token,
     )
     .await;
     assert_eq!(status, axum::http::StatusCode::OK);
+
+    // The courier now delivers the order, citing the uploaded photo as proof.
     let (status, delivered) = authorized_request(
         app.clone(),
         "POST",

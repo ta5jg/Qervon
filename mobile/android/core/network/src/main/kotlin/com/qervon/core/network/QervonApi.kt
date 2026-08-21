@@ -99,7 +99,8 @@ class QervonApi(
         call { service.rejectOffer(orderId) }
     }
 
-    suspend fun pickupOrder(orderId: String): Order = call { service.pickupOrder(orderId) }
+    suspend fun pickupOrder(orderId: String, pickupPhotoEvidenceUrl: String): Order =
+        call { service.pickupOrder(orderId, CompletePickupBody(pickupPhotoEvidenceUrl)) }
 
     suspend fun deliverOrder(
         orderId: String,
@@ -119,11 +120,14 @@ class QervonApi(
      * server-side storage and returns the URL to pass as
      * `photoEvidenceUrl` on [deliverOrder]. See
      * `backend/apps/api-gateway/src/http.rs`'s `upload_delivery_photo`. */
-    suspend fun uploadDeliveryPhoto(orderId: String, jpegBytes: ByteArray): String {
+    suspend fun uploadOrderEvidencePhoto(orderId: String, jpegBytes: ByteArray): String {
         val body = jpegBytes.toRequestBody("image/jpeg".toMediaType())
         val part = MultipartBody.Part.createFormData("photo", "proof.jpg", body)
         return call { service.uploadDeliveryPhoto(orderId, part) }.url
     }
+
+    suspend fun uploadDeliveryPhoto(orderId: String, jpegBytes: ByteArray): String =
+        uploadOrderEvidencePhoto(orderId, jpegBytes)
 
     // ---- Customer ----
 

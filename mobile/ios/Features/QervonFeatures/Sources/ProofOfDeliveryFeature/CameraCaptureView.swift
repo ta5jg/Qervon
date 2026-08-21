@@ -7,13 +7,9 @@
 // Version:        0.1.0
 //
 // Description:
-//   Real camera capture for delivery evidence photos. Honesty note: the
-//   backend's `photo_evidence_url` expects an already-hosted URL and there
-//   is no image upload endpoint yet (see BACKEND_BACKLOG.md candidate).
-//   The captured photo is therefore kept locally (for the courier's own
-//   reference in the delivery record) and is NOT sent as
-//   `photo_evidence_url` — sending a fabricated or local-only path would
-//   misrepresent the field to the backend/other tenants.
+//   Real camera capture shared by pickup and delivery evidence flows. The
+//   caller uploads the captured image to the authenticated order-evidence
+//   endpoint before completing the corresponding state transition.
 //
 // License:
 //   Qervon License v1.0 — see LICENSE in the repository root.

@@ -40,6 +40,20 @@ concurrency:
 jobs:
   gates:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: qervon_test
+          POSTGRES_USER: qervon_test
+          POSTGRES_PASSWORD: qervon_test_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qervon_test -d qervon_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -63,6 +77,12 @@ jobs:
       - name: Test
         working-directory: backend
         run: cargo test --workspace --all-targets
+
+      - name: PostgreSQL repository integration test
+        env:
+          QERVON_RUN_POSTGRES_INTEGRATION_TESTS: confirm
+          QERVON_TEST_DATABASE_URL: postgres://qervon_test:qervon_test_ci_only@127.0.0.1:5432/qervon_test
+        run: bash ./scripts/test-postgres-integration.sh
 
       - name: Documentation status drift check
         run: ./scripts/check-documentation.sh --enforce-status-drift
