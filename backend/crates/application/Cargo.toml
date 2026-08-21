@@ -26,6 +26,7 @@ license.workspace = true
 [dependencies]
 argon2 = "0.5"
 chrono = { workspace = true }
+csv = { workspace = true }
 qervon-domain = { path = "../domain" }
 rand = "0.9"
 serde = { workspace = true }

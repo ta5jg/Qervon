@@ -146,11 +146,11 @@
     </a>
 
     <div style="display:flex; flex-direction:column; gap:6px;">
-      <div class="nav-item active" onclick="switchTab('new-order')"><i data-lucide="plus-circle"></i> Yeni Kurye Çağır & Canlı Takip</div>
-      <div class="nav-item" onclick="switchTab('addresses')"><div i data-lucide="book-open"></div> Adres Defteri</div>
-      <div class="nav-item" onclick="switchTab('bulk')"><i data-lucide="file-spreadsheet"></i> Toplu Excel Sipariş Yükle <span style="margin-left:auto; font-size:9px; font-weight:800; color:var(--text-muted); border:1px solid var(--border-color); border-radius:6px; padding:2px 6px;">YAKINDA</span></div>
-      <div class="nav-item" onclick="switchTab('history')"><i data-lucide="history"></i> Geçmiş Siparişler & Faturalar</div>
-      <div class="nav-item" onclick="switchTab('support')"><i data-lucide="messages-square"></i> Canlı Destek <span id="support-unread-badge" class="support-badge">0</span></div>
+      <div class="nav-item active" onclick="switchTab('new-order', this)"><i data-lucide="plus-circle"></i> Yeni Kurye Çağır & Canlı Takip</div>
+      <div class="nav-item" onclick="switchTab('addresses', this)"><div i data-lucide="book-open"></div> Adres Defteri</div>
+      <div class="nav-item" onclick="switchTab('bulk', this)"><i data-lucide="file-spreadsheet"></i> Toplu CSV Sipariş Yükle</div>
+      <div class="nav-item" onclick="switchTab('history', this)"><i data-lucide="history"></i> Geçmiş Siparişler & Faturalar</div>
+      <div class="nav-item" onclick="switchTab('support', this)"><i data-lucide="messages-square"></i> Canlı Destek <span id="support-unread-badge" class="support-badge">0</span></div>
     </div>
   </sidebar>
 
@@ -236,13 +236,25 @@
       </div>
     </div>
 
-    <!-- TAB 3: BULK EXCEL -->
+    <!-- TAB 3: BULK CSV -->
     <div id="tab-bulk" class="view-section">
-      <div class="glass" style="border-radius:20px; padding:30px; text-align:center;">
-        <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-cyan);"></i>
-        <h3 style="font-size:18px; font-weight:800; margin-top:12px;">Toplu Excel / CSV Sipariş Dosyası Yükle</h3>
-        <p style="font-size:12px; color:var(--text-muted); margin-top:6px;">Bu özellik henüz uygulanmadı — backend'de toplu sipariş içe aktarma endpoint'i yok. Bkz. BACKEND_BACKLOG.md. Şimdilik siparişleri "Yeni Kurye Çağır" sekmesinden tek tek oluşturun.</p>
-        <button class="btn-action" style="max-width:240px; margin:20px auto 0 auto; opacity:0.5; cursor:not-allowed;" disabled title="Henüz uygulanmadı"><i data-lucide="file-plus"></i> Yakında</button>
+      <div class="glass" style="border-radius:20px; padding:30px;">
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap;">
+          <div style="max-width:720px;">
+            <i data-lucide="upload-cloud" style="width:48px; height:48px; color:var(--accent-cyan);"></i>
+            <h3 style="font-size:18px; font-weight:800; margin-top:12px;">Toplu CSV Sipariş Dosyası Yükle</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.7;">En fazla 100 sipariş yükleyebilirsiniz. Müşteri ve firma bilgisi oturumunuzdan alınır; ücretler dosyadan kabul edilmez, her satır için sunucuda gerçek mesafe ve firma tarifesiyle hesaplanır. Dosyanın tamamı doğrulanmadan hiçbir sipariş oluşturulmaz.</p>
+          </div>
+          <button type="button" onclick="downloadBulkTemplate()" style="background:transparent; border:1px solid var(--accent-cyan); color:var(--accent-cyan); padding:10px 14px; border-radius:10px; font-weight:800; cursor:pointer;"><i data-lucide="download"></i> CSV şablonunu indir</button>
+        </div>
+        <div style="margin-top:24px; padding:20px; border-radius:16px; background:rgba(0,0,0,0.24); border:1px solid var(--border-color);">
+          <label for="bulk-order-file" style="display:block; font-size:12px; color:var(--text-muted); font-weight:800; margin-bottom:8px;">Sipariş dosyası (.csv, en fazla 1 MB)</label>
+          <input id="bulk-order-file" type="file" accept=".csv,text/csv" onchange="onBulkFileSelected()" style="width:100%; color:white; font-size:13px;">
+          <div id="bulk-file-summary" style="min-height:20px; margin-top:10px; font-size:12px; color:var(--text-muted);">Henüz dosya seçilmedi.</div>
+          <button id="bulk-upload-button" class="btn-action" type="button" onclick="importBulkOrders()" disabled style="max-width:320px; margin-top:16px;"><i data-lucide="file-up"></i> Dosyayı doğrula ve siparişleri oluştur</button>
+          <div id="bulk-import-status" role="status" aria-live="polite" style="min-height:22px; margin-top:14px; font-size:13px; font-weight:800; color:var(--accent-green);"></div>
+        </div>
+        <div id="bulk-import-results" style="margin-top:18px;"></div>
       </div>
     </div>
 
@@ -640,6 +652,71 @@
       }, 1000);
     }
 
+    function downloadBulkTemplate() {
+      const csv = [
+        'reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note',
+        'SIP-001,"Alım adresi",41.0638,28.9351,"Teslimat adresi",41.0850,29.0120,05550000000,cash,"Alıcıya telefonla ulaşın"'
+      ].join('\n');
+      const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'qervon-toplu-siparis-sablonu.csv';
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function onBulkFileSelected() {
+      const file = document.getElementById('bulk-order-file').files[0];
+      const summary = document.getElementById('bulk-file-summary');
+      const button = document.getElementById('bulk-upload-button');
+      document.getElementById('bulk-import-status').textContent = '';
+      if (!file) {
+        summary.textContent = 'Henüz dosya seçilmedi.';
+        button.disabled = true;
+        return;
+      }
+      const isCsv = file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv';
+      const sizeOk = file.size > 0 && file.size <= 1024 * 1024;
+      summary.textContent = `${file.name} · ${(file.size / 1024).toFixed(1)} KB${!isCsv ? ' · Yalnız CSV dosyası seçin.' : !sizeOk ? ' · Dosya 1 MB sınırını aşıyor veya boş.' : ''}`;
+      button.disabled = !(isCsv && sizeOk);
+    }
+
+    async function importBulkOrders() {
+      const input = document.getElementById('bulk-order-file');
+      const file = input.files[0];
+      const button = document.getElementById('bulk-upload-button');
+      const status = document.getElementById('bulk-import-status');
+      const results = document.getElementById('bulk-import-results');
+      if (!file || file.size === 0 || file.size > 1024 * 1024) {
+        status.textContent = 'Geçerli ve 1 MB sınırını aşmayan bir CSV dosyası seçin.';
+        return;
+      }
+      if (!confirm(`${file.name} içindeki siparişler oluşturulsun mu? Aynı dosyayı ikinci kez yüklemek yeni siparişler oluşturur.`)) return;
+      button.disabled = true;
+      status.textContent = 'Dosya doğrulanıyor ve ücretler hesaplanıyor…';
+      results.innerHTML = '';
+      try {
+        const imported = await api('/v1/customer/orders/bulk', {
+          method: 'POST',
+          headers: { 'content-type': 'text/csv;charset=utf-8' },
+          body: file,
+        });
+        status.textContent = `${imported.created_count} sipariş başarıyla oluşturuldu.`;
+        results.innerHTML = `<div class="glass" style="border-radius:14px; padding:16px; overflow:auto;">
+          <table style="width:100%; border-collapse:collapse;">
+            <thead><tr style="text-align:left; font-size:11px; color:var(--text-muted);"><th style="padding:8px;">Referans</th><th style="padding:8px;">Sipariş</th><th style="padding:8px;">Ücret</th><th style="padding:8px;">Durum</th></tr></thead>
+            <tbody>${imported.orders.map(item => `<tr style="border-top:1px solid var(--border-color); font-size:12px;"><td style="padding:10px; font-weight:800;">${escapeHtml(item.reference)}</td><td style="padding:10px; font-family:'JetBrains Mono';">#${item.order.id.slice(0, 8)}</td><td style="padding:10px;">${formatMoney(item.order.fare.amount_minor, item.order.fare.currency)}</td><td style="padding:10px; color:var(--accent-green); font-weight:800;">${escapeHtml(item.order.status)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>`;
+        input.value = '';
+        onBulkFileSelected();
+        await loadCustomerWorkspace();
+      } catch (error) {
+        showCustomerError(status, error);
+        button.disabled = false;
+      }
+    }
+
     async function saveAddress() {
       const label = document.getElementById('address-label').value.trim();
       const selected = selectedAddress.addressBook;
@@ -682,12 +759,12 @@
       } catch (_) { /* The active-orders panel remains the single tracking status surface. */ }
     }
 
-    function switchTab(tabId) {
+    function switchTab(tabId, selectedNavItem) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       activeTab = tabId;
 
-      event.currentTarget.classList.add('active');
+      selectedNavItem?.classList.add('active');
       document.getElementById('tab-' + tabId).classList.add('active');
       if (tabId === 'new-order') {
         setTimeout(() => map?.invalidateSize(), 100);

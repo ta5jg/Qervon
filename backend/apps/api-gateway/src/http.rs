@@ -21,6 +21,7 @@ use aes_gcm::{
     AeadCore, Aes256Gcm, KeyInit,
 };
 use axum::{
+    body::Bytes,
     extract::{DefaultBodyLimit, Extension, Path, Query, Request, State},
     http::{header, HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     middleware::{self, Next},
@@ -40,8 +41,9 @@ use qervon_api_contracts::{
     SetCourierAvailabilityRequest, UpdateLocationRequest,
 };
 use qervon_application::{
-    CourierLeaderboardEngine, CourierLeaderboardEntry, CreateInvoiceInput, CreateOrderInput,
-    CurrencyExchangeEngine, RegisterCourierInput, SendNotificationInput, TaxInvoicingEngine,
+    BulkOrderParser, CourierLeaderboardEngine, CourierLeaderboardEntry, CreateInvoiceInput,
+    CreateOrderInput, CurrencyExchangeEngine, RegisterCourierInput, SendNotificationInput,
+    TaxInvoicingEngine,
 };
 use qervon_domain::{
     Address, ColdChainTelemetry, FieldServiceScheduler, HubManifestAssignment, Location, Money,
@@ -173,6 +175,25 @@ async fn serve_openapi_spec() -> Json<serde_json::Value> {
             },
             "/v1/orders/{id}/tracking": {
                 "get": { "summary": "Track the assigned courier for one authorized order" }
+            },
+            "/v1/customer/orders/bulk": {
+                "post": {
+                    "summary": "Import up to 100 authenticated customer orders from UTF-8 CSV",
+                    "requestBody": {
+                        "required": true,
+                        "content": {
+                            "text/csv": {
+                                "schema": { "type": "string", "format": "binary" }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": { "description": "All validated orders were created" },
+                        "401": { "description": "Customer session is missing or invalid" },
+                        "403": { "description": "Signed-in user is not a customer" },
+                        "422": { "description": "The complete CSV was rejected before creation" }
+                    }
+                }
             }
         }
     }))
@@ -370,6 +391,7 @@ pub fn router(state: AppState) -> Router {
             "/v1/customer/orders",
             post(create_customer_order).get(list_customer_orders),
         )
+        .route("/v1/customer/orders/bulk", post(import_customer_orders))
         .route("/v1/customer/fare-quote", get(get_customer_fare_quote))
         .route(
             "/v1/customer/orders/{id}/invoice",
@@ -3998,6 +4020,116 @@ async fn create_customer_order(
     // state that the admin dispatcher can resolve manually).
     offer_for_tenant(&state, order.id, tenant_id).await?;
     Ok((StatusCode::CREATED, Json((&order).into())))
+}
+
+#[derive(Serialize)]
+struct BulkOrderCreatedResponse {
+    reference: String,
+    order: OrderResponse,
+}
+
+#[derive(Serialize)]
+struct BulkOrderImportResponse {
+    requested_count: usize,
+    created_count: usize,
+    orders: Vec<BulkOrderCreatedResponse>,
+}
+
+struct PreparedBulkOrder {
+    reference: String,
+    pickup: Address,
+    dropoff: Address,
+    fare: Money,
+    payment_method: qervon_domain::PaymentMethod,
+    delivery_note: Option<String>,
+    contact_phone: String,
+}
+
+/// Imports up to 100 customer orders from one RFC 4180 CSV document.
+///
+/// The complete file, every coordinate, every phone number, every payment
+/// method and every tenant fare is validated before the first order is
+/// persisted. Customer identity and tenant ownership always come from the
+/// signed session; the CSV contract intentionally has no customer or fare
+/// field that a client could manipulate.
+async fn import_customer_orders(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    body: Bytes,
+) -> Result<(StatusCode, Json<BulkOrderImportResponse>), ApiError> {
+    if body.is_empty() {
+        return Err(ApiError::unprocessable("CSV dosyası boş"));
+    }
+    let csv_content = std::str::from_utf8(&body)
+        .map_err(|_| ApiError::unprocessable("CSV dosyası UTF-8 kodlamasında olmalıdır"))?;
+    let rows = BulkOrderParser::parse_csv(csv_content).map_err(ApiError::unprocessable)?;
+    let tenant_id = TenantId(claims.tenant_id);
+
+    // This first pass performs every fallible input/pricing check before any
+    // order is written. It prevents a malformed later row from producing a
+    // half-imported file.
+    let mut prepared = Vec::with_capacity(rows.len());
+    for row in rows {
+        let pickup = Address {
+            location: Location::new(row.pickup_latitude, row.pickup_longitude)?,
+            label: Some(row.pickup_label),
+        };
+        let dropoff = Address {
+            location: Location::new(row.dropoff_latitude, row.dropoff_longitude)?,
+            label: Some(row.dropoff_label),
+        };
+        let quote = state
+            .pricing
+            .quote_fare(tenant_id, &pickup.location, &dropoff.location)
+            .await?;
+        let payment_method = row
+            .payment_method
+            .as_deref()
+            .unwrap_or("cash")
+            .parse::<qervon_domain::PaymentMethod>()
+            .map_err(|_| ApiError::unprocessable("invalid payment method"))?;
+        prepared.push(PreparedBulkOrder {
+            reference: row.reference,
+            pickup,
+            dropoff,
+            fare: Money::new(quote.fare_minor, quote.currency)?,
+            payment_method,
+            delivery_note: row.delivery_note,
+            contact_phone: row.contact_phone,
+        });
+    }
+
+    let requested_count = prepared.len();
+    let mut created = Vec::with_capacity(requested_count);
+    for row in prepared {
+        let order = state
+            .orders
+            .create_order(CreateOrderInput {
+                customer_id: claims.subject,
+                pickup: row.pickup,
+                dropoff: row.dropoff,
+                fare: row.fare,
+                payment_method: Some(row.payment_method),
+                delivery_note: row.delivery_note,
+                contact_phone: Some(row.contact_phone),
+            })
+            .await?;
+        state.tenants.bind_order(tenant_id, order.id).await?;
+        offer_for_tenant(&state, order.id, tenant_id).await?;
+        created.push(BulkOrderCreatedResponse {
+            reference: row.reference,
+            order: (&order).into(),
+        });
+    }
+
+    Ok((
+        StatusCode::CREATED,
+        Json(BulkOrderImportResponse {
+            requested_count,
+            created_count: created.len(),
+            orders: created,
+        }),
+    ))
 }
 
 /// Offers a newly created order to the best-ranked available courier within

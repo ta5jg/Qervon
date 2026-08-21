@@ -138,6 +138,31 @@ async fn authorized_request(
     (status, value)
 }
 
+async fn authorized_csv_request(
+    app: Router,
+    path: &str,
+    csv: &str,
+    token: &str,
+) -> (axum::http::StatusCode, Value) {
+    let request = axum::http::Request::builder()
+        .method("POST")
+        .uri(path)
+        .header("content-type", "text/csv;charset=utf-8")
+        .header("authorization", format!("Bearer {token}"))
+        .body(axum::body::Body::from(csv.to_owned()))
+        .expect("valid CSV request");
+    let response = app.oneshot(request).await.expect("CSV response");
+    let status = response.status();
+    let bytes = response
+        .into_body()
+        .collect()
+        .await
+        .expect("CSV response body")
+        .to_bytes();
+    let value = serde_json::from_slice(&bytes).unwrap_or(Value::Null);
+    (status, value)
+}
+
 async fn tenant_auth_app() -> Router {
     let mut state = AppState::memory();
     state.token_signing_secret = Some("test-signing-secret-must-be-at-least-32-characters".into());
@@ -2449,6 +2474,128 @@ async fn customer_orders_are_owned_by_session_and_admin_overview_is_tenant_scope
         &customer_token,
     )
     .await;
+    assert_eq!(status, axum::http::StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
+async fn customer_bulk_csv_import_validates_entire_file_and_preserves_session_ownership() {
+    let secret = b"test-signing-secret-must-be-at-least-32-characters";
+    let tenant = TenantCompany {
+        id: TenantId::new(),
+        company_name: "Bulk Import Tenant".into(),
+        category: "Logistics".into(),
+        created_at: Utc::now(),
+    };
+    let mut state = AppState::memory();
+    state.token_signing_secret = Some(String::from_utf8_lossy(secret).into_owned().into());
+    state
+        .tenants
+        .create_tenant(&tenant, "bulk-import")
+        .await
+        .expect("tenant");
+    let customer_id = Uuid::now_v7();
+    let customer_token = issue_access_token(
+        secret,
+        customer_id,
+        tenant.id.0,
+        UserRole::Customer,
+        Duration::minutes(5),
+    )
+    .expect("customer token");
+    let other_customer_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        tenant.id.0,
+        UserRole::Customer,
+        Duration::minutes(5),
+    )
+    .expect("other customer token");
+    let operator_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        tenant.id.0,
+        UserRole::Operator,
+        Duration::minutes(5),
+    )
+    .expect("operator token");
+    let app = router(state);
+    let header = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note";
+
+    let invalid = format!(
+        "{header}\nSIP-001,Alım 1,41.0,29.0,Teslim 1,41.1,29.1,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,999,29.3,05550000001,card,Not 2\n"
+    );
+    let (status, body) = authorized_csv_request(
+        app.clone(),
+        "/v1/customer/orders/bulk",
+        &invalid,
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
+    assert!(body["detail"]
+        .as_str()
+        .expect("validation detail")
+        .contains("dropoff_latitude"));
+    let (status, orders) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/customer/orders",
+        json!({}),
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert!(orders.as_array().expect("orders").is_empty());
+
+    let valid = format!(
+        "{header}\nSIP-001,\"Alım, 1\",41.0,29.0,Teslim 1,41.1,29.1,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,41.3,29.3,05550000001,card,Not 2\n"
+    );
+    let (status, imported) = authorized_csv_request(
+        app.clone(),
+        "/v1/customer/orders/bulk",
+        &valid,
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::CREATED);
+    assert_eq!(imported["requested_count"], 2);
+    assert_eq!(imported["created_count"], 2);
+    assert_eq!(imported["orders"][0]["reference"], "SIP-001");
+    assert_eq!(
+        imported["orders"][0]["order"]["customer_id"],
+        customer_id.to_string()
+    );
+    assert_eq!(imported["orders"][1]["order"]["payment_method"], "card");
+    assert!(
+        imported["orders"][0]["order"]["fare"]["amount_minor"]
+            .as_i64()
+            .expect("server fare")
+            > 0
+    );
+
+    let (status, mine) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/customer/orders",
+        json!({}),
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert_eq!(mine.as_array().expect("customer orders").len(), 2);
+    let (status, other) = authorized_request(
+        app.clone(),
+        "GET",
+        "/v1/customer/orders",
+        json!({}),
+        &other_customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::OK);
+    assert!(other.as_array().expect("other customer orders").is_empty());
+
+    let (status, _) =
+        authorized_csv_request(app, "/v1/customer/orders/bulk", &valid, &operator_token).await;
     assert_eq!(status, axum::http::StatusCode::FORBIDDEN);
 }
 
