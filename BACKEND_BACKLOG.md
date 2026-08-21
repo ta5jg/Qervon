@@ -312,13 +312,17 @@ mobile simulators, `/login`, and `/setup` — was kept as the project's
 official web platform. A security + functionality pass fixed a real XSS gap,
 pinned an unpinned CDN script version, and replaced several fabricated
 demo values (fake wallet balance, fake ratings) with real API-backed data.
-Two decorative UI elements were removed rather than wired up, because no
-backend support exists for them yet:
+One decorative UI element was removed rather than wired up, because no
+browser support exists for it yet. The former bulk-order gap is closed:
 
-- **Bulk Excel/CSV order import** (`customer.html`'s "Toplu Excel Yükle" tab)
-  has no backend endpoint at all — there is no CSV/XLSX parsing route.
-  Building one would need a multipart upload endpoint plus a parser
-  (`calamine`/`csv` crate) reusing `OrderService::create` per row.
+- **Bulk CSV order import** is implemented at
+  `POST /v1/customer/orders/bulk` and in `customer.html`. It accepts at most
+  100 RFC 4180 rows / 1 MB, rejects customer and fare fields, validates the
+  complete file before the first write, derives ownership from the signed
+  customer session, and computes every fare from tenant pricing. The portal
+  provides a downloadable UTF-8 CSV template and a per-reference result list.
+  Native `.xlsx` parsing remains out of scope; spreadsheet users export the
+  supplied template as CSV.
 - **Browser-based camera QR/barcode scanning and photo capture**
   (`mobile-courier.html`'s POD tab) were removed as non-functional buttons
   rather than implemented — a real implementation would need the

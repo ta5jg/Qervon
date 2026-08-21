@@ -11,7 +11,7 @@ Yüksek performanslı, modüler, çok kiracılı (multi-tenant) ve yapay zeka de
 Sistem 5 ana bileşenden oluşmaktadır:
 
 1. **Yönetim Paneli (Admin Dashboard):** Canlı GPS haritası, Isı Haritası (Heatmap), AI Dispatcher atamaları, Kurye & Müşteri yönetimi, Finansal Cüzdan raporları.
-2. **Web Müşteri Portalı:** Kurumsal müşteriler için sipariş oluşturma, canlı harita takibi ve Excel/CSV toplu sipariş yükleme.
+2. **Web Müşteri Portalı:** Kurumsal müşteriler için sipariş oluşturma, canlı harita takibi ve sunucu fiyatlandırmalı CSV toplu sipariş yükleme.
 3. **Mobil Müşteri Uygulaması (iOS & Android):** Gerçek donanımsal GPS canlı takibi, sipariş oluşturma ve cüzdan.
 4. **Kurye Mobil Terminali (iOS Swift & Android Kotlin Native):** Arka planda (`CoreLocation` & `Foreground Service`) kesintisiz çalışan donanımsal GPS yayıncısı, navigasyon ve görev terminali.
 5. **Yapay Zeka Engine (AI Dispatcher, Dynamic ETA & Fraud Guard):** Araç tipi, trafik yoğunluğu, hava durumu ve mesafe tabanlı akıllı kurye atama & sahte GPS engelleme motoru.
@@ -221,9 +221,11 @@ yapıldı ve şu düzeltmeler uygulandı:
   adresler artık gerçek `GET /v1/customer/profile` verisine bağlı;
   `mobile-courier.html`'deki sahte kazanç/puan kartları artık gerçek
   `GET /v1/courier/me/wallet` ve `/ratings`'e bağlı. İşlevsiz dekoratif
-  butonlar (kamera tabanlı QR/foto tarama, toplu Excel yükleme) kaldırılıp
-  dürüst "henüz uygulanmadı" notlarıyla değiştirildi — bu ikisi için gerçek
-  backend desteği (dosya yükleme, kamera entegrasyonu tarayıcıda) yok.
+  kamera tabanlı QR/foto tarama butonları kaldırılıp dürüst "henüz
+  uygulanmadı" notlarıyla değiştirildi. Toplu sipariş yükleme ise artık
+  `POST /v1/customer/orders/bulk` üzerinden en fazla 100 satırlık UTF-8 CSV
+  dosyalarını doğrular; müşteri/tenant bilgisini oturumdan alır ve her ücreti
+  sunucuda hesaplar. Portal indirilebilir şablon ve satır bazlı sonuç sunar.
 
 **Kapsam dışı bırakılan (gerçek bir React platformu inşa etmek)**: docs'ta
 tarif edilen tam React/Vite platformu (12 feature modülü + 7 paylaşılan paket)

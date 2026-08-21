@@ -78,4 +78,8 @@ async fn openapi_contains_frozen_critical_paths() {
         joined.contains("operations") || joined.contains("orders") || joined.contains("auth"),
         "openapi routes do not include expected baseline domains"
     );
+    assert!(
+        paths.contains_key("/v1/customer/orders/bulk"),
+        "bulk customer order import must remain in the published API contract"
+    );
 }
