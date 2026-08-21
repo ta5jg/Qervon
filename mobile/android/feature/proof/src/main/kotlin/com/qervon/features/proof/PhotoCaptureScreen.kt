@@ -55,7 +55,11 @@ import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PhotoCaptureScreen(onCaptured: (localPath: String) -> Unit, onClose: () -> Unit) {
+fun PhotoCaptureScreen(
+    title: String = "Teslimat Fotoğrafı",
+    onCaptured: (localPath: String) -> Unit,
+    onClose: () -> Unit,
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
@@ -68,7 +72,7 @@ fun PhotoCaptureScreen(onCaptured: (localPath: String) -> Unit, onClose: () -> U
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Teslimat Fotoğrafı") },
+                title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = onClose) { Icon(Icons.Filled.Close, contentDescription = "Kapat") }
                 },

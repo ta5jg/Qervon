@@ -216,14 +216,11 @@ Faz-2.2 added a real offer→accept/reject assignment flow (`Assignment.status
 native iOS Courier app against it and the rest of the courier-facing API
 surface. One edge is worth calling out explicitly:
 
-- **`POST /v1/courier/orders/{id}/pickup` records no proof-of-pickup.** It
-  only transitions the order to `InTransit`; there is no equivalent to
-  `POST /v1/courier/orders/{id}/deliver`'s evidence fields
-  (`recipient_name`, `qr_barcode_verified`, `digital_signature_base64`,
-  `photo_evidence_url`) for the pickup leg. The iOS app's Pickup screen is
-  therefore a single confirmation step rather than a QR/photo capture that
-  would have no server-side effect. Adding pickup evidence fields (mirroring
-  the delivery ones) is a reasonable future addition if operations need it.
+- **Pickup photo evidence is implemented (closed 2026-08-21).**
+  `POST /v1/courier/orders/{id}/pickup` requires
+  `pickup_photo_evidence_url`; both native courier apps capture and upload
+  a real image before the transition. Empty evidence is rejected with
+  `422 Unprocessable Entity`, and upload failure leaves the order assigned.
 - **`photo_evidence_url` upload is now real (added 2026-08-13), but
   local-filesystem, not cloud object storage.**
   `POST /v1/courier/orders/{id}/photo-evidence` accepts a real multipart

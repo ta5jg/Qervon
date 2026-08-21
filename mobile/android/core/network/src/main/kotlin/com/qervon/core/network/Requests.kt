@@ -76,6 +76,11 @@ data class CompleteDeliveryBody(
 )
 
 @Serializable
+data class CompletePickupBody(
+    val pickupPhotoEvidenceUrl: String,
+)
+
+@Serializable
 data class UploadedFileResponseBody(val url: String)
 
 @Serializable

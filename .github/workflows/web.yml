@@ -27,11 +27,13 @@ on:
     paths:
       - "backend/apps/api-gateway/static/**"
       - "scripts/check-web.sh"
+      - "tools/web-accessibility/**"
       - ".github/workflows/web.yml"
   pull_request:
     paths:
       - "backend/apps/api-gateway/static/**"
       - "scripts/check-web.sh"
+      - "tools/web-accessibility/**"
       - ".github/workflows/web.yml"
 
 concurrency:
@@ -50,3 +52,20 @@ jobs:
 
       - name: Web platform static checks (CDN pinning, plaintext HTTP)
         run: ./scripts/check-web.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tools/web-accessibility/package-lock.json
+
+      - name: Install accessibility test dependencies
+        working-directory: tools/web-accessibility
+        run: npm ci
+
+      - name: WCAG A/AA browser accessibility gate
+        working-directory: tools/web-accessibility
+        env:
+          QERVON_CHROME_BIN: /usr/bin/google-chrome
+        run: npm test

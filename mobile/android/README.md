@@ -150,8 +150,9 @@ relative to the iOS client, not a hidden one.
   continuous high-frequency updates.
 - **Local storage**: no Room — the scope is thin enough that
   `EncryptedSharedPreferences` (tokens) and plain `SharedPreferences`
-  (settings) suffice. A delivery photo is saved to the app's private
-  `filesDir` and never uploaded (see honesty notes below).
+  (settings) suffice. Pickup and delivery photos are staged in the app's
+  private `filesDir`, uploaded to the authenticated order-evidence endpoint,
+  and only then referenced by the state transition.
 
 ## Honesty notes (what is real vs. intentionally deferred)
 
@@ -165,19 +166,16 @@ relative to the iOS client, not a hidden one.
 
 ### Courier app
 
-- **Pickup has no proof-of-delivery capture**, matching the backend: `POST
-  /v1/courier/orders/{id}/pickup` takes no body. The Pickup action is a
-  single honest confirmation tap, not a fake QR/photo capture with no
-  effect.
+- **Pickup evidence**: CameraX captures a real photo, uploads it through
+  `POST /v1/courier/orders/{id}/photo-evidence`, then submits the returned
+  URL as `pickup_photo_evidence_url`. A failed capture or upload leaves the
+  order assigned; it cannot advance to `in_transit` without evidence.
 - **Delivery evidence**: QR/barcode scanning is real, on-device ML Kit
   Barcode Scanning over a live CameraX preview. The signature pad is a
   real Compose `Canvas` capturing finger-drawn strokes, exported as a real
-  `digital_signature_base64` PNG. The camera photo capture (CameraX
-  `ImageCapture`) is real, but is saved **locally only** (the app's private
-  `filesDir/delivery_photos/`) and is never sent as `photo_evidence_url` —
-  the backend expects an already-hosted URL and has no image-upload
-  endpoint yet, so sending a fabricated or local-only path would
-  misrepresent that field. This mirrors the iOS client's identical gap.
+  `digital_signature_base64` PNG. CameraX photo capture is uploaded to the
+  authenticated order-evidence endpoint and its returned URL is submitted
+  as `photo_evidence_url`.
 - **Earnings never show total distance** — the backend has no per-courier
   distance aggregation, so no such number is fabricated. Period earnings
   (today/week/month) are computed client-side from the wallet's

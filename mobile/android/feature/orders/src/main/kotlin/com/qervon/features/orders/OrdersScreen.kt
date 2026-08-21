@@ -45,6 +45,7 @@ import com.qervon.core.designsystem.StatusPill
 
 @Composable
 fun OrdersScreen(
+    onStartPickup: (orderId: String) -> Unit,
     onStartDelivery: (orderId: String, isCashOrder: Boolean) -> Unit,
     viewModel: OrdersViewModel = hiltViewModel(),
 ) {
@@ -76,7 +77,7 @@ fun OrdersScreen(
                 isProcessing = state.processingOrderId == order.id,
                 onNavigatePickup = { ExternalNavigation.launch(context, order.pickup.latitude, order.pickup.longitude, order.pickup.label) },
                 onNavigateDropoff = { ExternalNavigation.launch(context, order.dropoff.latitude, order.dropoff.longitude, order.dropoff.label) },
-                onPickup = { viewModel.pickup(order.id) },
+                onPickup = { onStartPickup(order.id) },
                 onDeliver = { onStartDelivery(order.id, order.paymentMethod == com.qervon.core.common.model.PaymentMethod.CASH) },
             )
         }

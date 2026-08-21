@@ -88,11 +88,11 @@ class OrdersViewModel @Inject constructor(private val api: QervonApi) : ViewMode
         pollJob = null
     }
 
-    fun pickup(orderId: String) {
+    fun pickup(orderId: String, pickupPhotoEvidenceUrl: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(processingOrderId = orderId, errorMessage = null)
             try {
-                api.pickupOrder(orderId)
+                api.pickupOrder(orderId, pickupPhotoEvidenceUrl)
                 refresh()
             } catch (error: QervonApiException) {
                 _uiState.value = _uiState.value.copy(errorMessage = error.message)

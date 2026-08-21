@@ -110,8 +110,12 @@ public struct QervonAPI: Sendable {
         try await client.send(.get, "/v1/courier/orders")
     }
 
-    public func startTransit(orderId: UUID) async throws -> Order {
-        try await client.send(.post, "/v1/courier/orders/\(orderId.uuidString)/pickup", body: EmptyBody())
+    public func startTransit(orderId: UUID, pickupPhotoEvidenceURL: String) async throws -> Order {
+        try await client.send(
+            .post,
+            "/v1/courier/orders/\(orderId.uuidString)/pickup",
+            body: CompletePickupBody(pickupPhotoEvidenceUrl: pickupPhotoEvidenceURL)
+        )
     }
 
     public func deliverOrder(orderId: UUID, _ body: DeliverOrderBody) async throws -> Order {
@@ -122,7 +126,7 @@ public struct QervonAPI: Sendable {
     /// server-side storage and returns the URL to pass as
     /// `DeliverOrderBody.photoEvidenceUrl`. See
     /// `backend/apps/api-gateway/src/http.rs`'s `upload_delivery_photo`.
-    public func uploadDeliveryPhoto(orderId: UUID, jpegData: Data) async throws -> String {
+    public func uploadOrderEvidencePhoto(orderId: UUID, jpegData: Data) async throws -> String {
         let response: UploadedFileResponse = try await client.uploadMultipart(
             "/v1/courier/orders/\(orderId.uuidString)/photo-evidence",
             fieldName: "photo",
@@ -131,6 +135,10 @@ public struct QervonAPI: Sendable {
             fileData: jpegData
         )
         return response.url
+    }
+
+    public func uploadDeliveryPhoto(orderId: UUID, jpegData: Data) async throws -> String {
+        try await uploadOrderEvidencePhoto(orderId: orderId, jpegData: jpegData)
     }
 
     public func getWallet() async throws -> CourierWallet {

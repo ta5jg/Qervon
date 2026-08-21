@@ -95,7 +95,10 @@ interface QervonApiService {
     suspend fun rejectOffer(@Path("id") orderId: String): Response<ResponseBody>
 
     @POST("v1/courier/orders/{id}/pickup")
-    suspend fun pickupOrder(@Path("id") orderId: String): Response<Order>
+    suspend fun pickupOrder(
+        @Path("id") orderId: String,
+        @Body body: CompletePickupBody,
+    ): Response<Order>
 
     @POST("v1/courier/orders/{id}/deliver")
     suspend fun deliverOrder(@Path("id") orderId: String, @Body body: CompleteDeliveryBody): Response<Order>

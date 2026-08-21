@@ -76,16 +76,20 @@ tracking map + ETA polling, cancel, rate, open a support ticket → profile.
   (`AppSession`) since SwiftUI's environment-object pattern makes a full
   DI framework less necessary at this app's size.
 
-## What is not implemented on either platform
+## Remaining external dependency
 
 - **Native push (FCM/APNs sending).** iOS captures a real APNs device
   token and posts it to `POST /v1/push/devices`, but no APNs credential
   exists in this environment to actually send anything. Android does not
   even integrate the FCM SDK, because a missing `google-services.json`
   fails the *build*, not just the runtime, unlike iOS's silent failure.
-- **No pickup-evidence capture** — only delivery has QR/signature/photo
-  fields on the backend; pickup is a single confirmation tap on both
-  platforms.
+
+## Pickup evidence
+
+Both courier apps require a real camera photo before pickup. The photo is
+uploaded to `POST /v1/courier/orders/{id}/photo-evidence`; only the returned
+tenant-scoped URL is submitted as `pickup_photo_evidence_url`. Capture or
+upload failure never advances the order to `in_transit`.
 
 ## References
 
@@ -103,3 +107,4 @@ tracking map + ETA polling, cancel, rate, open a support ticket → profile.
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten with the real, shipped architecture of all four apps. |
 | 0.3.0 | 2026-08-13 | Removed the "no re-offer cascade" note — that gap is now closed backend-side (see QLS-000003), with no client change needed. |
+| 0.4.0 | 2026-08-21 | Documented mandatory native pickup-photo capture, upload, and fail-closed transition behavior. |

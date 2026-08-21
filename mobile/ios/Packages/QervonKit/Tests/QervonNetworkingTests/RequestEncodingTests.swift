@@ -38,6 +38,16 @@ final class RequestEncodingTests: XCTestCase {
         XCTAssertEqual(json?["payment_collected"] as? Bool, true)
     }
 
+    func testCompletePickupBodyEncodesEvidenceURL() throws {
+        let body = CompletePickupBody(pickupPhotoEvidenceUrl: "/v1/uploads/delivery-photos/order/photo.jpg")
+        let data = try QervonJSON.makeEncoder().encode(body)
+        let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        XCTAssertEqual(
+            json?["pickup_photo_evidence_url"] as? String,
+            "/v1/uploads/delivery-photos/order/photo.jpg"
+        )
+    }
+
     func testOtpRequestResultDecodesDevCode() throws {
         let json = """
         { "status": "sent", "dev_code": "123456" }

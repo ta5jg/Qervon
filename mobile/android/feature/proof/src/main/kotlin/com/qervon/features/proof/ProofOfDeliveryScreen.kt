@@ -99,7 +99,7 @@ fun ProofOfDeliveryScreen(
                     Text("Teslim Kanıtı (en az biri gerekli)", style = MaterialTheme.typography.titleMedium)
                     EvidenceRow("QR / Barkod", state.qrBarcodeVerified, onClick = { step = ProofStep.SCANNING })
                     EvidenceRow("İmza", state.signatureBase64 != null, onClick = { step = ProofStep.SIGNING })
-                    EvidenceRow("Fotoğraf (yalnızca cihazda saklanır)", state.localPhotoPath != null, onClick = { step = ProofStep.PHOTOGRAPHING })
+                    EvidenceRow("Fotoğraf (sunucuya güvenli yüklenir)", state.localPhotoPath != null, onClick = { step = ProofStep.PHOTOGRAPHING })
                 }
 
                 if (state.isCashOrder) {

@@ -89,6 +89,14 @@ public struct DeliverOrderBody: Encodable, Sendable {
     }
 }
 
+public struct CompletePickupBody: Encodable, Sendable {
+    public let pickupPhotoEvidenceUrl: String
+
+    public init(pickupPhotoEvidenceUrl: String) {
+        self.pickupPhotoEvidenceUrl = pickupPhotoEvidenceUrl
+    }
+}
+
 struct RegisterPushDeviceBody: Encodable {
     let platform: String
     /// "courier" or "customer" — see `AppVariant`. Tells the backend which

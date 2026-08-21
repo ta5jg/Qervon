@@ -4,7 +4,7 @@ Project:        Qervon
 Author:         USDTG GROUP TECHNOLOGY LLC
 Developer:      Irfan Gedik
 Created Date:   2026-08-05
-Version:        0.3.0
+Version:        0.4.0
 
 Description:
   What proof-of-delivery evidence the backend actually accepts, and what
@@ -19,7 +19,7 @@ License:
 
 # QLS-000013 — Proof of Delivery
 
-**Status: Implemented (delivery only — no pickup evidence).**
+**Status: Implemented (pickup and delivery evidence).**
 
 ## Backend contract
 
@@ -30,14 +30,13 @@ for cash orders, `payment_collected: bool`. Supplying none of the three
 evidence fields is a `422 Unprocessable Entity`, not a silently-accepted
 delivery.
 
-## No pickup evidence
+## Pickup evidence
 
-`POST /v1/courier/orders/{id}/pickup` takes no body at all — it's a
-single state transition, `CourierAssigned → InTransit`, with no evidence
-fields to submit. Every client's "pickup" screen is therefore a single
-confirmation tap, not a QR/photo capture that would have no server-side
-effect — this is a deliberate honesty-driven design choice, not an
-oversight (see QAS-000001).
+`POST /v1/courier/orders/{id}/pickup` requires
+`pickup_photo_evidence_url`. Native courier clients first capture and upload
+a real image, then pass the returned tenant-scoped URL to transition
+`CourierAssigned → InTransit`. Empty evidence is rejected with `422`; a
+capture or upload error does not advance the order.
 
 ## What each platform actually captures
 
@@ -45,7 +44,8 @@ oversight (see QAS-000001).
 | --- | --- | --- | --- |
 | QR/barcode scan | Real (VisionKit `DataScannerViewController`; Simulator falls back to a manual toggle, no camera there) | Real (ML Kit Barcode Scanning + CameraX) | Manual checkbox only — no camera API used (see QAS-000008) |
 | Digital signature | Real (`PKCanvasView`-based pad, real base64 PNG) | Real (Compose `Canvas` pad, real base64 PNG) | Not offered |
-| Photo | Real capture (device camera) and real upload | Real capture (CameraX) and real upload | Not offered |
+| Pickup photo | Real capture (device camera) and real upload | Real capture (CameraX) and real upload | Real capture and upload |
+| Delivery photo | Real capture (device camera) and real upload | Real capture (CameraX) and real upload | Real capture and upload |
 
 ## `photo_evidence_url` upload path (added 2026-08-13)
 
@@ -78,4 +78,5 @@ backend, not the `{"url": "..."}` client-side contract.
 | --------- | ------ | ------------- |
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten with the real backend contract and per-platform capture capability table. |
+| 0.4.0 | 2026-08-21 | Added mandatory pickup-photo evidence and native fail-closed capture/upload flows. |
 | 0.3.0 | 2026-08-13 | The photo-evidence upload gap is closed: real multipart upload + serve endpoints, wired into both mobile clients. |

@@ -37,4 +37,13 @@ class RequestEncodingTest {
         assertTrue(json.contains("\"qr_barcode_verified\":true"))
         assertTrue(json.contains("\"recipient_name\":\"Ali\""))
     }
+
+    @Test
+    fun `complete pickup body includes evidence url`() {
+        val json = JsonConfig.shared.encodeToString(
+            CompletePickupBody.serializer(),
+            CompletePickupBody("/v1/uploads/delivery-photos/order/photo.jpg"),
+        )
+        assertTrue(json.contains("\"pickup_photo_evidence_url\":\"/v1/uploads/delivery-photos/order/photo.jpg\""))
+    }
 }
