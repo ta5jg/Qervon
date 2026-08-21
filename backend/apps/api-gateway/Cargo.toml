@@ -69,3 +69,4 @@ jsonwebtoken = { workspace = true }
 [dev-dependencies]
 http-body-util = { workspace = true }
 tower = { workspace = true }
+openssl = { workspace = true }

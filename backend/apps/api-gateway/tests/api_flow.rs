@@ -53,8 +53,12 @@ async fn request(
     app: Router,
     method: &str,
     path: &str,
-    body: Value,
+    mut body: Value,
 ) -> (axum::http::StatusCode, Value) {
+    if path.ends_with("/pickup") && body.get("pickup_photo_evidence_url").is_none() {
+        body["pickup_photo_evidence_url"] =
+            Value::String("/v1/uploads/pickup-photos/test.jpg".into());
+    }
     let request = axum::http::Request::builder()
         .method(method)
         .uri(path)
@@ -102,9 +106,19 @@ async fn authorized_request(
     app: Router,
     method: &str,
     path: &str,
-    body: Value,
+    mut body: Value,
     token: &str,
 ) -> (axum::http::StatusCode, Value) {
+    // Older delivery-flow fixtures predate the contact-phone requirement.
+    // Give those focused tests a valid representative value while dedicated
+    // validation cases can still send `contact_phone: null` explicitly.
+    if path == "/v1/customer/orders" && body.get("contact_phone").is_none() {
+        body["contact_phone"] = Value::String("05550000000".into());
+    }
+    if path.ends_with("/pickup") && body.get("pickup_photo_evidence_url").is_none() {
+        body["pickup_photo_evidence_url"] =
+            Value::String("/v1/uploads/pickup-photos/test.jpg".into());
+    }
     let request = axum::http::Request::builder()
         .method(method)
         .uri(path)
@@ -2298,6 +2312,34 @@ async fn customer_orders_are_owned_by_session_and_admin_overview_is_tenant_scope
     .expect("courier token");
     let app = router(state);
 
+    let base_order = json!({
+        "pickup": { "latitude": 41.0, "longitude": 29.0, "label": "Müşteri alım" },
+        "dropoff": { "latitude": 41.1, "longitude": 29.1, "label": "Müşteri teslim" }
+    });
+    let mut missing_phone = base_order.clone();
+    missing_phone["contact_phone"] = Value::Null;
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/customer/orders",
+        missing_phone,
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
+
+    let mut qr_payment = base_order;
+    qr_payment["payment_method"] = Value::String("qr".into());
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/customer/orders",
+        qr_payment,
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::UNPROCESSABLE_ENTITY);
+
     let (status, order) = authorized_request(
         app.clone(),
         "POST",
@@ -2373,6 +2415,20 @@ async fn customer_orders_are_owned_by_session_and_admin_overview_is_tenant_scope
     assert_eq!(status, axum::http::StatusCode::OK);
     assert_eq!(overview["active_orders"], 1);
     assert_eq!(overview["pending_orders"], 0);
+
+    let (status, _) = authorized_request(
+        app.clone(),
+        "POST",
+        "/v1/customer/orders",
+        json!({
+            "pickup": { "latitude": 41.0, "longitude": 29.0, "label": "Yeni alım" },
+            "dropoff": { "latitude": 41.1, "longitude": 29.1, "label": "Yeni teslim" },
+            "contact_phone": "05550000000"
+        }),
+        &customer_token,
+    )
+    .await;
+    assert_eq!(status, axum::http::StatusCode::TOO_MANY_REQUESTS);
 
     let (status, _) = authorized_request(
         app,
@@ -2976,6 +3032,14 @@ async fn coupon_can_be_applied_to_a_customer_order_and_is_tenant_isolated() {
     assert_eq!(order["fare"]["amount_minor"], expected_fare_minor);
 
     // The coupon's usage limit (1) is now exhausted.
+    let second_customer_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        operator_claims.tenant_id,
+        UserRole::Customer,
+        Duration::minutes(5),
+    )
+    .expect("second customer token");
     let (status, _) = authorized_request(
         app,
         "POST",
@@ -2985,7 +3049,7 @@ async fn coupon_can_be_applied_to_a_customer_order_and_is_tenant_isolated() {
             "dropoff": { "latitude": 41.1, "longitude": 29.1, "label": "Teslim" },
             "coupon_code": "QERVON20"
         }),
-        &customer_token,
+        &second_customer_token,
     )
     .await;
     assert_eq!(status, axum::http::StatusCode::CONFLICT);
@@ -3772,6 +3836,14 @@ async fn courier_job_offer_can_be_accepted_or_rejected_over_http() {
     assert_eq!(status, axum::http::StatusCode::CONFLICT);
 
     // Re-offer via a fresh order and this time accept it.
+    let second_customer_token = issue_access_token(
+        secret,
+        Uuid::now_v7(),
+        operator_claims.tenant_id,
+        UserRole::Customer,
+        Duration::minutes(5),
+    )
+    .expect("second customer token");
     let (status, order2) = authorized_request(
         app.clone(),
         "POST",
@@ -3782,7 +3854,7 @@ async fn courier_job_offer_can_be_accepted_or_rejected_over_http() {
             "fare_amount_minor": 3000,
             "fare_currency": "TRY"
         }),
-        &customer_token,
+        &second_customer_token,
     )
     .await;
     assert_eq!(status, axum::http::StatusCode::CREATED);

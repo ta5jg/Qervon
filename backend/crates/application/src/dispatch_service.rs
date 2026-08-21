@@ -276,7 +276,18 @@ where
     }
 
     pub async fn start_transit(&self, order_id: OrderId) -> Result<Order, ApplicationError> {
+        self.start_transit_with_evidence(order_id, None).await
+    }
+
+    pub async fn start_transit_with_evidence(
+        &self,
+        order_id: OrderId,
+        pickup_photo_evidence_url: Option<String>,
+    ) -> Result<Order, ApplicationError> {
         let mut order = self.require_order(order_id).await?;
+        if let Some(url) = pickup_photo_evidence_url {
+            order.record_pickup_evidence(url)?;
+        }
         order.start_transit()?;
         self.orders.update(&order).await?;
         Ok(order)

@@ -1,0 +1,17 @@
+# =============================================================================
+# File:           infrastructure/systemd/qervon-backup.timer
+# Project:        Qervon Logistics Operating System (LOS)
+# Description:    Daily persistent schedule for Qervon PostgreSQL backups.
+# =============================================================================
+
+[Unit]
+Description=Run Qervon PostgreSQL Backup Daily
+
+[Timer]
+OnCalendar=*-*-* 02:15:00
+Persistent=true
+RandomizedDelaySec=15m
+Unit=qervon-backup.service
+
+[Install]
+WantedBy=timers.target

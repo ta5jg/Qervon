@@ -76,6 +76,7 @@ struct OrderRow {
     payment_collected: bool,
     delivery_note: Option<String>,
     contact_phone: Option<String>,
+    pickup_photo_evidence_url: Option<String>,
 }
 
 impl OrderRow {
@@ -101,6 +102,7 @@ impl OrderRow {
             payment_collected: self.payment_collected,
             delivery_note: self.delivery_note,
             contact_phone: self.contact_phone,
+            pickup_photo_evidence_url: self.pickup_photo_evidence_url,
         })
     }
 }
@@ -119,7 +121,7 @@ impl PgOrderRepository {
 const ORDER_COLUMNS: &str = "id, customer_id, pickup_lat, pickup_lon, pickup_label, \
     dropoff_lat, dropoff_lon, dropoff_label, status, fare_amount_minor, fare_currency, \
     assigned_courier_id, created_at, delivered_at, returned_at, payment_method, \
-    payment_collected, delivery_note, contact_phone";
+    payment_collected, delivery_note, contact_phone, pickup_photo_evidence_url";
 
 #[async_trait]
 impl OrderRepository for PgOrderRepository {
@@ -128,9 +130,9 @@ impl OrderRepository for PgOrderRepository {
             "INSERT INTO orders.orders (id, customer_id, pickup_lat, pickup_lon, pickup_label, \
              dropoff_lat, dropoff_lon, dropoff_label, status, fare_amount_minor, fare_currency, \
              assigned_courier_id, created_at, delivered_at, returned_at, payment_method, \
-             payment_collected, delivery_note, contact_phone) \
+             payment_collected, delivery_note, contact_phone, pickup_photo_evidence_url) \
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, \
-             $17, $18, $19)",
+             $17, $18, $19, $20)",
         )
         .bind(order.id.0)
         .bind(order.customer_id)
@@ -151,6 +153,7 @@ impl OrderRepository for PgOrderRepository {
         .bind(order.payment_collected)
         .bind(&order.delivery_note)
         .bind(&order.contact_phone)
+        .bind(&order.pickup_photo_evidence_url)
         .execute(&self.pool)
         .await
         .map(|_| ())
@@ -171,7 +174,7 @@ impl OrderRepository for PgOrderRepository {
     async fn update(&self, order: &Order) -> Result<(), DomainError> {
         let affected = sqlx::query(
             "UPDATE orders.orders SET status = $2, assigned_courier_id = $3, delivered_at = $4, \
-             returned_at = $5, payment_method = $6, payment_collected = $7 WHERE id = $1",
+             returned_at = $5, payment_method = $6, payment_collected = $7, pickup_photo_evidence_url = $8 WHERE id = $1",
         )
         .bind(order.id.0)
         .bind(order.status.as_str())
@@ -180,6 +183,7 @@ impl OrderRepository for PgOrderRepository {
         .bind(order.returned_at)
         .bind(order.payment_method.map(|method| method.as_str()))
         .bind(order.payment_collected)
+        .bind(&order.pickup_photo_evidence_url)
         .execute(&self.pool)
         .await
         .map_err(map_db_error)?

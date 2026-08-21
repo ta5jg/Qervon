@@ -135,6 +135,11 @@
       <div id="map"></div>
 
       <div class="card">
+        <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Aktif Siparişlerim</div>
+        <div id="active-mobile-orders" style="font-size:11px; color:var(--text-muted);">Aktif siparişler yükleniyor…</div>
+      </div>
+
+      <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
             <div style="font-size:10px; color:var(--text-muted); font-weight:700;">ATANAN SÜRÜCÜ</div>
@@ -152,7 +157,7 @@
       <div class="card">
         <div style="font-size:12px; font-weight:800; margin-bottom:8px;">Hızlı Kurye Çağır</div>
         <div style="display:flex; gap:8px;">
-          <input id="quick-route" aria-label="Hızlı rota" type="text" value="Yıldıztabya ➔ Maslak Plaza" placeholder="Alım ➔ Teslimat" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
+        <input id="quick-route" aria-label="Hızlı rota" type="text" placeholder="Alım ➔ Teslimat" style="flex:1; padding:10px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px;">
           <button onclick="createQuickOrder()" style="padding:10px 14px; background:var(--accent-green); color:white; border:none; border-radius:10px; font-weight:700; font-size:11px;">Çağır</button>
         </div>
       </div>
@@ -163,27 +168,28 @@
       <div class="card">
         <div style="font-size:14px; font-weight:800; margin-bottom:12px;">Yeni Teslimat Talebi</div>
         <label style="font-size:10px; color:var(--text-muted);">Alım Adresi</label>
-        <input id="pickup-label" type="text" value="Yıldıztabya Mahallesi, No:12" oninput="refreshFareQuotePreview()" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <select id="saved-mobile-pickup" onchange="useMobileSavedAddress('pickup', this.value)" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:6px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
+        <input id="pickup-label" type="text" placeholder="Alım adresini yazın" oninput="refreshFareQuotePreview()" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
         
         <label style="font-size:10px; color:var(--text-muted);">Teslimat Adresi</label>
-        <input id="dropoff-label" type="text" value="Maslak Plaza Kat 8, Sarıyer" oninput="refreshFareQuotePreview()" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <select id="saved-mobile-dropoff" onchange="useMobileSavedAddress('dropoff', this.value)" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:6px;"><option value="">Kayıtlı adres seçin (opsiyonel)</option></select>
+        <input id="dropoff-label" type="text" placeholder="Teslimat adresini yazın" oninput="refreshFareQuotePreview()" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
         
         <label style="font-size:10px; color:var(--text-muted);">Teslimat Notu (opsiyonel)</label>
         <input id="delivery-note" type="text" placeholder="Zil çalınmasın, güvenliğe bırakılsın" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
-        <label style="font-size:10px; color:var(--text-muted);">İletişim Telefonu (opsiyonel)</label>
-        <input id="contact-phone" type="text" placeholder="0532 000 00 00" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:12px;">
+        <label style="font-size:10px; color:var(--text-muted);">İletişim Telefonu</label>
+        <input id="contact-phone" required inputmode="tel" type="tel" placeholder="05XX XXX XX XX" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:12px;">
 
         <div style="font-size:11px; font-weight:700; margin-bottom:6px;">Ödeme Yöntemi</div>
-        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; margin-bottom:12px;" id="payment-method-grid">
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:12px;" id="payment-method-grid">
           <div class="payment-card selected" data-method="cash" onclick="selectPaymentMethod(this)" style="padding:8px; border:1px solid var(--accent-green); border-radius:8px; text-align:center; font-size:10px; font-weight:700; color:var(--accent-green); cursor:pointer;">Nakit</div>
           <div class="payment-card" data-method="card" onclick="selectPaymentMethod(this)" style="padding:8px; border:1px solid var(--border-color); border-radius:8px; text-align:center; font-size:10px; cursor:pointer;">Kart</div>
-          <div class="payment-card" data-method="qr" onclick="selectPaymentMethod(this)" style="padding:8px; border:1px solid var(--border-color); border-radius:8px; text-align:center; font-size:10px; cursor:pointer;">QR</div>
           <div class="payment-card" data-method="wallet" onclick="selectPaymentMethod(this)" style="padding:8px; border:1px solid var(--border-color); border-radius:8px; text-align:center; font-size:10px; cursor:pointer;">Cüzdan</div>
         </div>
 
         <div id="fare-quote-preview" style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Ücret, adresler girildikten sonra sunucudan gerçek mesafeye göre hesaplanır.</div>
         <button class="btn-main" onclick="createCustomerOrder()"><i data-lucide="zap"></i> KURYEYİ ÇAĞIR</button>
-        <div id="order-message" role="status" aria-live="polite" style="font-size:10px; color:var(--text-muted); margin-top:8px;"></div>
+        <div id="order-message" role="status" aria-live="polite" style="font-size:12px; font-weight:800; color:var(--accent-green); margin-top:8px;"></div>
       </div>
     </div>
 
@@ -292,13 +298,18 @@
 
     function renderOrders(orders) {
       const history = document.getElementById('order-history');
+      const activeOrders = orders.filter(order => !['delivered', 'cancelled', 'returned'].includes(order.status));
+      const activeTarget = document.getElementById('active-mobile-orders');
+      activeTarget.innerHTML = activeOrders.length
+        ? activeOrders.map(order => `<div style="display:flex; justify-content:space-between; gap:8px; padding:8px 0; border-top:1px solid var(--border-color);"><span style="font-weight:800;">#${order.id.slice(0, 8)}</span><span style="color:var(--accent-green); font-weight:800;">${escapeHtml(order.status.replaceAll('_', ' '))}</span></div>`).join('')
+        : 'Aktif siparişiniz yok.';
       if (!orders.length) {
         history.textContent = 'Henüz siparişiniz yok.';
         trackedOrder = null;
         return;
       }
       history.innerHTML = orders.map(order => `<div style="padding:10px; background:rgba(0,0,0,0.3); border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;"><div><div style="font-size:12px; font-weight:700;">#${order.id.slice(0, 8)} • Teslimat</div><div style="font-size:10px; color:var(--text-muted);">${escapeHtml(order.pickup.label || 'Alım')} ➔ ${escapeHtml(order.dropoff.label || 'Teslim')} • ${(order.fare.amount_minor / 100).toFixed(2)} ${order.fare.currency}</div></div><span style="font-size:9px; background:rgba(16,185,129,0.2); color:var(--accent-green); padding:4px 6px; border-radius:6px; font-weight:700;">${escapeHtml(order.status.replaceAll('_', ' '))}</span></div>`).join('');
-      trackedOrder = orders.find(order => !['delivered', 'cancelled'].includes(order.status)) || null;
+      trackedOrder = activeOrders[0] || null;
       document.getElementById('driver-name').textContent = trackedOrder?.assigned_courier_id ? 'Atanan kurye canlı takipte' : 'Kurye ataması bekleniyor';
     }
 
@@ -312,10 +323,28 @@
       try {
         const profile = await api('/v1/customer/profile', { method: 'GET' });
         document.getElementById('loyalty-points').textContent = `${profile.loyalty_points} Puan`;
-        addressesEl.innerHTML = profile.addresses.length
-          ? profile.addresses.map(address => `<div style="font-size:11px; font-weight:700; color:var(--accent-cyan); margin-top:4px;">${escapeHtml(address.label)}${address.is_default ? ' • Varsayılan' : ''}: ${escapeHtml(address.full_address)}</div>`).join('')
+        const addresses = profile.addresses || [];
+        addressesEl.innerHTML = addresses.length
+          ? addresses.map(address => `<div style="display:flex; justify-content:space-between; gap:8px; font-size:11px; font-weight:700; color:var(--accent-cyan); margin-top:7px;"><span>${escapeHtml(address.label)}${address.is_default ? ' • Varsayılan' : ''}: ${escapeHtml(address.full_address)}</span><button type="button" onclick="removeMobileSavedAddress('${address.id}')" style="border:0; background:transparent; color:#fca5a5; font-weight:800;">Sil</button></div>`).join('')
           : '<span>Henüz kayıtlı adresiniz yok.</span>';
+        const options = addresses.map(address => `<option value="${address.id}">${escapeHtml(address.label)} — ${escapeHtml(address.full_address)}</option>`).join('');
+        ['saved-mobile-pickup', 'saved-mobile-dropoff'].forEach(id => { document.getElementById(id).innerHTML = '<option value="">Kayıtlı adres seçin (opsiyonel)</option>' + options; });
+        window.mobileSavedAddresses = addresses;
       } catch (error) { showCustomerError(addressesEl, error); }
+    }
+
+    function useMobileSavedAddress(kind, addressId) {
+      if (!addressId) return;
+      const address = (window.mobileSavedAddresses || []).find(candidate => candidate.id === addressId);
+      if (!address) return;
+      document.getElementById(kind === 'pickup' ? 'pickup-label' : 'dropoff-label').value = address.full_address;
+      refreshFareQuotePreview();
+    }
+
+    async function removeMobileSavedAddress(addressId) {
+      if (!confirm('Bu kayıtlı adres silinsin mi?')) return;
+      try { await api(`/v1/customer/profile/addresses/${addressId}`, { method: 'DELETE' }); await loadCustomerProfile(); }
+      catch (error) { showCustomerError(document.getElementById('saved-addresses'), error); }
     }
 
     function selectPaymentMethod(card) {
@@ -333,6 +362,15 @@
 
     async function submitCustomerOrder(pickupLabel, dropoffLabel) {
       const message = document.getElementById('order-message');
+      const contactPhone = document.getElementById('contact-phone')?.value.trim() || '';
+      if (!pickupLabel || !dropoffLabel) {
+        message.textContent = 'Alım ve teslimat adresleri zorunludur.';
+        return;
+      }
+      if (contactPhone.replace(/\D/g, '').length < 10) {
+        message.textContent = 'Geçerli bir iletişim telefon numarası girin.';
+        return;
+      }
       const pickup = demoPickupAddress(pickupLabel);
       const dropoff = demoDropoffAddress(dropoffLabel);
       try {
@@ -344,10 +382,14 @@
             coupon_code: null,
             payment_method: selectedPaymentMethod,
             delivery_note: document.getElementById('delivery-note')?.value.trim() || null,
-            contact_phone: document.getElementById('contact-phone')?.value.trim() || null,
+            contact_phone: contactPhone,
           }),
         });
         message.textContent = `Sipariş oluşturuldu: #${order.id.slice(0, 8)} • ${(order.fare.amount_minor / 100).toFixed(2)} ${order.fare.currency}`;
+        document.getElementById('pickup-label').value = '';
+        document.getElementById('dropoff-label').value = '';
+        document.getElementById('delivery-note').value = '';
+        document.getElementById('contact-phone').value = '';
         await loadCustomerOrders();
       } catch (error) { showCustomerError(message, error); }
     }
@@ -370,7 +412,7 @@
     }
 
     function createQuickOrder() {
-      const [pickup = 'Alım noktası', dropoff = 'Teslim noktası'] = document.getElementById('quick-route').value.split('➔').map(value => value.trim());
+      const [pickup = '', dropoff = ''] = document.getElementById('quick-route').value.split('➔').map(value => value.trim());
       submitCustomerOrder(pickup, dropoff);
     }
 

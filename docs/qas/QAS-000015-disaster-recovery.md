@@ -33,6 +33,9 @@ themselves, which are just redeployed from source):
 - `scripts/backup-postgres.sh` produces a PostgreSQL custom-format dump
   under `/var/lib/qervon/backups`, verified with `pg_restore --list`
   before being reported as successful.
+- `infrastructure/systemd/qervon-backup.timer` runs that backup daily at
+  02:15 with a bounded random delay. `Persistent=true` makes a missed run
+  execute after the VPS returns from downtime.
 - `scripts/restore-postgres.sh` requires an explicit
   `QERVON_RESTORE_CONFIRM=restore` guard and both services stopped first
   — a restore overwrites the target database and is never run casually.
@@ -41,9 +44,6 @@ Full procedure: [docs/operations/backup-restore-runbook.md](../operations/backup
 
 ## What this does not cover
 
-- **No automated backup scheduling** in this repository — running the
-  backup script on a cadence (e.g. via cron/systemd timer) is an
-  operator responsibility, not something the application does itself.
 - **No off-host backup transport automation** — encrypted backups are
   copied to "the approved off-host backup location" via manual VPS
   operations process; there is no S3/object-storage upload wired into
@@ -52,16 +52,15 @@ Full procedure: [docs/operations/backup-restore-runbook.md](../operations/backup
   instance. A VPS-level outage (not just a process crash) means downtime
   until the operator provisions a replacement and restores the latest
   backup — there is no standby replica to fail over to.
-- **No documented Recovery Time Objective (RTO) or Recovery Point
-  Objective (RPO)** — these depend on backup cadence, which is an
-  operator decision not yet formalized as policy.
+- **No documented Recovery Time Objective (RTO)** — restore time depends
+  on the database size and the replacement VPS provision time. The on-host
+  backup schedule gives an expected RPO of at most one day, but a VPS loss
+  can still lose every backup until off-host replication is configured.
 
 ## Recommended next steps (not yet implemented)
 
-1. A systemd timer running the backup script on a fixed schedule (e.g.
-   daily), rather than relying on an operator to remember.
-2. Automated off-host upload of the encrypted dump.
-3. A documented RPO/RTO once backup cadence is fixed, and a periodic
+1. Automated off-host upload of the encrypted dump.
+2. A documented RTO and a periodic
    restore-drill to verify backups are actually restorable (an untested
    backup is not a real disaster-recovery plan).
 
@@ -79,3 +78,4 @@ Full procedure: [docs/operations/backup-restore-runbook.md](../operations/backup
 |---------|------|-------------|
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs. |
 | 0.2.0 | 2026-08-12 | Rewritten with the real backup/restore procedure and an honest list of what's not automated yet. |
+| 0.3.0 | 2026-08-21 | Added the daily persistent systemd backup timer and its recovery boundary. |

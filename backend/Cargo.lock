@@ -2104,6 +2104,7 @@ dependencies = [
  "hmac",
  "http-body-util",
  "jsonwebtoken",
+ "openssl",
  "qervon-api-contracts",
  "qervon-application",
  "qervon-billing-module",

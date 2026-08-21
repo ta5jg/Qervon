@@ -77,7 +77,7 @@ public struct NewOrderView: View {
                 QervonCard {
                     VStack(spacing: QervonSpacing.md) {
                         Picker("Ödeme Yöntemi", selection: $viewModel.paymentMethod) {
-                            ForEach(PaymentMethod.allCases, id: \.self) { method in
+                            ForEach(PaymentMethod.allCases.filter { $0 != .qr }, id: \.self) { method in
                                 Text(method.displayName).tag(method)
                             }
                         }
@@ -86,7 +86,7 @@ public struct NewOrderView: View {
                         QervonTextField(title: "Kupon Kodu (opsiyonel)", text: $viewModel.couponCode, autocapitalize: false)
                         QervonTextField(title: "Teslimat Notu (opsiyonel)", text: $viewModel.deliveryNote)
                         QervonTextField(
-                            title: "İletişim Telefonu (opsiyonel)", text: $viewModel.contactPhone, keyboard: .phonePad
+                            title: "İletişim Telefonu", text: $viewModel.contactPhone, keyboard: .phonePad
                         )
 
                         if let errorMessage = viewModel.errorMessage {

@@ -123,7 +123,21 @@
         <div id="task-meta" style="margin-top:8px; font-size:12px; color:var(--text-muted);">Oturumunuzdaki kurye için atanmış iş aranıyor.</div>
       </div>
 
-      <button id="btn-pickup" class="btn-main" onclick="startPickup()" disabled>TESLİM ALMAYA BAŞLA</button>
+      <div class="card" style="margin-top:10px;">
+        <label for="pickup-photo" style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:8px;">Teslim alma fotoğrafı (zorunlu)</label>
+        <input id="pickup-photo" type="file" accept="image/jpeg,image/png" capture="environment" style="width:100%; font-size:11px; color:var(--text-muted);">
+        <button type="button" class="btn-main" style="margin-top:10px; padding:10px; font-size:11px; background:#0f766e;" onclick="openPickupCamera()">KAMERAYI AÇ VE FOTOĞRAF ÇEK</button>
+        <div id="pickup-camera-panel" hidden style="margin-top:10px;">
+          <video id="pickup-camera-preview" autoplay playsinline muted style="width:100%; border-radius:10px; background:#020617;"></video>
+          <canvas id="pickup-camera-canvas" hidden></canvas>
+          <img id="pickup-photo-preview" hidden alt="Teslim alma kanıtı ön izlemesi" style="width:100%; border-radius:10px; margin-top:8px;">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" class="btn-main" style="padding:10px; font-size:11px;" onclick="capturePickupPhoto()">FOTOĞRAFI ÇEK</button>
+            <button type="button" class="btn-main" style="padding:10px; font-size:11px; background:#334155;" onclick="closePickupCamera()">İPTAL</button>
+          </div>
+        </div>
+      </div>
+      <button id="btn-pickup" class="btn-main" onclick="startPickup()" disabled>FOTOĞRAFLA TESLİM AL</button>
     </div>
 
     <!-- TAB 2: POD & DİJİTAL İMZA -->
@@ -191,6 +205,8 @@
     let activeOrder;
     let isOnline = false;
     let locationWatchId = null;
+    let pickupCameraStream = null;
+    let capturedPickupFile = null;
 
     function csrfHeaders() {
       const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
@@ -288,8 +304,57 @@
 
     async function startPickup() {
       if (!activeOrder) return;
-      try { showTask(await api(`/v1/courier/orders/${activeOrder.id}/pickup`, { method: 'POST' })); }
+      const file = capturedPickupFile || document.getElementById('pickup-photo')?.files?.[0];
+      if (!file) { document.getElementById('task-meta').textContent = 'Teslim alma fotoğrafı zorunludur.'; return; }
+      try {
+        const form = new FormData(); form.append('photo', file);
+        const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
+        const response = await fetch(`/v1/courier/orders/${activeOrder.id}/photo-evidence`, { method: 'POST', credentials: 'same-origin', headers: { 'x-csrf-token': csrf }, body: form });
+        if (!response.ok) throw new Error((await response.json().catch(() => ({}))).detail || 'Fotoğraf yüklenemedi');
+        const upload = await response.json();
+        showTask(await api(`/v1/courier/orders/${activeOrder.id}/pickup`, { method: 'POST', body: JSON.stringify({ pickup_photo_evidence_url: upload.url }) }));
+      }
       catch (error) { document.getElementById('task-meta').textContent = `Teslim alma işlemi tamamlanamadı: ${error.message}`; }
+    }
+
+    async function openPickupCamera() {
+      const meta = document.getElementById('task-meta');
+      if (!navigator.mediaDevices?.getUserMedia) {
+        meta.textContent = 'Bu tarayıcı kamerayı desteklemiyor; dosya seçimini kullanın.';
+        return;
+      }
+      try {
+        closePickupCamera();
+        pickupCameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        document.getElementById('pickup-camera-preview').srcObject = pickupCameraStream;
+        document.getElementById('pickup-camera-panel').hidden = false;
+        meta.textContent = 'Paketi görünür şekilde kadraja alın ve fotoğrafı çekin.';
+      } catch (_) {
+        meta.textContent = 'Kamera açılamadı. Kamera iznini verin veya dosya seçimini kullanın.';
+      }
+    }
+
+    function capturePickupPhoto() {
+      const video = document.getElementById('pickup-camera-preview');
+      const canvas = document.getElementById('pickup-camera-canvas');
+      if (!video.videoWidth || !video.videoHeight) return;
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        if (!blob) return;
+        capturedPickupFile = new File([blob], `pickup-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const preview = document.getElementById('pickup-photo-preview');
+        preview.src = URL.createObjectURL(blob); preview.hidden = false;
+        document.getElementById('task-meta').textContent = 'Teslim alma fotoğrafı hazır. “Fotoğrafla teslim al” ile devam edin.';
+        closePickupCamera(false);
+      }, 'image/jpeg', 0.9);
+    }
+
+    function closePickupCamera(hidePreview = false) {
+      pickupCameraStream?.getTracks().forEach(track => track.stop());
+      pickupCameraStream = null;
+      document.getElementById('pickup-camera-panel').hidden = true;
+      if (hidePreview) document.getElementById('pickup-photo-preview').hidden = true;
     }
 
     async function completeDelivery() {

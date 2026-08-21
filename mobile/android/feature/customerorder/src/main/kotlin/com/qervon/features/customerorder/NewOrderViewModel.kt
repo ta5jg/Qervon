@@ -48,7 +48,7 @@ data class NewOrderUiState(
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
 ) {
-    val canSubmit: Boolean get() = pickup != null && dropoff != null && !isSubmitting
+    val canSubmit: Boolean get() = pickup != null && dropoff != null && contactPhone.count { it.isDigit() } >= 10 && !isSubmitting
 }
 
 sealed class NewOrderEvent {
@@ -111,6 +111,10 @@ class NewOrderViewModel @Inject constructor(private val api: QervonApi) : ViewMo
         val state = _uiState.value
         val pickup = state.pickup ?: return
         val dropoff = state.dropoff ?: return
+        if (state.contactPhone.count { it.isDigit() } < 10) {
+            _uiState.value = state.copy(errorMessage = "Geçerli bir iletişim telefon numarası girin.")
+            return
+        }
         viewModelScope.launch {
             _uiState.value = state.copy(isSubmitting = true, errorMessage = null)
             try {

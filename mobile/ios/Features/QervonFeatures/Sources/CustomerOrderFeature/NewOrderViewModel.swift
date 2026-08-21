@@ -42,7 +42,7 @@ public final class NewOrderViewModel: ObservableObject {
     }
 
     public var canSubmit: Bool {
-        pickup != nil && dropoff != nil && !isSubmitting
+        pickup != nil && dropoff != nil && contactPhone.filter(\.isNumber).count >= 10 && !isSubmitting
     }
 
     public func setPickup(_ address: Address) {
@@ -82,6 +82,10 @@ public final class NewOrderViewModel: ObservableObject {
 
     public func submit() async -> Order? {
         guard let pickup, let dropoff else { return nil }
+        guard contactPhone.filter(\.isNumber).count >= 10 else {
+            errorMessage = "Geçerli bir iletişim telefon numarası girin."
+            return nil
+        }
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }

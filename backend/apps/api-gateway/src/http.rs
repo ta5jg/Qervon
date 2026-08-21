@@ -834,6 +834,11 @@ struct CompleteDeliveryRequest {
 }
 
 #[derive(Deserialize)]
+struct CompletePickupRequest {
+    pickup_photo_evidence_url: String,
+}
+
+#[derive(Deserialize)]
 struct CreateCustomerAddressRequest {
     label: String,
     latitude: f64,
@@ -2472,10 +2477,19 @@ async fn courier_start_transit(
     State(state): State<AppState>,
     Path(order_id): Path<uuid::Uuid>,
     Extension(claims): Extension<AccessClaims>,
+    Json(request): Json<CompletePickupRequest>,
 ) -> Result<Json<OrderResponse>, ApiError> {
     let order_id = OrderId(order_id);
     require_courier_order(&state, order_id, &claims).await?;
-    let order = state.dispatch.start_transit(order_id).await?;
+    if request.pickup_photo_evidence_url.trim().is_empty() {
+        return Err(ApiError::unprocessable(
+            "pickup photo evidence is required before transit",
+        ));
+    }
+    let order = state
+        .dispatch
+        .start_transit_with_evidence(order_id, request.pickup_photo_evidence_url)
+        .await?;
     Ok(Json((&order).into()))
 }
 
@@ -3892,6 +3906,55 @@ async fn create_customer_order(
     Json(request): Json<CreateCustomerOrderRequest>,
 ) -> Result<(StatusCode, Json<OrderResponse>), ApiError> {
     let tenant_id = TenantId(claims.tenant_id);
+    let contact_phone = request
+        .contact_phone
+        .as_deref()
+        .map(str::trim)
+        .filter(|phone| !phone.is_empty());
+    if contact_phone.is_none_or(|phone| {
+        phone
+            .chars()
+            .filter(|character| character.is_ascii_digit())
+            .count()
+            < 10
+    }) {
+        return Err(ApiError::unprocessable(
+            "a valid contact phone number is required",
+        ));
+    }
+    if request
+        .payment_method
+        .as_deref()
+        .is_some_and(|method| method.eq_ignore_ascii_case("qr"))
+    {
+        return Err(ApiError::unprocessable(
+            "QR payment is temporarily unavailable",
+        ));
+    }
+    let now = Utc::now();
+    let mut most_recent_order: Option<qervon_domain::Order> = None;
+    for order in state.orders.list_all().await? {
+        if order.customer_id == claims.subject
+            && !matches!(order.status, qervon_domain::OrderStatus::Cancelled)
+            && state.tenants.find_order_tenant(order.id).await? == Some(tenant_id)
+            && match most_recent_order.as_ref() {
+                Some(latest) => order.created_at > latest.created_at,
+                None => true,
+            }
+        {
+            most_recent_order = Some(order);
+        }
+    }
+    if let Some(order) = most_recent_order {
+        let elapsed_seconds = now.signed_duration_since(order.created_at).num_seconds();
+        if elapsed_seconds < 120 {
+            let remaining_seconds = 120 - elapsed_seconds.max(0);
+            return Err(ApiError {
+                status: StatusCode::TOO_MANY_REQUESTS,
+                detail: format!("Yeni sipariş için {remaining_seconds} saniye bekleyin."),
+            });
+        }
+    }
     let pickup = to_address(request.pickup)?;
     let dropoff = to_address(request.dropoff)?;
     // The fare is always computed here, server-side, from the tenant's
@@ -3925,7 +3988,7 @@ async fn create_customer_order(
             fare: Money::new(fare_amount_minor, quote.currency)?,
             payment_method,
             delivery_note: request.delivery_note,
-            contact_phone: request.contact_phone,
+            contact_phone: contact_phone.map(str::to_owned),
         })
         .await?;
     state.tenants.bind_order(tenant_id, order.id).await?;

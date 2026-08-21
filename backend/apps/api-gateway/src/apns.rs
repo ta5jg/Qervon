@@ -273,29 +273,30 @@ fn env_non_empty(key: &str) -> Option<String> {
 mod tests {
     use super::*;
 
-    /// A throwaway EC P-256 keypair generated solely for this test
-    /// (`openssl ecparam -genkey -name prime256v1 -noout | openssl pkcs8
-    /// -topk8 -nocrypt`) — it signs nothing real and is not Apple
-    /// credential material. Verifies the JWT construction (ES256, correct
-    /// `kid`/`iss` claims, and that the signature actually verifies against
-    /// the matching public key) without making any network call.
-    const TEST_KEY_PEM: &str = "-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgKyCncpOO1V9NLM1f
-1Ofc3KSkxM46P/V74HUEi/tHVAKhRANCAASV0CoUAbVW9iZNPfNF7Z/s8BDgV/ow
-qwgQeNNugqvPHnniXiU+23dnE5ExzcAPORbEmKGAi4qv2XjloqrtCkPf
------END PRIVATE KEY-----";
+    fn test_keypair_pem() -> (String, String) {
+        use openssl::{
+            ec::{EcGroup, EcKey},
+            nid::Nid,
+            pkey::PKey,
+        };
 
-    const TEST_PUBLIC_KEY_PEM: &str = "-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEldAqFAG1VvYmTT3zRe2f7PAQ4Ff6
-MKsIEHjTboKrzx554l4lPtt3ZxORMc3ADzkWxJihgIuKr9l45aKq7QpD3w==
------END PUBLIC KEY-----";
+        let group = EcGroup::from_curve_name(Nid::X9_62_PRIME256V1).expect("P-256 curve");
+        let key = EcKey::generate(&group).expect("generate ephemeral test key");
+        let key = PKey::from_ec_key(key).expect("convert ephemeral test key");
+        let private_key =
+            String::from_utf8(key.private_key_to_pem_pkcs8().expect("encode private key"))
+                .expect("private key is PEM text");
+        let public_key = String::from_utf8(key.public_key_to_pem().expect("encode public key"))
+            .expect("public key is PEM text");
+        (private_key, public_key)
+    }
 
-    fn test_client() -> ApnsClient {
+    fn test_client(private_key_pem: String) -> ApnsClient {
         ApnsClient {
             config: ApnsConfig {
                 team_id: "TEST1234TM".into(),
                 key_id: "TESTKEY123".into(),
-                private_key_pem: TEST_KEY_PEM.into(),
+                private_key_pem,
                 bundle_id_courier: Some("com.qervon.ios.courier".into()),
                 bundle_id_customer: None,
                 use_sandbox: true,
@@ -307,13 +308,14 @@ MKsIEHjTboKrzx554l4lPtt3ZxORMc3ADzkWxJihgIuKr9l45aKq7QpD3w==
 
     #[test]
     fn signs_a_provider_token_with_expected_header_and_claims() {
-        let client = test_client();
+        let (private_key, public_key) = test_keypair_pem();
+        let client = test_client(private_key);
         let jwt = client.provider_token().expect("sign provider token");
 
         let mut validation = jsonwebtoken::Validation::new(Algorithm::ES256);
         validation.required_spec_claims.clear();
-        let decoding_key = jsonwebtoken::DecodingKey::from_ec_pem(TEST_PUBLIC_KEY_PEM.as_bytes())
-            .expect("decoding key");
+        let decoding_key =
+            jsonwebtoken::DecodingKey::from_ec_pem(public_key.as_bytes()).expect("decoding key");
         // Deliberately does NOT disable signature validation: this proves
         // the JWT is actually signed correctly with the matching private
         // key, not just shaped correctly.
@@ -327,7 +329,8 @@ MKsIEHjTboKrzx554l4lPtt3ZxORMc3ADzkWxJihgIuKr9l45aKq7QpD3w==
 
     #[test]
     fn caches_the_provider_token_across_calls() {
-        let client = test_client();
+        let (private_key, _) = test_keypair_pem();
+        let client = test_client(private_key);
         let first = client.provider_token().expect("first token");
         let second = client.provider_token().expect("second token");
         assert_eq!(first, second, "token should be reused within its lifetime");
@@ -335,7 +338,8 @@ MKsIEHjTboKrzx554l4lPtt3ZxORMc3ADzkWxJihgIuKr9l45aKq7QpD3w==
 
     #[test]
     fn reports_missing_bundle_id_for_unconfigured_app_variant() {
-        let client = test_client();
+        let (private_key, _) = test_keypair_pem();
+        let client = test_client(private_key);
         let error = client
             .config
             .bundle_id_for(AppVariant::Customer)

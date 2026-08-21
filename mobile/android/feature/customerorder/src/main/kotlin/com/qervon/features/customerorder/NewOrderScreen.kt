@@ -52,7 +52,6 @@ private enum class NewOrderStep { FORM, PICK_PICKUP, PICK_DROPOFF }
 private val paymentOptions = listOf(
     PaymentMethod.CASH to "Nakit",
     PaymentMethod.CARD to "Kart",
-    PaymentMethod.QR to "QR",
     PaymentMethod.WALLET to "Cüzdan",
 )
 
@@ -133,7 +132,7 @@ fun NewOrderScreen(
             OutlinedTextField(
                 value = state.contactPhone,
                 onValueChange = viewModel::onContactPhoneChanged,
-                label = { Text("İletişim telefonu (opsiyonel)") },
+                label = { Text("İletişim telefonu") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )

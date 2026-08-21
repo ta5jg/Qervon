@@ -182,6 +182,8 @@ pub struct Order {
     /// A contact number for the courier to reach at the dropoff, distinct
     /// from the account holder's own phone. Set once at creation.
     pub contact_phone: Option<String>,
+    /// Immutable URL of the courier's pickup photo, required before transit.
+    pub pickup_photo_evidence_url: Option<String>,
 }
 
 impl Order {
@@ -214,6 +216,7 @@ impl Order {
             payment_collected: false,
             delivery_note: delivery_note.filter(|note| !note.trim().is_empty()),
             contact_phone: contact_phone.filter(|phone| !phone.trim().is_empty()),
+            pickup_photo_evidence_url: None,
         })
     }
 
@@ -251,6 +254,22 @@ impl Order {
         }
         self.assigned_courier_id = Some(courier_id);
         self.status = OrderStatus::CourierAssigned;
+        Ok(())
+    }
+
+    pub fn record_pickup_evidence(
+        &mut self,
+        photo_url: impl Into<String>,
+    ) -> Result<(), DomainError> {
+        let photo_url = photo_url.into();
+        if !photo_url.starts_with("/v1/uploads/pickup-photos/")
+            && !photo_url.starts_with("/v1/uploads/delivery-photos/")
+        {
+            return Err(DomainError::validation(
+                "pickup evidence must be an uploaded pickup photo",
+            ));
+        }
+        self.pickup_photo_evidence_url = Some(photo_url);
         Ok(())
     }
 

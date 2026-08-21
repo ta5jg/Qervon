@@ -134,6 +134,16 @@ where
         self.service.start_transit(order_id).await
     }
 
+    pub async fn start_transit_with_evidence(
+        &self,
+        order_id: OrderId,
+        pickup_photo_evidence_url: String,
+    ) -> Result<Order, qervon_application::ApplicationError> {
+        self.service
+            .start_transit_with_evidence(order_id, Some(pickup_photo_evidence_url))
+            .await
+    }
+
     pub async fn deliver_order(
         &self,
         order_id: OrderId,

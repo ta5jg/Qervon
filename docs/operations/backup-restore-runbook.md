@@ -2,6 +2,13 @@
 
 Production backups run directly on the VPS; Docker is not required.
 
+`qervon-backup.timer` runs the same command daily at 02:15 with up to 15
+minutes of random delay. Check its next/last run with:
+
+```sh
+systemctl list-timers qervon-backup.timer
+```
+
 ```sh
 sudo -u qervon DATABASE_URL='postgres://...' /opt/qervon/scripts/backup-postgres.sh
 ```

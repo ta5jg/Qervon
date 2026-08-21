@@ -55,9 +55,10 @@ async fn run_migrations(pool: &PgPool, dir: &Path) -> Result<usize, sqlx::Error>
 
     let mut applied = 0;
     for file in files {
-        let key = file.to_string_lossy().to_string();
+        let key = migration_key(dir, &file);
         let already_applied = sqlx::query_scalar::<_, bool>(&format!(
-            "SELECT EXISTS(SELECT 1 FROM {BOOKKEEPING} WHERE file = $1)"
+            "SELECT EXISTS(SELECT 1 FROM {BOOKKEEPING} \
+             WHERE file = $1 OR file LIKE ('%' || '/' || $1))"
         ))
         .bind(&key)
         .fetch_one(pool)
@@ -82,6 +83,13 @@ async fn run_migrations(pool: &PgPool, dir: &Path) -> Result<usize, sqlx::Error>
         tracing::info!(file = %file.to_string_lossy(), "applied migration");
     }
     Ok(applied)
+}
+
+fn migration_key(dir: &Path, file: &Path) -> String {
+    file.strip_prefix(dir)
+        .unwrap_or(file)
+        .to_string_lossy()
+        .replace('\\', "/")
 }
 
 fn migration_phase(file: &Path) -> u8 {
@@ -139,6 +147,16 @@ mod tests {
         assert!(is_effectively_empty("-- hello\n-- world\n"));
         assert!(!is_effectively_empty("-- hello\nCREATE TABLE x (id int);"));
         assert!(is_effectively_empty("\n\n  \n"));
+    }
+
+    #[test]
+    fn migration_key_is_release_path_independent() {
+        let dir = Path::new("/opt/qervon/migrations");
+        let file = dir.join("identity/00000000000000_initial.sql");
+        assert_eq!(
+            migration_key(dir, &file),
+            "identity/00000000000000_initial.sql"
+        );
     }
 
     #[test]

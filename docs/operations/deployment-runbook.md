@@ -36,9 +36,9 @@ This runbook defines how to execute and verify deployment runbook safely in the 
 1. Create a non-login `qervon` user and `/etc/qervon/qervon.env` readable only by that user.
 2. Set `QERVON_STORAGE=postgres`, `DATABASE_URL`, a 32+ character random `QERVON_TOKEN_SIGNING_SECRET`, a base64-encoded 32-byte `QERVON_WEBHOOK_ENCRYPTION_KEY`, `QERVON_API_ACCESS_TOKEN`, `QERVON_LISTEN=127.0.0.1:8080`, and `RUST_LOG` in that environment file. These secrets are mandatory in every production runtime.
 3. Set `QERVON_UPLOADS_DIR` to an absolute, persistent path outside `/opt/qervon/bin/` (e.g. `/var/lib/qervon/uploads`), owned by the `qervon` user — this is where uploaded delivery-proof photos are stored (see QLS-000013); it must survive binary redeploys. Unlike PostgreSQL (QAS-000015), this directory has no automated backup procedure yet — treat that as an open gap, not an assumption.
-4. Install `infrastructure/systemd/qervon-api.service` and `infrastructure/systemd/qervon-worker.service` under `/etc/systemd/system/`.
+4. Install `infrastructure/systemd/qervon-api.service`, `infrastructure/systemd/qervon-worker.service`, `infrastructure/systemd/qervon-backup.service`, and `infrastructure/systemd/qervon-backup.timer` under `/etc/systemd/system/`.
 5. Apply migrations with the migration runner before restarting the API.
-6. Run `systemctl daemon-reload && systemctl enable --now qervon-api qervon-worker`.
+6. Run `systemctl daemon-reload && systemctl enable --now qervon-api qervon-worker qervon-backup.timer`. The timer creates a PostgreSQL custom-format backup once daily at 02:15 with a bounded random delay; `Persistent=true` runs a missed backup after reboot.
 7. Put Caddy or Nginx in front of `127.0.0.1:8080` to terminate TLS; do not expose PostgreSQL or Redis publicly.
 
 ### First tenant owner bootstrap
@@ -64,7 +64,7 @@ For a fresh PostgreSQL installation, the same first owner can be created through
 
 ### Verification and rollback
 
-1. Check `systemctl status qervon-api` and `journalctl -u qervon-api -n 100`.
+1. Check `systemctl status qervon-api`, `systemctl status qervon-worker`, `systemctl list-timers qervon-backup.timer`, and `journalctl -u qervon-api -n 100`.
 2. Verify `curl http://127.0.0.1:8080/health` locally on the VPS before switching proxy traffic.
 3. On failure, stop the service, restore the `.previous` binary, restart it, and investigate before reattempting the release.
 
