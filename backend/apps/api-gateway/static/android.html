@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Qervon Android — APK Kurulum</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta name="description" content="Qervon Kurye ve Müşteri Android uygulamalarını APK olarak indirip kurun. Play Store beklemeden doğrudan yükleme.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@1.31.0/dist/umd/lucide.js"></script>
+  <style>
+    :root {
+      --bg-base: #060913;
+      --bg-card: rgba(30, 41, 59, 0.55);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --accent-green: #10b981;
+      --accent-green-dark: #047857;
+      --accent-cyan: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(60vw 40vh at 85% -5%, rgba(16, 185, 129, 0.14), transparent 60%),
+        radial-gradient(50vw 40vh at 5% 15%, rgba(56, 189, 248, 0.10), transparent 60%);
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: 880px; margin: 0 auto; padding: 32px 22px 64px; }
+    .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 36px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      width: 80px; height: 80px; border-radius: 20px; overflow: hidden; background: #020617;
+    }
+    .brand-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .brand h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.5px; }
+    .brand span { font-size: 10px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1.5px; }
+    .back { color: var(--text-muted); font-size: 13px; font-weight: 700; }
+    .back:hover { color: var(--text-main); }
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+    }
+    h2 { font-size: 34px; font-weight: 800; letter-spacing: -0.4px; margin-bottom: 12px; }
+    .lead { color: var(--text-muted); line-height: 1.65; margin-bottom: 28px; }
+    .note {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 14px 16px; border-radius: 14px; margin-bottom: 28px;
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      background: rgba(56, 189, 248, 0.08);
+      color: var(--text-muted); font-size: 13.5px; line-height: 1.55;
+    }
+    .note i { color: var(--accent-cyan); margin-top: 2px; flex-shrink: 0; }
+    .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 36px; }
+    .app {
+      border-radius: 20px; padding: 22px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .app h3 { font-size: 18px; font-weight: 800; }
+    .app p { color: var(--text-muted); font-size: 13.5px; line-height: 1.55; }
+    .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-faint); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 18px; border-radius: 12px; font-size: 14px; font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
+      color: #04120c;
+    }
+    .steps { border-radius: 20px; padding: 22px; }
+    .steps h3 { margin-bottom: 16px; font-size: 16px; }
+    .steps ol { padding-left: 20px; color: var(--text-muted); line-height: 1.7; font-size: 14px; }
+    .steps li { margin-bottom: 8px; }
+    @media (max-width: 720px) {
+      .apps { grid-template-columns: 1fr; }
+      h2 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <a class="brand" href="/">
+        <div class="brand-icon"><img src="/logo.png" alt="Qervon" width="80" height="80"></div>
+        <div>
+          <h1>QERVON</h1>
+          <span>ANDROID APK</span>
+        </div>
+      </a>
+      <a class="back" href="/">← Ana sayfa</a>
+    </div>
+
+    <h2>Android uygulamalarını indir</h2>
+    <p class="lead">Play Store doğrulaması tamamlanana kadar Kurye ve Müşteri uygulamalarını doğrudan APK olarak kurabilirsiniz. Paketler canlı sunucuya (`qervon.io`) bağlıdır.</p>
+
+    <div class="note">
+      <i data-lucide="shield-alert" style="width:18px;height:18px;"></i>
+      <div>Bu bir Play Store linki değil. Telefonda <strong>Bilinmeyen kaynaklardan kurulum</strong> iznini açmanız gerekir. Chrome “zararlı olabilir” uyarısı gösterebilir; dosya bizim imzalı paketimizdir.</div>
+    </div>
+
+    <div class="apps">
+      <article class="app glass">
+        <h3>Qervon Kurye</h3>
+        <p>Online/offline, iş teklifi, navigasyon, teslim kanıtı ve kazançlar.</p>
+        <div class="meta">com.qervon.android.courier · 0.1.0</div>
+        <a class="btn" href="https://github.com/ta5jg/Qervon/releases/download/android-0.1.0/Qervon-Kurye.apk">
+          <i data-lucide="download" style="width:16px;height:16px;"></i> APK indir
+        </a>
+      </article>
+      <article class="app glass">
+        <h3>Qervon Müşteri</h3>
+        <p>Sipariş oluşturma, canlı takip, adres defteri ve destek.</p>
+        <div class="meta">com.qervon.android.customer · 0.1.0</div>
+        <a class="btn" href="https://github.com/ta5jg/Qervon/releases/download/android-0.1.0/Qervon-Musteri.apk">
+          <i data-lucide="download" style="width:16px;height:16px;"></i> APK indir
+        </a>
+      </article>
+    </div>
+
+    <div class="steps glass">
+      <h3>Kurulum</h3>
+      <ol>
+        <li>Android telefonda bu sayfayı açın ve ilgili APK’yi indirin.</li>
+        <li>İndirilenler’den dosyaya dokunun. İstenirse <strong>Bu kaynaktan yüklemeye izin ver</strong> deyin.</li>
+        <li>Kurulumdan sonra uygulamayı açın.</li>
+        <li>Tenant: <strong>qervon</strong>. Kendi e-posta ve parolanızla giriş yapın.</li>
+      </ol>
+    </div>
+  </div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

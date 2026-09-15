@@ -71,6 +71,11 @@ targets:
       path: QervonCourierApp/Info.plist
       properties:
         CFBundleDisplayName: Qervon Kurye
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         UILaunchScreen: {}
         UIBackgroundModes:
           - location
@@ -94,7 +99,7 @@ targets:
     entitlements:
       path: QervonCourierApp/QervonCourierApp.entitlements
       properties:
-        aps-environment: development
+        aps-environment: $(APS_ENVIRONMENT)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.courier
@@ -108,7 +113,13 @@ targets:
         DEVELOPMENT_TEAM: "27575FW23Y"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
+      configs:
+        Debug:
+          APS_ENVIRONMENT: development
+        Release:
+          APS_ENVIRONMENT: production
 
   QervonCustomerApp:
     type: application
@@ -137,6 +148,11 @@ targets:
       path: QervonCustomerApp/Info.plist
       properties:
         CFBundleDisplayName: Qervon
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UIRequiresFullScreen: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
         UILaunchScreen: {}
         NSLocationWhenInUseUsageDescription: >-
           Qervon, alım adresinizi kolayca seçebilmeniz ve kuryenizin
@@ -149,7 +165,7 @@ targets:
     entitlements:
       path: QervonCustomerApp/QervonCustomerApp.entitlements
       properties:
-        aps-environment: development
+        aps-environment: $(APS_ENVIRONMENT)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.qervon.ios.customer
@@ -163,7 +179,13 @@ targets:
         DEVELOPMENT_TEAM: "27575FW23Y"
         GENERATE_INFOPLIST_FILE: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
         SUPPORTS_MACCATALYST: NO
+      configs:
+        Debug:
+          APS_ENVIRONMENT: development
+        Release:
+          APS_ENVIRONMENT: production
 
 schemes:
   QervonCourierApp:

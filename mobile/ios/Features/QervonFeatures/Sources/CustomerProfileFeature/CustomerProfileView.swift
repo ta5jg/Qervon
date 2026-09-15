@@ -278,7 +278,7 @@ private struct ServerAddressField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: QervonSpacing.sm) {
-            Text("Simülatörde varsayılan olarak \(APIEnvironment.defaultBaseURL.absoluteString) kullanılır.")
+            Text("Varsayılan canlı sunucu: \(APIEnvironment.defaultBaseURL.absoluteString). Canlı sunucuya dönmek için alanı boş kaydedin.")
                 .font(.system(size: 12))
                 .foregroundColor(QervonColor.textSecondary)
             QervonTextField(title: "http://192.168.x.x:8080", text: $serverOverride, autocapitalize: false)

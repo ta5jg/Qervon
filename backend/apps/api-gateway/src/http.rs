@@ -233,6 +233,39 @@ async fn serve_mobile_admin() -> axum::response::Html<&'static str> {
     axum::response::Html(include_str!("../static/mobile-admin.html"))
 }
 
+async fn serve_android_downloads() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "public, max-age=300")],
+        axum::response::Html(include_str!("../static/android.html")),
+    )
+}
+
+fn png_response(bytes: &'static [u8]) -> impl IntoResponse {
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=604800"),
+        ],
+        bytes,
+    )
+}
+
+async fn serve_brand_logo() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-logo.png"))
+}
+
+async fn serve_brand_icon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-icon-192.png"))
+}
+
+async fn serve_brand_favicon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-favicon.png"))
+}
+
+async fn serve_apple_touch_icon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-icon-180.png"))
+}
+
 pub fn router(state: AppState) -> Router {
     let public = Router::new()
         .route("/", get(serve_home))
@@ -259,6 +292,13 @@ pub fn router(state: AppState) -> Router {
         .route("/field-service.html", get(serve_field_service_console))
         .route("/mobile-admin", get(serve_mobile_admin))
         .route("/mobile-admin.html", get(serve_mobile_admin))
+        .route("/android", get(serve_android_downloads))
+        .route("/android.html", get(serve_android_downloads))
+        .route("/logo.png", get(serve_brand_logo))
+        .route("/icon.png", get(serve_brand_icon))
+        .route("/favicon.png", get(serve_brand_favicon))
+        .route("/favicon.ico", get(serve_brand_favicon))
+        .route("/apple-touch-icon.png", get(serve_apple_touch_icon))
         .route("/manifest.webmanifest", get(serve_web_manifest))
         .route("/sw.js", get(serve_service_worker))
         .route("/swagger-ui", get(serve_swagger_ui))

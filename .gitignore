@@ -59,3 +59,7 @@ mobile/ios/.build-artifacts/
 
 # Accidental Finder duplicates
 .github copy/
+# Android release signing material must never enter source control.
+mobile/android/*.jks
+mobile/android/*.keystore
+mobile/android/keystore.properties

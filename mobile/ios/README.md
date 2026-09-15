@@ -121,11 +121,12 @@ workflow works too and additionally lets you boot the app in a simulator.
 
 ## Backend
 
-Defaults to `http://127.0.0.1:8080` (the Simulator's view of the host Mac's
-loopback address). Run the backend locally first — see the root
-[README.md](../../README.md) and [backend/README.md](../../backend/README.md).
-On a real device, `127.0.0.1` doesn't resolve to your Mac; set your Mac's LAN
-IP from the Profile screen's "Sunucu Adresi" field (present in both apps).
+Every build defaults to the live `https://qervon.io` API. This includes Debug
+builds installed directly from Xcode, because a physical device resolves
+`127.0.0.1` to itself rather than to the developer's Mac. To use a local
+backend, set the Mac's LAN URL (for example `http://192.168.x.x:8080`) from the
+Profile screen's "Sunucu Adresi" field in either app. Clear and save that field
+to return to the live API.
 
 ## Honesty notes (what is real vs. intentionally deferred)
 

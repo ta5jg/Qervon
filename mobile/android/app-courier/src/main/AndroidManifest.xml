@@ -22,14 +22,7 @@ License:        Qervon License v1.0 — see LICENSE in the repository root.
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/Theme.Qervon"
-        android:usesCleartextTraffic="true">
-
-        <!--
-        usesCleartextTraffic=true: local/dev backends are commonly plain
-        HTTP (see APIEnvironment). Production deployments behind
-        silhor.com are expected to terminate TLS, at which point this
-        should be tightened; see BACKEND_BACKLOG.md.
-        -->
+        android:usesCleartextTraffic="false">
 
         <activity
             android:name=".MainActivity"

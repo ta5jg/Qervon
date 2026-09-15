@@ -21,6 +21,26 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+val releaseKeystoreFile = providers.environmentVariable("QERVON_ANDROID_KEYSTORE_FILE").orNull
+val releaseStorePassword = providers.environmentVariable("QERVON_ANDROID_STORE_PASSWORD").orNull
+val releaseKeyAlias = providers.environmentVariable("QERVON_ANDROID_KEY_ALIAS").orNull
+val releaseKeyPassword = providers.environmentVariable("QERVON_ANDROID_KEY_PASSWORD").orNull
+val hasReleaseSigning = listOf(
+    releaseKeystoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword,
+).all { !it.isNullOrBlank() }
+val releaseSigningRequested = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+
+if (releaseSigningRequested) {
+    require(hasReleaseSigning) {
+        "Android release signing environment is incomplete. Use scripts/build-android-release.sh."
+    }
+}
+
 android {
     namespace = "com.qervon.android.customer"
     compileSdk = 36
@@ -33,9 +53,27 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = file(requireNotNull(releaseKeystoreFile))
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
+        debug {
+            val debugApiBaseUrl = (project.findProperty("qervon.apiBaseUrl") as String?)
+                ?: "http://10.0.2.2:8080"
+            buildConfigField("String", "API_BASE_URL", "\"$debugApiBaseUrl\"")
+        }
         release {
             isMinifyEnabled = false
+            buildConfigField("String", "API_BASE_URL", "\"https://qervon.io\"")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -48,6 +86,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
