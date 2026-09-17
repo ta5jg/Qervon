@@ -23,6 +23,9 @@ public struct LoginView: View {
     private let showsRegistration: Bool
     private let api: QervonAPI
     @State private var showingRegister = false
+    @State private var showingForgotPassword = false
+    @State private var forgotEmail = ""
+    @State private var forgotMessage: String?
 
     public init(
         api: QervonAPI,
@@ -116,6 +119,37 @@ public struct LoginView: View {
             }
             .buttonStyle(QervonButtonStyle(isEnabled: viewModel.canSubmitPassword))
             .disabled(!viewModel.canSubmitPassword || viewModel.isLoading)
+            Button("Şifremi unuttum") {
+                forgotEmail = viewModel.email
+                showingForgotPassword.toggle()
+            }
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundColor(QervonColor.textSecondary)
+            if showingForgotPassword {
+                QervonTextField(title: "Sıfırlama e-postası", text: $forgotEmail, autocapitalize: false, keyboard: .emailAddress)
+                Button("Sıfırlama bağlantısı gönder") {
+                    Task { await sendForgotPassword() }
+                }
+                .buttonStyle(QervonButtonStyle(kind: .secondary))
+                if let forgotMessage {
+                    Text(forgotMessage)
+                        .font(.system(size: 12))
+                        .foregroundColor(QervonColor.textSecondary)
+                }
+            }
+        }
+    }
+
+    private func sendForgotPassword() async {
+        do {
+            let result = try await api.forgotPassword(email: forgotEmail)
+            if let url = result.devResetUrl, !url.isEmpty {
+                forgotMessage = "Geliştirme sıfırlama bağlantısı: \(url)"
+            } else {
+                forgotMessage = "Bu e-posta kayıtlıysa sıfırlama bağlantısı gönderildi."
+            }
+        } catch {
+            forgotMessage = error.localizedDescription
         }
     }
 

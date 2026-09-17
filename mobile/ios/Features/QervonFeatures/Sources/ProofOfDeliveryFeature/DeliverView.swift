@@ -42,7 +42,7 @@ public struct DeliverView: View {
                         QervonTextField(title: "Alıcı Adı", text: $viewModel.recipientName)
 
                         proofRow(
-                            title: "QR / Barkod",
+                            title: "QR / Barkod (opsiyonel)",
                             isDone: viewModel.qrBarcodeVerified,
                             doneLabel: viewModel.scannedCode ?? "Manuel onaylandı"
                         ) {
@@ -65,7 +65,7 @@ public struct DeliverView: View {
                             showingCamera = true
                         }
 
-                        Toggle("QR/Barkod doğrulandı (manuel)", isOn: $viewModel.qrBarcodeVerified)
+                        Toggle("QR/Barkod doğrulandı (opsiyonel)", isOn: $viewModel.qrBarcodeVerified)
                             .tint(QervonColor.accent)
                             .foregroundColor(QervonColor.textPrimary)
 

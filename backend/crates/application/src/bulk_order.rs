@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 
 pub const MAX_BULK_ORDER_ROWS: usize = 100;
 
-const REQUIRED_HEADERS: [&str; 8] = [
+const REQUIRED_HEADERS: [&str; 9] = [
     "reference",
     "pickup_label",
     "pickup_latitude",
@@ -28,10 +28,11 @@ const REQUIRED_HEADERS: [&str; 8] = [
     "dropoff_label",
     "dropoff_latitude",
     "dropoff_longitude",
+    "recipient_name",
     "contact_phone",
 ];
 
-const ALLOWED_HEADERS: [&str; 10] = [
+const ALLOWED_HEADERS: [&str; 11] = [
     "reference",
     "pickup_label",
     "pickup_latitude",
@@ -39,6 +40,7 @@ const ALLOWED_HEADERS: [&str; 10] = [
     "dropoff_label",
     "dropoff_latitude",
     "dropoff_longitude",
+    "recipient_name",
     "contact_phone",
     "payment_method",
     "delivery_note",
@@ -55,6 +57,7 @@ pub struct BulkOrderRow {
     pub dropoff_label: String,
     pub dropoff_latitude: f64,
     pub dropoff_longitude: f64,
+    pub recipient_name: String,
     pub contact_phone: String,
     #[serde(default)]
     pub payment_method: Option<String>,
@@ -105,6 +108,7 @@ impl BulkOrderParser {
             row.reference = row.reference.trim().to_owned();
             row.pickup_label = row.pickup_label.trim().to_owned();
             row.dropoff_label = row.dropoff_label.trim().to_owned();
+            row.recipient_name = row.recipient_name.trim().to_owned();
             row.contact_phone = row.contact_phone.trim().to_owned();
             row.payment_method = row
                 .payment_method
@@ -161,6 +165,11 @@ impl BulkOrderParser {
             "dropoff_longitude",
             line,
         )?;
+        if row.recipient_name.is_empty() || row.recipient_name.chars().count() > 120 {
+            return Err(format!(
+                "Satır {line}: recipient_name 1-120 karakter arasında olmalıdır"
+            ));
+        }
         if row
             .contact_phone
             .chars()
@@ -212,8 +221,8 @@ mod tests {
 
     #[test]
     fn parses_valid_bulk_order_csv() {
-        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note\n\
-        ORD-001,\"Pickup, Point\",41.0,29.0,Dropoff Point,41.1,29.1,05550000000,CARD,Kapıcıya bırakın\n";
+        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone,payment_method,delivery_note\n\
+        ORD-001,\"Pickup, Point\",41.0,29.0,Dropoff Point,41.1,29.1,Ayşe Yılmaz,05550000000,CARD,Kapıcıya bırakın\n";
 
         let parsed = BulkOrderParser::parse_csv(csv_data).unwrap();
         assert_eq!(parsed.len(), 1);
@@ -224,8 +233,8 @@ mod tests {
 
     #[test]
     fn accepts_excel_compatible_utf8_bom() {
-        let csv_data = "\u{feff}reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone\n\
-        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,05550000000\n";
+        let csv_data = "\u{feff}reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone\n\
+        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,Ayşe Yılmaz,05550000000\n";
 
         let parsed = BulkOrderParser::parse_csv(csv_data).unwrap();
         assert_eq!(parsed[0].reference, "ORD-001");
@@ -233,8 +242,8 @@ mod tests {
 
     #[test]
     fn rejects_client_supplied_fare_columns() {
-        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,fare_amount_minor\n\
-        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,05550000000,1\n";
+        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone,fare_amount_minor\n\
+        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,Ayşe Yılmaz,05550000000,1\n";
 
         let error = BulkOrderParser::parse_csv(csv_data).unwrap_err();
         assert!(error.contains("Bilinmeyen CSV sütunu: fare_amount_minor"));
@@ -242,9 +251,9 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_references_before_import() {
-        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone\n\
-        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,05550000000\n\
-        ORD-001,Pickup 2,41.2,29.2,Dropoff 2,41.3,29.3,05550000001\n";
+        let csv_data = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone\n\
+        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,Ayşe Yılmaz,05550000000\n\
+        ORD-001,Pickup 2,41.2,29.2,Dropoff 2,41.3,29.3,Ali Veli,05550000001\n";
 
         let error = BulkOrderParser::parse_csv(csv_data).unwrap_err();
         assert!(error.contains("dosya içinde benzersiz"));
@@ -252,14 +261,14 @@ mod tests {
 
     #[test]
     fn rejects_invalid_coordinates_and_phone_numbers() {
-        let invalid_coordinate = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone\n\
-        ORD-001,Pickup,91,29.0,Dropoff,41.1,29.1,05550000000\n";
+        let invalid_coordinate = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone\n\
+        ORD-001,Pickup,91,29.0,Dropoff,41.1,29.1,Ayşe Yılmaz,05550000000\n";
         assert!(BulkOrderParser::parse_csv(invalid_coordinate)
             .unwrap_err()
             .contains("pickup_latitude"));
 
-        let invalid_phone = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone\n\
-        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,123\n";
+        let invalid_phone = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone\n\
+        ORD-001,Pickup,41.0,29.0,Dropoff,41.1,29.1,Ayşe Yılmaz,123\n";
         assert!(BulkOrderParser::parse_csv(invalid_phone)
             .unwrap_err()
             .contains("contact_phone"));

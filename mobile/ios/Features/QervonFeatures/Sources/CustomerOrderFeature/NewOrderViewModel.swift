@@ -27,6 +27,7 @@ public final class NewOrderViewModel: ObservableObject {
     @Published public var paymentMethod: PaymentMethod = .cash
     @Published public var couponCode = ""
     @Published public var deliveryNote = ""
+    @Published public var recipientName = ""
     @Published public var contactPhone = ""
 
     @Published public private(set) var quote: FareQuote?
@@ -42,7 +43,7 @@ public final class NewOrderViewModel: ObservableObject {
     }
 
     public var canSubmit: Bool {
-        pickup != nil && dropoff != nil && contactPhone.filter(\.isNumber).count >= 10 && !isSubmitting
+        pickup != nil && dropoff != nil && !recipientName.trimmingCharacters(in: .whitespaces).isEmpty && contactPhone.filter(\.isNumber).count >= 10 && !isSubmitting
     }
 
     public func setPickup(_ address: Address) {
@@ -82,8 +83,12 @@ public final class NewOrderViewModel: ObservableObject {
 
     public func submit() async -> Order? {
         guard let pickup, let dropoff else { return nil }
+        guard !recipientName.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = "Teslim alacak kişinin adı zorunludur."
+            return nil
+        }
         guard contactPhone.filter(\.isNumber).count >= 10 else {
-            errorMessage = "Geçerli bir iletişim telefon numarası girin."
+            errorMessage = "Teslim alacak kişi için geçerli bir telefon numarası girin."
             return nil
         }
         isSubmitting = true
@@ -95,7 +100,8 @@ public final class NewOrderViewModel: ObservableObject {
             couponCode: couponCode.trimmingCharacters(in: .whitespaces).isEmpty ? nil : couponCode,
             paymentMethod: paymentMethod,
             deliveryNote: deliveryNote.trimmingCharacters(in: .whitespaces).isEmpty ? nil : deliveryNote,
-            contactPhone: contactPhone.trimmingCharacters(in: .whitespaces).isEmpty ? nil : contactPhone
+            contactPhone: contactPhone.trimmingCharacters(in: .whitespaces).isEmpty ? nil : contactPhone,
+            recipientName: recipientName.trimmingCharacters(in: .whitespaces).isEmpty ? nil : recipientName
         )
         do {
             return try await api.createOrder(body)
@@ -110,6 +116,7 @@ public final class NewOrderViewModel: ObservableObject {
         dropoff = nil
         couponCode = ""
         deliveryNote = ""
+        recipientName = ""
         contactPhone = ""
         quote = nil
         errorMessage = nil

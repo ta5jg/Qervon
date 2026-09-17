@@ -121,15 +121,29 @@ public struct QervonTextField: View {
         self.keyboard = keyboard
     }
 
+    @State private var revealSecure = false
+
     public var body: some View {
-        Group {
+        HStack {
+            Group {
+                if isSecure && !revealSecure {
+                    SecureField(title, text: $text)
+                } else {
+                    TextField(title, text: $text)
+                        .keyboardType(keyboard)
+                        .textInputAutocapitalization(autocapitalize ? .sentences : .never)
+                        .autocorrectionDisabled(!autocapitalize)
+                }
+            }
             if isSecure {
-                SecureField(title, text: $text)
-            } else {
-                TextField(title, text: $text)
-                    .keyboardType(keyboard)
-                    .textInputAutocapitalization(autocapitalize ? .sentences : .never)
-                    .autocorrectionDisabled(!autocapitalize)
+                Button {
+                    revealSecure.toggle()
+                } label: {
+                    Image(systemName: revealSecure ? "eye.slash" : "eye")
+                        .foregroundColor(QervonColor.textSecondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(revealSecure ? "Parolayı gizle" : "Parolayı göster")
             }
         }
         .padding(12)

@@ -99,6 +99,50 @@ where
             .await?
             .ok_or(ApplicationError::NotFound)
     }
+
+    /// Issues an OTP for a destination that does not yet have to belong to
+    /// an account — used to verify a phone or email during customer signup.
+    pub async fn request_destination_otp(
+        &self,
+        tenant_id: TenantId,
+        destination: &str,
+    ) -> Result<String, ApplicationError> {
+        if destination.trim().is_empty() {
+            return Err(ApplicationError::Conflict(
+                "verification destination is required".into(),
+            ));
+        }
+        let code = generate_numeric_code();
+        let challenge = OtpChallenge::issue(
+            tenant_id,
+            destination.to_string(),
+            hash_code(&code),
+            Utc::now(),
+            OTP_TTL,
+        )?;
+        self.challenges.create(&challenge).await?;
+        Ok(code)
+    }
+
+    /// Consumes a signup/verification OTP. Unlike `verify_otp` this does
+    /// not look up a user — the destination is only proving control of
+    /// that phone or inbox.
+    pub async fn verify_destination_otp(
+        &self,
+        tenant_id: TenantId,
+        destination: &str,
+        code: &str,
+    ) -> Result<(), ApplicationError> {
+        let now = Utc::now();
+        let mut challenge = self
+            .challenges
+            .find_latest_active(tenant_id, destination, now)
+            .await?
+            .ok_or(ApplicationError::NotFound)?;
+        challenge.verify(&hash_code(code), now)?;
+        self.challenges.update(&challenge).await?;
+        Ok(())
+    }
 }
 
 /// Generates a cryptographically random 6-digit numeric code, zero-padded.
@@ -198,5 +242,20 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(err, ApplicationError::Domain(_)));
+    }
+
+    #[tokio::test]
+    async fn destination_otp_does_not_require_an_existing_user() {
+        let (users, challenges, _store) = users_and_challenges();
+        let service = OtpService::new(users, challenges);
+        let tenant_id = TenantId::new();
+        let code = service
+            .request_destination_otp(tenant_id, "signup-email:new@qervon.test")
+            .await
+            .expect("request verification otp");
+        service
+            .verify_destination_otp(tenant_id, "signup-email:new@qervon.test", &code)
+            .await
+            .expect("verify verification otp");
     }
 }

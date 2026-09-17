@@ -172,9 +172,9 @@ impl User {
         role: UserRole,
         now: DateTime<Utc>,
     ) -> Result<Self, DomainError> {
-        let email = email.into();
+        let email = email.into().trim().to_ascii_lowercase();
         let display_name = display_name.into();
-        if email.trim().is_empty() || !email.contains('@') {
+        if email.is_empty() || !email.contains('@') {
             return Err(DomainError::validation("a valid email is required"));
         }
         if display_name.trim().is_empty() {

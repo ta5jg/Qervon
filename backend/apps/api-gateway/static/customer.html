@@ -201,7 +201,12 @@
           </div>
 
           <div>
-            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">İletişim Telefonu</label>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslim alacak kişinin adı</label>
+            <input id="customer-recipient-name" required autocomplete="name" type="text" placeholder="Ad Soyad" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700;">Teslim alacak kişinin telefonu</label>
             <input id="customer-contact-phone" required inputmode="tel" autocomplete="tel" type="tel" placeholder="05XX XXX XX XX" style="width:100%; padding:12px; border-radius:10px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:12px; margin-top:4px;">
           </div>
 
@@ -602,13 +607,18 @@
       const message = document.getElementById('customer-message');
       const pickup = selectedAddress.pickup;
       const dropoff = selectedAddress.dropoff;
+      const recipientName = document.getElementById('customer-recipient-name').value.trim();
       const contactPhone = document.getElementById('customer-contact-phone').value.trim();
       if (!pickup || !dropoff) {
         message.textContent = 'Alım ve teslimat adreslerini öneri listesinden seçmelisiniz — serbest metin yeterli değil.';
         return;
       }
+      if (!recipientName) {
+        message.textContent = 'Teslim alacak kişinin adı zorunludur.';
+        return;
+      }
       if (contactPhone.replace(/\D/g, '').length < 10) {
-        message.textContent = 'Geçerli bir iletişim telefon numarası girin.';
+        message.textContent = 'Teslim alacak kişi için geçerli bir telefon numarası girin.';
         return;
       }
       try {
@@ -620,6 +630,7 @@
             coupon_code: document.getElementById('customer-coupon')?.value.trim() || null,
             payment_method: selectedPaymentMethod,
             delivery_note: null,
+            recipient_name: recipientName,
             contact_phone: contactPhone,
           }),
         });
@@ -628,6 +639,7 @@
         selectedAddress.dropoff = null;
         document.getElementById('customer-pickup').value = '';
         document.getElementById('customer-dropoff').value = '';
+        document.getElementById('customer-recipient-name').value = '';
         document.getElementById('customer-contact-phone').value = '';
         document.getElementById('customer-coupon').value = '';
         showOrderSuccess(order);
@@ -656,7 +668,7 @@
 
     function downloadBulkTemplate() {
       const csv = [
-        'reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note',
+        'reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone,payment_method,delivery_note',
         'SIP-001,"Alım adresi",41.0638,28.9351,"Teslimat adresi",41.0850,29.0120,05550000000,cash,"Alıcıya telefonla ulaşın"'
       ].join('\n');
       const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));

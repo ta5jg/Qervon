@@ -15,7 +15,8 @@ kabul edilir.
 | `dropoff_label` | Evet | Teslimat adresi açıklaması |
 | `dropoff_latitude` | Evet | -90 ile 90 arasında enlem |
 | `dropoff_longitude` | Evet | -180 ile 180 arasında boylam |
-| `contact_phone` | Evet | En az 10 rakam içeren iletişim numarası |
+| `recipient_name` | Evet | Teslim alacak kişinin adı |
+| `contact_phone` | Evet | Teslim alacak kişinin telefonu (en az 10 rakam) |
 | `payment_method` | Hayır | `cash` (varsayılan), `card` veya `wallet` |
 | `delivery_note` | Hayır | Kurye için teslimat notu |
 
@@ -26,8 +27,8 @@ dosyalar reddedilir. QR ödeme geçici olarak kapalıdır.
 ## Örnek
 
 ```csv
-reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note
-SIP-001,"Yıldıztabya, Gaziosmanpaşa",41.0638,28.9351,"Maslak, Sarıyer",41.1082,29.0198,05550000000,cash,"Alıcıyı arayın"
+reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone,payment_method,delivery_note
+SIP-001,"Yıldıztabya, Gaziosmanpaşa",41.0638,28.9351,"Maslak, Sarıyer",41.1082,29.0198,Ayşe Yılmaz,05550000000,cash,"Alıcıyı arayın"
 ```
 
 Başarılı yanıt `201 Created` döndürür. `orders` dizisinde her `reference` için

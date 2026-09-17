@@ -130,9 +130,16 @@ fun NewOrderScreen(
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(
+                value = state.recipientName,
+                onValueChange = viewModel::onRecipientNameChanged,
+                label = { Text("Teslim alacak kişinin adı") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
                 value = state.contactPhone,
                 onValueChange = viewModel::onContactPhoneChanged,
-                label = { Text("İletişim telefonu") },
+                label = { Text("Teslim alacak kişinin telefonu") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )

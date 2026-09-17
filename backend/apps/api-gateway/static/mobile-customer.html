@@ -178,7 +178,9 @@
         
         <label style="font-size:10px; color:var(--text-muted);">Teslimat Notu (opsiyonel)</label>
         <input id="delivery-note" type="text" placeholder="Zil çalınmasın, güvenliğe bırakılsın" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
-        <label style="font-size:10px; color:var(--text-muted);">İletişim Telefonu</label>
+        <label style="font-size:10px; color:var(--text-muted);">Teslim alacak kişinin adı</label>
+        <input id="recipient-name" required type="text" placeholder="Ad Soyad" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
+        <label style="font-size:10px; color:var(--text-muted);">Teslim alacak kişinin telefonu</label>
         <input id="contact-phone" required inputmode="tel" type="tel" placeholder="05XX XXX XX XX" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:12px;">
 
         <div style="font-size:11px; font-weight:700; margin-bottom:6px;">Ödeme Yöntemi</div>
@@ -363,13 +365,18 @@
 
     async function submitCustomerOrder(pickupLabel, dropoffLabel) {
       const message = document.getElementById('order-message');
+      const recipientName = document.getElementById('recipient-name')?.value.trim() || '';
       const contactPhone = document.getElementById('contact-phone')?.value.trim() || '';
       if (!pickupLabel || !dropoffLabel) {
         message.textContent = 'Alım ve teslimat adresleri zorunludur.';
         return;
       }
+      if (!recipientName) {
+        message.textContent = 'Teslim alacak kişinin adı zorunludur.';
+        return;
+      }
       if (contactPhone.replace(/\D/g, '').length < 10) {
-        message.textContent = 'Geçerli bir iletişim telefon numarası girin.';
+        message.textContent = 'Teslim alacak kişi için geçerli bir telefon numarası girin.';
         return;
       }
       const pickup = demoPickupAddress(pickupLabel);
@@ -383,6 +390,7 @@
             coupon_code: null,
             payment_method: selectedPaymentMethod,
             delivery_note: document.getElementById('delivery-note')?.value.trim() || null,
+            recipient_name: recipientName,
             contact_phone: contactPhone,
           }),
         });
@@ -390,6 +398,7 @@
         document.getElementById('pickup-label').value = '';
         document.getElementById('dropoff-label').value = '';
         document.getElementById('delivery-note').value = '';
+        document.getElementById('recipient-name').value = '';
         document.getElementById('contact-phone').value = '';
         await loadCustomerOrders();
       } catch (error) { showCustomerError(message, error); }

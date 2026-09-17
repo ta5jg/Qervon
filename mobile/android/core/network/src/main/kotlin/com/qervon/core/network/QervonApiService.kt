@@ -52,6 +52,12 @@ interface QervonApiService {
     @POST("v1/auth/otp/request")
     suspend fun requestOtp(@Body body: OtpRequestBody): Response<OtpRequestResponseBody>
 
+    @POST("v1/auth/verification/request")
+    suspend fun requestVerification(@Body body: VerificationRequestBody): Response<OtpRequestResponseBody>
+
+    @POST("v1/auth/password/forgot")
+    suspend fun forgotPassword(@Body body: PasswordForgotBody): Response<PasswordForgotResponseBody>
+
     @POST("v1/auth/otp/verify")
     suspend fun verifyOtp(@Body body: OtpVerifyBody): Response<AuthResponseBody>
 

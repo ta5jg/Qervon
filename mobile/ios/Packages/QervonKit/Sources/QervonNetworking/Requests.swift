@@ -118,7 +118,25 @@ struct RegisterAccountBody: Encodable {
     let email: String
     let displayName: String
     let password: String
-    let tenantSlug: String?
+    let tenantSlug: String
+    let phone: String
+    let emailOtp: String
+    let phoneOtp: String
+}
+
+struct VerificationRequestBody: Encodable {
+    let tenantSlug: String
+    let channel: String
+    let destination: String
+}
+
+struct PasswordForgotBody: Encodable {
+    let email: String
+}
+
+public struct PasswordForgotResult: Decodable, Sendable {
+    public let status: String
+    public let devResetUrl: String?
 }
 
 struct AddAddressBody: Encodable {
@@ -135,6 +153,7 @@ public struct CreateCustomerOrderBody: Encodable, Sendable {
     public let paymentMethod: String?
     public let deliveryNote: String?
     public let contactPhone: String?
+    public let recipientName: String?
 
     public init(
         pickup: Address,
@@ -142,7 +161,8 @@ public struct CreateCustomerOrderBody: Encodable, Sendable {
         couponCode: String?,
         paymentMethod: PaymentMethod?,
         deliveryNote: String?,
-        contactPhone: String?
+        contactPhone: String?,
+        recipientName: String?
     ) {
         self.pickup = pickup
         self.dropoff = dropoff
@@ -150,6 +170,7 @@ public struct CreateCustomerOrderBody: Encodable, Sendable {
         self.paymentMethod = paymentMethod?.rawValue
         self.deliveryNote = deliveryNote
         self.contactPhone = contactPhone
+        self.recipientName = recipientName
     }
 }
 

@@ -96,8 +96,9 @@ fun ProofOfDeliveryScreen(
                 )
 
                 QervonCard {
-                    Text("Teslim Kanıtı (en az biri gerekli)", style = MaterialTheme.typography.titleMedium)
-                    EvidenceRow("QR / Barkod", state.qrBarcodeVerified, onClick = { step = ProofStep.SCANNING })
+                    Text("Teslim Kanıtı (opsiyonel)", style = MaterialTheme.typography.titleMedium)
+                    Text("QR/barkod, teslim alacak kişi uygulamayı kullanmıyorsa gerekli değildir.", color = QervonColors.OnSurfaceMuted)
+                    EvidenceRow("QR / Barkod (opsiyonel)", state.qrBarcodeVerified, onClick = { step = ProofStep.SCANNING })
                     EvidenceRow("İmza", state.signatureBase64 != null, onClick = { step = ProofStep.SIGNING })
                     EvidenceRow("Fotoğraf (sunucuya güvenli yüklenir)", state.localPhotoPath != null, onClick = { step = ProofStep.PHOTOGRAPHING })
                 }

@@ -146,10 +146,10 @@
     <div id="tab-pod" class="view-content">
       <div class="card">
         <div style="font-size:14px; font-weight:800; margin-bottom:10px;">Teslimat İspatı (POD)</div>
-        <p style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">Kamera tabanlı QR/barkod tarama ve fotoğraf kanıtı bu tarayıcı simülatöründe uygulanmadı — bunlar native iOS/Android uygulamalarında gerçek (ML Kit / VisionKit / CameraX). Burada dürüst bir alternatif olarak yalnızca manuel QR doğrulama onayı sunulur.</p>
+        <p style="font-size:10px; color:var(--text-muted); margin-bottom:10px;">QR/barkod opsiyoneldir — teslim alacak kişi uygulamayı kullanmıyor olabilir. Teslim alan kişinin adı yeterlidir; fotoğraf veya imza native uygulamada ek kanıt olarak alınabilir.</p>
         <label for="pod-recipient" style="font-size:11px; color:var(--text-muted);">Teslim alan kişi</label>
         <input id="pod-recipient" aria-required="true" placeholder="Teslim alan kişinin adı" style="width:100%; padding:10px; border-radius:8px; background:rgba(0,0,0,0.3); border:1px solid var(--border-color); color:white; font-size:11px; margin-bottom:8px;">
-        <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:10px;"><input id="pod-qr" type="checkbox"> QR / barkod doğrulandı</label>
+        <label style="display:block; font-size:11px; color:var(--text-muted); margin-bottom:10px;"><input id="pod-qr" type="checkbox"> QR / barkod doğrulandı (opsiyonel)</label>
         <button id="btn-deliver" class="btn-main" type="button" onclick="completeDelivery()" disabled><i data-lucide="flag"></i> TESLİMATI TAMAMLA</button>
       </div>
     </div>
@@ -306,17 +306,30 @@
 
     async function startPickup() {
       if (!activeOrder) return;
+      const meta = document.getElementById('task-meta');
       const file = capturedPickupFile || document.getElementById('pickup-photo')?.files?.[0];
-      if (!file) { document.getElementById('task-meta').textContent = 'Teslim alma fotoğrafı zorunludur.'; return; }
+      if (!file) { meta.textContent = 'Teslim alma fotoğrafı zorunludur.'; return; }
+      const button = document.getElementById('btn-pickup');
+      button.disabled = true;
+      meta.textContent = 'Fotoğraf sunucuya yükleniyor…';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
       try {
-        const form = new FormData(); form.append('photo', file);
+        const form = new FormData(); form.append('photo', file, file.name || 'pickup.jpg');
         const csrf = document.cookie.split('; ').find(value => value.startsWith('qervon_csrf_token='))?.split('=')[1] || '';
-        const response = await fetch(`/v1/courier/orders/${activeOrder.id}/photo-evidence`, { method: 'POST', credentials: 'same-origin', headers: { 'x-csrf-token': csrf }, body: form });
+        const response = await fetch(`/v1/courier/orders/${activeOrder.id}/photo-evidence`, { method: 'POST', credentials: 'same-origin', headers: { 'x-csrf-token': csrf }, body: form, signal: controller.signal });
         if (!response.ok) throw new Error((await response.json().catch(() => ({}))).detail || 'Fotoğraf yüklenemedi');
         const upload = await response.json();
         showTask(await api(`/v1/courier/orders/${activeOrder.id}/pickup`, { method: 'POST', body: JSON.stringify({ pickup_photo_evidence_url: upload.url }) }));
       }
-      catch (error) { document.getElementById('task-meta').textContent = `Teslim alma işlemi tamamlanamadı: ${error.message}`; }
+      catch (error) {
+        meta.textContent = error.name === 'AbortError'
+          ? 'Fotoğraf yüklemesi 30 saniyede tamamlanamadı. Bağlantıyı kontrol edip tekrar deneyin.'
+          : `Teslim alma işlemi tamamlanamadı: ${error.message}`;
+      } finally {
+        clearTimeout(timeout);
+        button.disabled = false;
+      }
     }
 
     async function openPickupCamera() {
@@ -339,7 +352,10 @@
     function capturePickupPhoto() {
       const video = document.getElementById('pickup-camera-preview');
       const canvas = document.getElementById('pickup-camera-canvas');
-      if (!video.videoWidth || !video.videoHeight) return;
+      if (!video.videoWidth || !video.videoHeight) {
+        document.getElementById('task-meta').textContent = 'Kamera henüz hazır değil. İzin verildikten sonra görüntü gelince tekrar deneyin veya dosya seçin.';
+        return;
+      }
       canvas.width = video.videoWidth; canvas.height = video.videoHeight;
       canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
       canvas.toBlob(blob => {
@@ -363,7 +379,7 @@
       if (!activeOrder) return;
       const recipient = document.getElementById('pod-recipient').value.trim();
       const qrVerified = document.getElementById('pod-qr').checked;
-      if (!recipient || !qrVerified) { document.getElementById('task-meta').textContent = 'Teslim alan kişi ve QR doğrulaması zorunludur.'; return; }
+      if (!recipient) { document.getElementById('task-meta').textContent = 'Teslim alan kişinin adı zorunludur. QR/barkod opsiyoneldir.'; return; }
       try {
         showTask(await api(`/v1/courier/orders/${activeOrder.id}/deliver`, { method: 'POST', body: JSON.stringify({ recipient_name: recipient, qr_barcode_verified: qrVerified }) }));
         await loadCourierWorkspace();

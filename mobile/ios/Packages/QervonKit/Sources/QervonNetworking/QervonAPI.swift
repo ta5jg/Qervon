@@ -69,13 +69,42 @@ public struct QervonAPI: Sendable {
         email: String,
         displayName: String,
         password: String,
-        tenantSlug: String?
+        tenantSlug: String,
+        phone: String,
+        emailOtp: String,
+        phoneOtp: String
     ) async throws {
         try await client.sendNoContent(
             .post, "/v1/auth/register",
             body: RegisterAccountBody(
-                email: email, displayName: displayName, password: password, tenantSlug: tenantSlug
+                email: email,
+                displayName: displayName,
+                password: password,
+                tenantSlug: tenantSlug,
+                phone: phone,
+                emailOtp: emailOtp,
+                phoneOtp: phoneOtp
             ),
+            authenticated: false
+        )
+    }
+
+    public func requestSignupVerification(
+        tenantSlug: String,
+        channel: String,
+        destination: String
+    ) async throws -> OtpRequestResult {
+        try await client.send(
+            .post, "/v1/auth/verification/request",
+            body: VerificationRequestBody(tenantSlug: tenantSlug, channel: channel, destination: destination),
+            authenticated: false
+        )
+    }
+
+    public func forgotPassword(email: String) async throws -> PasswordForgotResult {
+        try await client.send(
+            .post, "/v1/auth/password/forgot",
+            body: PasswordForgotBody(email: email),
             authenticated: false
         )
     }

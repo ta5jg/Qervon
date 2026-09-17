@@ -115,6 +115,9 @@ async fn authorized_request(
     if path == "/v1/customer/orders" && body.get("contact_phone").is_none() {
         body["contact_phone"] = Value::String("05550000000".into());
     }
+    if path == "/v1/customer/orders" && body.get("recipient_name").is_none() {
+        body["recipient_name"] = Value::String("Teslim Alan".into());
+    }
     if path.ends_with("/pickup") && body.get("pickup_photo_evidence_url").is_none() {
         body["pickup_photo_evidence_url"] =
             Value::String("/v1/uploads/pickup-photos/test.jpg".into());
@@ -900,15 +903,42 @@ async fn customer_registration_joins_the_selected_tenant_and_can_open_a_browser_
         .create_tenant(&tenant, "customer-registration")
         .await
         .expect("tenant");
+    let (email_status, email_otp) = request(
+        router(state.clone()),
+        "POST",
+        "/v1/auth/verification/request",
+        json!({
+            "tenant_slug": "customer-registration",
+            "channel": "email",
+            "destination": "Customer@Qervon.Test"
+        }),
+    )
+    .await;
+    assert_eq!(email_status, axum::http::StatusCode::OK);
+    let (phone_status, phone_otp) = request(
+        router(state.clone()),
+        "POST",
+        "/v1/auth/verification/request",
+        json!({
+            "tenant_slug": "customer-registration",
+            "channel": "sms",
+            "destination": "05551234567"
+        }),
+    )
+    .await;
+    assert_eq!(phone_status, axum::http::StatusCode::OK);
     let (status, _) = request(
         router(state.clone()),
         "POST",
         "/v1/auth/register",
         json!({
-            "email": "customer@qervon.test",
+            "email": "Customer@Qervon.Test",
             "display_name": "Customer",
             "password": "a-long-enough-test-password",
             "tenant_slug": "customer-registration",
+            "phone": "05551234567",
+            "email_otp": email_otp["dev_code"],
+            "phone_otp": phone_otp["dev_code"],
             "role": "super_admin"
         }),
     )
@@ -2519,10 +2549,10 @@ async fn customer_bulk_csv_import_validates_entire_file_and_preserves_session_ow
     )
     .expect("operator token");
     let app = router(state);
-    let header = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,contact_phone,payment_method,delivery_note";
+    let header = "reference,pickup_label,pickup_latitude,pickup_longitude,dropoff_label,dropoff_latitude,dropoff_longitude,recipient_name,contact_phone,payment_method,delivery_note";
 
     let invalid = format!(
-        "{header}\nSIP-001,Alım 1,41.0,29.0,Teslim 1,41.1,29.1,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,999,29.3,05550000001,card,Not 2\n"
+        "{header}\nSIP-001,Alım 1,41.0,29.0,Teslim 1,41.1,29.1,Ayşe Yılmaz,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,999,29.3,Ali Veli,05550000001,card,Not 2\n"
     );
     let (status, body) = authorized_csv_request(
         app.clone(),
@@ -2548,7 +2578,7 @@ async fn customer_bulk_csv_import_validates_entire_file_and_preserves_session_ow
     assert!(orders.as_array().expect("orders").is_empty());
 
     let valid = format!(
-        "{header}\nSIP-001,\"Alım, 1\",41.0,29.0,Teslim 1,41.1,29.1,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,41.3,29.3,05550000001,card,Not 2\n"
+        "{header}\nSIP-001,\"Alım, 1\",41.0,29.0,Teslim 1,41.1,29.1,Ayşe Yılmaz,05550000000,cash,Not 1\nSIP-002,Alım 2,41.2,29.2,Teslim 2,41.3,29.3,Ali Veli,05550000001,card,Not 2\n"
     );
     let (status, imported) = authorized_csv_request(
         app.clone(),

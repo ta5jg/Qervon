@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 data class PickupProofUiState(
     val localPhotoPath: String? = null,
@@ -66,12 +67,14 @@ class PickupProofViewModel @Inject constructor(private val api: QervonApi) : Vie
             _uiState.value = current.copy(isSubmitting = true, errorMessage = null)
             try {
                 val jpegBytes = File(localPath).readBytes()
-                val evidenceUrl = api.uploadOrderEvidencePhoto(orderId, jpegBytes)
+                val evidenceUrl = withTimeout(30_000) {
+                    api.uploadOrderEvidencePhoto(orderId, jpegBytes)
+                }
                 api.pickupOrder(orderId, evidenceUrl)
                 _events.tryEmit(PickupProofEvent.PickedUp)
             } catch (error: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    errorMessage = error.message ?: "Teslim alma kanıtı gönderilemedi.",
+                    errorMessage = error.message ?: "Teslim alma kanıtı gönderilemedi. Fotoğraf sunucuya ulaşmadı.",
                 )
             } finally {
                 _uiState.value = _uiState.value.copy(isSubmitting = false)

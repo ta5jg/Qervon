@@ -40,12 +40,34 @@ public struct RegisterView: View {
                             title: "E-posta", text: $viewModel.email,
                             autocapitalize: false, keyboard: .emailAddress
                         )
+                        QervonTextField(title: "Telefon numarası", text: $viewModel.phone, keyboard: .phonePad)
                         QervonTextField(title: "Parola (en az 12 karakter)", text: $viewModel.password, isSecure: true)
+                        QervonTextField(title: "Parola (tekrar)", text: $viewModel.passwordConfirm, isSecure: true)
                         QervonTextField(title: "Firma Kodu", text: $viewModel.tenantSlug, autocapitalize: false)
-                        Text("Firma kodu, hizmet aldığınız işletmenin size verdiği koddur.")
+                        Text("Firma kodu zorunludur. Telefon ve e-posta OTP ile doğrulanır.")
                             .font(.system(size: 12))
                             .foregroundColor(QervonColor.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Button("Doğrulama kodlarını gönder") {
+                            Task { await viewModel.requestCodes() }
+                        }
+                        .buttonStyle(QervonButtonStyle(kind: .secondary))
+
+                        if viewModel.codesSent {
+                            if let emailDevCode = viewModel.emailDevCode {
+                                Text("Geliştirme e-posta kodu: \(emailDevCode)")
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundColor(QervonColor.warning)
+                            }
+                            if let phoneDevCode = viewModel.phoneDevCode {
+                                Text("Geliştirme SMS kodu: \(phoneDevCode)")
+                                    .font(.system(size: 12, design: .monospaced))
+                                    .foregroundColor(QervonColor.warning)
+                            }
+                            QervonTextField(title: "E-posta kodu", text: $viewModel.emailOtp, keyboard: .numberPad)
+                            QervonTextField(title: "SMS kodu", text: $viewModel.phoneOtp, keyboard: .numberPad)
+                        }
 
                         if let errorMessage = viewModel.errorMessage {
                             Text(errorMessage)

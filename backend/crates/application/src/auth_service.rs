@@ -37,6 +37,7 @@ where
                 "password must contain at least 12 characters".into(),
             ));
         }
+        let email = email.trim().to_ascii_lowercase();
         if self.users.find_by_email(&email).await?.is_some() {
             return Err(ApplicationError::Conflict(
                 "a user with this email already exists".into(),
@@ -66,7 +67,7 @@ where
     ) -> Result<User, ApplicationError> {
         let user = self
             .users
-            .find_by_email(email)
+            .find_by_email(email.trim())
             .await?
             .ok_or(ApplicationError::NotFound)?;
         if !user.is_active() {
@@ -95,7 +96,7 @@ where
     /// must still return a generic response regardless of the result to
     /// avoid leaking which emails have accounts.
     pub async fn find_by_email(&self, email: &str) -> Result<Option<User>, ApplicationError> {
-        Ok(self.users.find_by_email(email).await?)
+        Ok(self.users.find_by_email(email.trim()).await?)
     }
 
     /// Overwrites a user's password without requiring the previous one —
