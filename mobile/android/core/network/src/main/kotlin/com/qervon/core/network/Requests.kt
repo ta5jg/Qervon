@@ -29,7 +29,10 @@ data class RegisterAccountBody(
     val email: String,
     val displayName: String,
     val password: String,
-    val tenantSlug: String? = null,
+    val tenantSlug: String,
+    val phone: String,
+    val emailOtp: String,
+    val phoneOtp: String,
 )
 
 @Serializable
@@ -37,6 +40,19 @@ data class RefreshBody(val refreshToken: String)
 
 @Serializable
 data class OtpRequestBody(val tenantSlug: String, val phone: String)
+
+@Serializable
+data class VerificationRequestBody(
+    val tenantSlug: String,
+    val channel: String,
+    val destination: String,
+)
+
+@Serializable
+data class PasswordForgotBody(val email: String)
+
+@Serializable
+data class PasswordForgotResponseBody(val status: String, val devResetUrl: String? = null)
 
 @Serializable
 data class OtpRequestResponseBody(val status: String, val devCode: String? = null)
@@ -91,6 +107,7 @@ data class CreateCustomerOrderBody(
     val paymentMethod: String? = null,
     val deliveryNote: String? = null,
     val contactPhone: String? = null,
+    val recipientName: String? = null,
 )
 
 @Serializable

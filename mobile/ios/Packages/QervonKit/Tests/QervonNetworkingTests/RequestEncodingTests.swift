@@ -64,7 +64,8 @@ final class RequestEncodingTests: XCTestCase {
             couponCode: "QERVON20",
             paymentMethod: .cash,
             deliveryNote: "Kapıcıya bırakın",
-            contactPhone: "+905551234567"
+            contactPhone: "+905551234567",
+            recipientName: "Ayşe Yılmaz"
         )
         let data = try QervonJSON.makeEncoder().encode(body)
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
@@ -72,6 +73,8 @@ final class RequestEncodingTests: XCTestCase {
         XCTAssertNil(json?["fare_currency"])
         XCTAssertEqual(json?["payment_method"] as? String, "cash")
         XCTAssertEqual(json?["delivery_note"] as? String, "Kapıcıya bırakın")
+        XCTAssertEqual(json?["recipient_name"] as? String, "Ayşe Yılmaz")
+        XCTAssertEqual(json?["contact_phone"] as? String, "+905551234567")
     }
 
     func testRegisterAccountBodyEncodesSnakeCaseWithOptionalTenantSlug() throws {
@@ -79,7 +82,10 @@ final class RequestEncodingTests: XCTestCase {
             email: "test@example.com",
             displayName: "Test User",
             password: "supersecretpassword",
-            tenantSlug: "acme"
+            tenantSlug: "acme",
+            phone: "05551234567",
+            emailOtp: "123456",
+            phoneOtp: "654321"
         )
         let data = try QervonJSON.makeEncoder().encode(body)
         let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]

@@ -24,9 +24,7 @@ License:        Qervon License v1.0 — see LICENSE in the repository root.
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:theme="@style/Theme.Qervon"
-        android:usesCleartextTraffic="true">
-
-        <!-- See app-courier's manifest for the usesCleartextTraffic note. -->
+        android:usesCleartextTraffic="false">
 
         <activity
             android:name=".MainActivity"

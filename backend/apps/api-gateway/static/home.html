@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qervon — Lojistik İşletim Sistemi</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <meta name="description" content="Qervon; yemek, e-ticaret, kargo, eczane, market ve teknik servis işletmeleri için yapay zeka destekli, çok kiracılı bir Lojistik İşletim Sistemi (LOS). Canlı GPS takip, AI Dispatcher, native iOS/Android uygulamaları ve kurye terminali tek platformda.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -66,20 +68,18 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 76px;
+      height: 104px;
     }
-    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 16px; }
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--accent-green), var(--accent-green-dark));
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #020617;
       flex-shrink: 0;
     }
+    .brand-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .brand-text h1 { font-size: 19px; font-weight: 800; letter-spacing: 0.5px; }
     .brand-text span { font-size: 10px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1.5px; }
 
@@ -335,7 +335,7 @@
   <nav class="topnav">
     <div class="wrap topnav-inner">
       <div class="brand">
-        <div class="brand-icon"><i data-lucide="box" style="color:white; width:20px; height:20px;"></i></div>
+        <div class="brand-icon"><img src="/logo.png" alt="Qervon" width="80" height="80"></div>
         <div class="brand-text">
           <h1>QERVON</h1>
           <span>LOGISTICS OS</span>
@@ -376,10 +376,10 @@
             <i data-lucide="apple" class="si"></i>
             <div class="st"><span class="small">App Store</span><span class="big">Yakında<span class="soon-tag">Soon</span></span></div>
           </div>
-          <div class="store-badge glass" title="Native Android uygulaması geliştirme aşamasında">
+          <a class="store-badge glass" href="/android" title="Android APK indir ve kur" style="opacity:1; cursor:pointer;">
             <i data-lucide="play" class="si"></i>
-            <div class="st"><span class="small">Google Play</span><span class="big">Yakında<span class="soon-tag">Soon</span></span></div>
-          </div>
+            <div class="st"><span class="small">Android APK</span><span class="big">İndir ve kur</span></div>
+          </a>
         </div>
         <div class="hero-stats">
           <div>
@@ -612,7 +612,7 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="brand">
-            <div class="brand-icon"><i data-lucide="box" style="color:white; width:20px; height:20px;"></i></div>
+            <div class="brand-icon"><img src="/logo.png" alt="Qervon" width="80" height="80"></div>
             <div class="brand-text">
               <h1>QERVON</h1>
               <span>LOGISTICS OS</span>
@@ -634,6 +634,7 @@
           <a href="/customer">Müşteri Portalı (Masaüstü)</a>
           <a href="/mobile-customer.html">Müşteri Portalı (Mobil Web)</a>
           <a href="/mobile-courier">Kurye Terminali</a>
+          <a href="/android">Android APK İndir</a>
         </div>
         <div class="footer-col">
           <h4>İletişim</h4>

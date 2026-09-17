@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Qervon LOS — Logistics Operating System (Admin Control Center)</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -58,15 +60,13 @@
     }
 
     .brand-icon {
-      width: 40px;
-      height: 40px;
-      background: linear-gradient(135deg, var(--accent-green), #047857);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+      width: 80px;
+      height: 80px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #020617;
     }
+    .brand-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .brand-text h1 { font-size: 18px; font-weight: 800; tracking: 0.5px; }
     .brand-text span { font-size: 10px; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1px; }
@@ -234,7 +234,7 @@
   <!-- Sidebar Navigation -->
   <sidebar>
     <div class="brand">
-      <div class="brand-icon"><i data-lucide="box" style="color:white"></i></div>
+      <div class="brand-icon"><img src="/logo.png" alt="Qervon" width="80" height="80"></div>
       <div class="brand-text">
         <h1>QERVON</h1>
         <span>LOGISTICS OS v1.0</span>

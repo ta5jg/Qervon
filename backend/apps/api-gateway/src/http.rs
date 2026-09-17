@@ -21,6 +21,7 @@ use aes_gcm::{
     AeadCore, Aes256Gcm, KeyInit,
 };
 use axum::{
+    body::Bytes,
     extract::{DefaultBodyLimit, Extension, Path, Query, Request, State},
     http::{header, HeaderMap, HeaderName, HeaderValue, Method, StatusCode},
     middleware::{self, Next},
@@ -40,8 +41,9 @@ use qervon_api_contracts::{
     SetCourierAvailabilityRequest, UpdateLocationRequest,
 };
 use qervon_application::{
-    CourierLeaderboardEngine, CourierLeaderboardEntry, CreateInvoiceInput, CreateOrderInput,
-    CurrencyExchangeEngine, RegisterCourierInput, SendNotificationInput, TaxInvoicingEngine,
+    BulkOrderParser, CourierLeaderboardEngine, CourierLeaderboardEntry, CreateInvoiceInput,
+    CreateOrderInput, CurrencyExchangeEngine, RegisterCourierInput, SendNotificationInput,
+    TaxInvoicingEngine,
 };
 use qervon_domain::{
     Address, ColdChainTelemetry, FieldServiceScheduler, HubManifestAssignment, Location, Money,
@@ -173,6 +175,25 @@ async fn serve_openapi_spec() -> Json<serde_json::Value> {
             },
             "/v1/orders/{id}/tracking": {
                 "get": { "summary": "Track the assigned courier for one authorized order" }
+            },
+            "/v1/customer/orders/bulk": {
+                "post": {
+                    "summary": "Import up to 100 authenticated customer orders from UTF-8 CSV",
+                    "requestBody": {
+                        "required": true,
+                        "content": {
+                            "text/csv": {
+                                "schema": { "type": "string", "format": "binary" }
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": { "description": "All validated orders were created" },
+                        "401": { "description": "Customer session is missing or invalid" },
+                        "403": { "description": "Signed-in user is not a customer" },
+                        "422": { "description": "The complete CSV was rejected before creation" }
+                    }
+                }
             }
         }
     }))
@@ -212,6 +233,39 @@ async fn serve_mobile_admin() -> axum::response::Html<&'static str> {
     axum::response::Html(include_str!("../static/mobile-admin.html"))
 }
 
+async fn serve_android_downloads() -> impl IntoResponse {
+    (
+        [(header::CACHE_CONTROL, "public, max-age=300")],
+        axum::response::Html(include_str!("../static/android.html")),
+    )
+}
+
+fn png_response(bytes: &'static [u8]) -> impl IntoResponse {
+    (
+        [
+            (header::CONTENT_TYPE, "image/png"),
+            (header::CACHE_CONTROL, "public, max-age=604800"),
+        ],
+        bytes,
+    )
+}
+
+async fn serve_brand_logo() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-logo.png"))
+}
+
+async fn serve_brand_icon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-icon-192.png"))
+}
+
+async fn serve_brand_favicon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-favicon.png"))
+}
+
+async fn serve_apple_touch_icon() -> impl IntoResponse {
+    png_response(include_bytes!("../static/brand/qervon-icon-180.png"))
+}
+
 pub fn router(state: AppState) -> Router {
     let public = Router::new()
         .route("/", get(serve_home))
@@ -238,6 +292,13 @@ pub fn router(state: AppState) -> Router {
         .route("/field-service.html", get(serve_field_service_console))
         .route("/mobile-admin", get(serve_mobile_admin))
         .route("/mobile-admin.html", get(serve_mobile_admin))
+        .route("/android", get(serve_android_downloads))
+        .route("/android.html", get(serve_android_downloads))
+        .route("/logo.png", get(serve_brand_logo))
+        .route("/icon.png", get(serve_brand_icon))
+        .route("/favicon.png", get(serve_brand_favicon))
+        .route("/favicon.ico", get(serve_brand_favicon))
+        .route("/apple-touch-icon.png", get(serve_apple_touch_icon))
         .route("/manifest.webmanifest", get(serve_web_manifest))
         .route("/sw.js", get(serve_service_worker))
         .route("/swagger-ui", get(serve_swagger_ui))
@@ -261,6 +322,10 @@ pub fn router(state: AppState) -> Router {
         .route("/v1/browser/auth/login", post(browser_login))
         .route("/v1/auth/otp/request", post(auth_otp_request))
         .route("/v1/auth/otp/verify", post(auth_otp_verify))
+        .route(
+            "/v1/auth/verification/request",
+            post(auth_verification_request),
+        )
         .route("/v1/auth/password/forgot", post(auth_password_forgot))
         .route("/v1/auth/password/reset", post(auth_password_reset))
         .route_layer(rate_limit_layer(10, std::time::Duration::from_secs(3)));
@@ -370,6 +435,7 @@ pub fn router(state: AppState) -> Router {
             "/v1/customer/orders",
             post(create_customer_order).get(list_customer_orders),
         )
+        .route("/v1/customer/orders/bulk", post(import_customer_orders))
         .route("/v1/customer/fare-quote", get(get_customer_fare_quote))
         .route(
             "/v1/customer/orders/{id}/invoice",
@@ -716,10 +782,23 @@ struct AuthRegisterRequest {
     email: String,
     display_name: String,
     password: String,
-    /// A customer must belong to the logistics company whose deliveries it
-    /// creates.  Keeping this optional preserves the public API's historic
-    /// account-only behaviour, while browser sign-in uses the tenant value.
-    tenant_slug: Option<String>,
+    /// Required for a customer account: membership is what later login
+    /// checks, so a missing tenant produced "invalid credentials or tenant
+    /// access" right after signup.
+    tenant_slug: String,
+    /// Required so the courier can reach the account holder, and so OTP
+    /// login works after signup.
+    phone: String,
+    email_otp: String,
+    phone_otp: String,
+}
+
+#[derive(Deserialize)]
+struct VerificationRequestBody {
+    tenant_slug: String,
+    /// `email` or `sms`.
+    channel: String,
+    destination: String,
 }
 
 #[derive(Deserialize)]
@@ -882,38 +961,102 @@ async fn auth_register(
 ) -> Result<StatusCode, ApiError> {
     // A public caller can only become a customer. Tenant membership and every
     // operational role are provisioned by an authenticated tenant administrator.
-    let tenant = match request.tenant_slug.as_deref() {
-        Some(slug) => Some(
-            state
-                .tenants
-                .find_by_slug(&tenant_slug(slug.to_string())?)
-                .await?
-                .ok_or_else(|| ApiError::unprocessable("tenant was not found"))?,
-        ),
-        None => None,
-    };
+    let tenant = state
+        .tenants
+        .find_by_slug(&tenant_slug(request.tenant_slug)?)
+        .await?
+        .ok_or_else(|| ApiError::unprocessable("tenant was not found"))?;
+    let email = normalize_email(&request.email)?;
+    let phone = normalize_required_phone(&request.phone)?;
+    state
+        .otp
+        .verify_destination_otp(
+            tenant.id,
+            &signup_otp_destination("email", &email),
+            &request.email_otp,
+        )
+        .await
+        .map_err(|_| {
+            ApiError::unprocessable("e-posta doğrulama kodu geçersiz veya süresi doldu")
+        })?;
+    state
+        .otp
+        .verify_destination_otp(
+            tenant.id,
+            &signup_otp_destination("sms", &phone),
+            &request.phone_otp,
+        )
+        .await
+        .map_err(|_| {
+            ApiError::unprocessable("telefon doğrulama kodu geçersiz veya süresi doldu")
+        })?;
     let user = state
         .auth
         .register(
-            request.email,
+            email,
             request.display_name,
             request.password,
             UserRole::Customer,
         )
         .await?;
     state.customers.create_profile(user.id).await?;
-    if let Some(tenant) = tenant {
-        state
-            .tenants
-            .add_member(&TenantMembership {
-                tenant_id: tenant.id,
-                user_id: user.id,
-                role: TenantMemberRole::Member,
-                joined_at: Utc::now(),
-            })
-            .await?;
-    }
+    state.identity.set_user_phone(user.id, phone).await?;
+    state
+        .tenants
+        .add_member(&TenantMembership {
+            tenant_id: tenant.id,
+            user_id: user.id,
+            role: TenantMemberRole::Member,
+            joined_at: Utc::now(),
+        })
+        .await?;
     Ok(StatusCode::CREATED)
+}
+
+async fn auth_verification_request(
+    State(state): State<AppState>,
+    Json(request): Json<VerificationRequestBody>,
+) -> Result<Json<OtpRequestResponse>, ApiError> {
+    let tenant = state
+        .tenants
+        .find_by_slug(&normalize_slug_lookup(&request.tenant_slug))
+        .await?
+        .ok_or_else(|| ApiError::unprocessable("tenant was not found"))?;
+    let channel = request.channel.trim().to_ascii_lowercase();
+    let destination = match channel.as_str() {
+        "email" => normalize_email(&request.destination)?,
+        "sms" => normalize_required_phone(&request.destination)?,
+        _ => {
+            return Err(ApiError::unprocessable(
+                "verification channel must be email or sms",
+            ))
+        }
+    };
+    let otp_key = signup_otp_destination(&channel, &destination);
+    let code = state
+        .otp
+        .request_destination_otp(tenant.id, &otp_key)
+        .await?;
+    let delivery = match channel.as_str() {
+        "email" => deliver_otp_email(&state, &destination, &code).await,
+        _ => deliver_otp_sms(&state, &destination, &code).await,
+    };
+    if let Err(error) = delivery {
+        tracing::warn!(
+            channel = %channel,
+            destination = %destination,
+            error = %error,
+            "signup verification delivery failed"
+        );
+    }
+    let dev_code = match state.storage_backend {
+        crate::state::StorageBackend::Memory => Some(code),
+        crate::state::StorageBackend::Postgres => None,
+    };
+    Ok(Json(OtpRequestResponse {
+        status: "sent",
+        dev_code,
+    }))
 }
 
 async fn initial_setup_status(State(state): State<AppState>) -> Result<Json<Value>, ApiError> {
@@ -1048,6 +1191,46 @@ async fn provision_company_admin(
 /// confusing "invalid credentials" error.
 fn normalize_slug_lookup(value: &str) -> String {
     value.trim().to_ascii_lowercase()
+}
+
+fn normalize_email(value: &str) -> Result<String, ApiError> {
+    let email = value.trim().to_ascii_lowercase();
+    if email.is_empty() || !email.contains('@') {
+        return Err(ApiError::unprocessable("a valid email is required"));
+    }
+    Ok(email)
+}
+
+fn normalize_required_phone(value: &str) -> Result<String, ApiError> {
+    let phone = value.trim().to_string();
+    if !is_valid_contact_phone(&phone) {
+        return Err(ApiError::unprocessable("a valid phone number is required"));
+    }
+    Ok(phone)
+}
+
+fn is_valid_contact_phone(phone: &str) -> bool {
+    phone
+        .chars()
+        .filter(|character| character.is_ascii_digit())
+        .count()
+        >= 10
+}
+
+fn signup_otp_destination(channel: &str, destination: &str) -> String {
+    match channel {
+        "email" => format!("signup-email:{destination}"),
+        _ => format!("signup-phone:{destination}"),
+    }
+}
+
+fn annotated_delivery_note(recipient_name: &str, delivery_note: Option<String>) -> String {
+    match delivery_note {
+        Some(note) if !note.trim().is_empty() => {
+            format!("Teslim alacak: {recipient_name}\n{note}")
+        }
+        _ => format!("Teslim alacak: {recipient_name}"),
+    }
 }
 
 fn tenant_slug(value: String) -> Result<String, ApiError> {
@@ -1545,6 +1728,36 @@ fn invalid_credentials() -> ApiError {
     ApiError {
         status: StatusCode::UNAUTHORIZED,
         detail: "invalid credentials or tenant access".into(),
+    }
+}
+
+async fn deliver_otp_email(state: &AppState, email: &str, code: &str) -> Result<(), String> {
+    let Some(url) = &state.email_provider_url else {
+        return Ok(());
+    };
+    let client = reqwest::Client::new();
+    let mut request = client
+        .post(url)
+        .header("content-type", "application/json")
+        .body(
+            json!({
+                "to": email,
+                "subject": "Qervon doğrulama kodu",
+                "text": format!("Qervon e-posta doğrulama kodunuz: {code}"),
+            })
+            .to_string(),
+        );
+    if let Some(token) = &state.email_provider_bearer_token {
+        request = request.bearer_auth(token.as_ref());
+    }
+    let response = request.send().await.map_err(|error| error.to_string())?;
+    if response.status().is_success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "email provider responded with {}",
+            response.status()
+        ))
     }
 }
 
@@ -2501,14 +2714,14 @@ async fn courier_deliver_order(
 ) -> Result<Json<OrderResponse>, ApiError> {
     let order_id = OrderId(order_id);
     require_courier_order(&state, order_id, &claims).await?;
-    if !request.qr_barcode_verified
-        && request.digital_signature_base64.is_none()
-        && request.photo_evidence_url.is_none()
-    {
+    if request.recipient_name.trim().is_empty() {
         return Err(ApiError::unprocessable(
-            "QR verification, signature, or photo evidence is required",
+            "recipient name is required to complete delivery",
         ));
     }
+    // QR/barcode is optional: the person receiving the package often does
+    // not have the customer app. Photo and signature remain available as
+    // extra evidence when the courier can collect them.
     let proof = qervon_domain::ProofOfDeliveryRecord::new(
         order_id.0,
         claims.subject,
@@ -2547,6 +2760,16 @@ async fn courier_deliver_order(
 
 const MAX_UPLOAD_BYTES: usize = 8 * 1024 * 1024;
 
+fn image_extension(content_type: Option<&str>, bytes: &[u8]) -> Option<&'static str> {
+    match content_type {
+        Some("image/jpeg" | "image/jpg") => Some("jpg"),
+        Some("image/png") => Some("png"),
+        _ if bytes.starts_with(&[0xFF, 0xD8, 0xFF]) => Some("jpg"),
+        _ if bytes.starts_with(&[0x89, 0x50, 0x4E, 0x47]) => Some("png"),
+        _ => None,
+    }
+}
+
 #[derive(serde::Serialize, utoipa::ToSchema)]
 struct UploadedFileResponse {
     /// Pass this back as `photo_evidence_url` on
@@ -2580,11 +2803,7 @@ async fn upload_delivery_photo(
             .await
             .map_err(|_| ApiError::unprocessable("invalid multipart upload body"))?;
         let Some(field) = field else { break };
-        let extension = match field.content_type() {
-            Some("image/jpeg") => "jpg",
-            Some("image/png") => "png",
-            _ => continue,
-        };
+        let content_type = field.content_type().map(str::to_owned);
         let bytes = field
             .bytes()
             .await
@@ -2592,6 +2811,9 @@ async fn upload_delivery_photo(
         if bytes.is_empty() {
             continue;
         }
+        let Some(extension) = image_extension(content_type.as_deref(), &bytes) else {
+            continue;
+        };
         if bytes.len() > MAX_UPLOAD_BYTES {
             return Err(ApiError::unprocessable(
                 "uploaded file exceeds the 8 MB limit",
@@ -2621,7 +2843,7 @@ async fn upload_delivery_photo(
 
     let Some((_, filename)) = saved else {
         return Err(ApiError::unprocessable(
-            "no image file provided (expected a multipart field with content-type image/jpeg or image/png)",
+            "no image file provided (expected a JPEG or PNG photo)",
         ));
     };
     Ok(Json(UploadedFileResponse {
@@ -3911,17 +4133,17 @@ async fn create_customer_order(
         .as_deref()
         .map(str::trim)
         .filter(|phone| !phone.is_empty());
-    if contact_phone.is_none_or(|phone| {
-        phone
-            .chars()
-            .filter(|character| character.is_ascii_digit())
-            .count()
-            < 10
-    }) {
+    if contact_phone.is_none_or(|phone| !is_valid_contact_phone(phone)) {
         return Err(ApiError::unprocessable(
             "a valid contact phone number is required",
         ));
     }
+    let recipient_name = request
+        .recipient_name
+        .as_deref()
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .ok_or_else(|| ApiError::unprocessable("recipient name is required"))?;
     if request
         .payment_method
         .as_deref()
@@ -3987,7 +4209,10 @@ async fn create_customer_order(
             dropoff,
             fare: Money::new(fare_amount_minor, quote.currency)?,
             payment_method,
-            delivery_note: request.delivery_note,
+            delivery_note: Some(annotated_delivery_note(
+                recipient_name,
+                request.delivery_note,
+            )),
             contact_phone: contact_phone.map(str::to_owned),
         })
         .await?;
@@ -3998,6 +4223,121 @@ async fn create_customer_order(
     // state that the admin dispatcher can resolve manually).
     offer_for_tenant(&state, order.id, tenant_id).await?;
     Ok((StatusCode::CREATED, Json((&order).into())))
+}
+
+#[derive(Serialize)]
+struct BulkOrderCreatedResponse {
+    reference: String,
+    order: OrderResponse,
+}
+
+#[derive(Serialize)]
+struct BulkOrderImportResponse {
+    requested_count: usize,
+    created_count: usize,
+    orders: Vec<BulkOrderCreatedResponse>,
+}
+
+struct PreparedBulkOrder {
+    reference: String,
+    pickup: Address,
+    dropoff: Address,
+    fare: Money,
+    payment_method: qervon_domain::PaymentMethod,
+    delivery_note: Option<String>,
+    contact_phone: String,
+    recipient_name: String,
+}
+
+/// Imports up to 100 customer orders from one RFC 4180 CSV document.
+///
+/// The complete file, every coordinate, every phone number, every payment
+/// method and every tenant fare is validated before the first order is
+/// persisted. Customer identity and tenant ownership always come from the
+/// signed session; the CSV contract intentionally has no customer or fare
+/// field that a client could manipulate.
+async fn import_customer_orders(
+    State(state): State<AppState>,
+    Extension(claims): Extension<AccessClaims>,
+    body: Bytes,
+) -> Result<(StatusCode, Json<BulkOrderImportResponse>), ApiError> {
+    if body.is_empty() {
+        return Err(ApiError::unprocessable("CSV dosyası boş"));
+    }
+    let csv_content = std::str::from_utf8(&body)
+        .map_err(|_| ApiError::unprocessable("CSV dosyası UTF-8 kodlamasında olmalıdır"))?;
+    let rows = BulkOrderParser::parse_csv(csv_content).map_err(ApiError::unprocessable)?;
+    let tenant_id = TenantId(claims.tenant_id);
+
+    // This first pass performs every fallible input/pricing check before any
+    // order is written. It prevents a malformed later row from producing a
+    // half-imported file.
+    let mut prepared = Vec::with_capacity(rows.len());
+    for row in rows {
+        let pickup = Address {
+            location: Location::new(row.pickup_latitude, row.pickup_longitude)?,
+            label: Some(row.pickup_label),
+        };
+        let dropoff = Address {
+            location: Location::new(row.dropoff_latitude, row.dropoff_longitude)?,
+            label: Some(row.dropoff_label),
+        };
+        let quote = state
+            .pricing
+            .quote_fare(tenant_id, &pickup.location, &dropoff.location)
+            .await?;
+        let payment_method = row
+            .payment_method
+            .as_deref()
+            .unwrap_or("cash")
+            .parse::<qervon_domain::PaymentMethod>()
+            .map_err(|_| ApiError::unprocessable("invalid payment method"))?;
+        prepared.push(PreparedBulkOrder {
+            reference: row.reference,
+            pickup,
+            dropoff,
+            fare: Money::new(quote.fare_minor, quote.currency)?,
+            payment_method,
+            delivery_note: row.delivery_note,
+            contact_phone: row.contact_phone,
+            recipient_name: row.recipient_name,
+        });
+    }
+
+    let requested_count = prepared.len();
+    let mut created = Vec::with_capacity(requested_count);
+    for row in prepared {
+        let order = state
+            .orders
+            .create_order(CreateOrderInput {
+                customer_id: claims.subject,
+                pickup: row.pickup,
+                dropoff: row.dropoff,
+                fare: row.fare,
+                payment_method: Some(row.payment_method),
+                delivery_note: Some(annotated_delivery_note(
+                    &row.recipient_name,
+                    row.delivery_note,
+                )),
+                contact_phone: Some(row.contact_phone),
+            })
+            .await?;
+        state.tenants.bind_order(tenant_id, order.id).await?;
+        offer_for_tenant(&state, order.id, tenant_id).await?;
+        created.push(BulkOrderCreatedResponse {
+            reference: row.reference,
+            order: (&order).into(),
+        });
+    }
+
+    Ok((
+        StatusCode::CREATED,
+        Json(BulkOrderImportResponse {
+            requested_count,
+            created_count: created.len(),
+            orders: created,
+        }),
+    ))
 }
 
 /// Offers a newly created order to the best-ranked available courier within

@@ -38,11 +38,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qervon.core.designsystem.QervonColors
@@ -60,6 +60,7 @@ fun LoginScreen(
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -109,16 +110,29 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                 )
-                OutlinedTextField(
+                PasswordField(
                     value = state.password,
                     onValueChange = viewModel::onPasswordChanged,
-                    label = { Text("Parola") },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    modifier = Modifier.fillMaxWidth(),
+                    label = "Parola",
+                    visible = passwordVisible,
+                    onToggle = { passwordVisible = !passwordVisible },
                 )
                 QervonPrimaryButton(text = "Giriş yap", onClick = viewModel::submitPasswordLogin, isLoading = state.isLoading)
+                TextButton(onClick = viewModel::toggleForgotPassword, modifier = Modifier.fillMaxWidth()) {
+                    Text("Şifremi unuttum")
+                }
+                if (state.showForgotPassword) {
+                    OutlinedTextField(
+                        value = state.forgotEmail,
+                        onValueChange = viewModel::onForgotEmailChanged,
+                        label = { Text("Sıfırlama e-postası") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    QervonPrimaryButton(text = "Sıfırlama bağlantısı gönder", onClick = viewModel::submitForgotPassword, isLoading = state.isLoading)
+                    state.forgotMessage?.let { Text(it, color = QervonColors.OnSurfaceMuted) }
+                }
             } else {
                 OutlinedTextField(
                     value = state.phone,

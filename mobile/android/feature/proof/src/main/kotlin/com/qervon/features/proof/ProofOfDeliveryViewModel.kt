@@ -47,7 +47,7 @@ data class ProofUiState(
     val errorMessage: String? = null,
 ) {
     val canSubmit: Boolean
-        get() = recipientName.isNotBlank() && (qrBarcodeVerified || signatureBase64 != null || localPhotoPath != null)
+        get() = recipientName.isNotBlank() && !isSubmitting
 }
 
 sealed class ProofEvent {
@@ -90,7 +90,7 @@ class ProofOfDeliveryViewModel @Inject constructor(private val api: QervonApi) :
     fun submit(orderId: String) {
         val state = _uiState.value
         if (!state.canSubmit) {
-            _uiState.value = state.copy(errorMessage = "Alıcı adı ve en az bir teslim kanıtı (QR, imza veya fotoğraf) gerekli.")
+            _uiState.value = state.copy(errorMessage = "Teslim alan kişinin adı zorunludur. QR/barkod opsiyoneldir.")
             return
         }
         viewModelScope.launch {

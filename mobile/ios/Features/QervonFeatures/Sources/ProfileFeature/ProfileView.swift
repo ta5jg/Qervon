@@ -139,7 +139,7 @@ public struct ProfileView: View {
                 Text("Sunucu Adresi (gelişmiş)")
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(QervonColor.textPrimary)
-                Text("Simülatörde varsayılan olarak \(APIEnvironment.defaultBaseURL.absoluteString) kullanılır. Gerçek bir cihazda test ederken Mac'inizin ağ adresini girin.")
+                Text("Varsayılan canlı sunucu: \(APIEnvironment.defaultBaseURL.absoluteString). Yalnızca yerel geliştirmede Mac'inizin ağ adresini girin; canlı sunucuya dönmek için alanı boş kaydedin.")
                     .font(.system(size: 12))
                     .foregroundColor(QervonColor.textSecondary)
                 QervonTextField(title: "http://192.168.x.x:8080", text: $serverOverride, autocapitalize: false)

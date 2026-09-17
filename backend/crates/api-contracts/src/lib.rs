@@ -51,6 +51,9 @@ pub struct CreateCustomerOrderRequest {
     pub delivery_note: Option<String>,
     /// A contact number for the courier to reach at the dropoff.
     pub contact_phone: Option<String>,
+    /// Name of the person who will receive the package. Required because
+    /// that person may not be the account holder and may not use the app.
+    pub recipient_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

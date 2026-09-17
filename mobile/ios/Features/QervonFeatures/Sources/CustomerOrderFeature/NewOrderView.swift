@@ -85,8 +85,9 @@ public struct NewOrderView: View {
 
                         QervonTextField(title: "Kupon Kodu (opsiyonel)", text: $viewModel.couponCode, autocapitalize: false)
                         QervonTextField(title: "Teslimat Notu (opsiyonel)", text: $viewModel.deliveryNote)
+                        QervonTextField(title: "Teslim alacak kişinin adı", text: $viewModel.recipientName)
                         QervonTextField(
-                            title: "İletişim Telefonu", text: $viewModel.contactPhone, keyboard: .phonePad
+                            title: "Teslim alacak kişinin telefonu", text: $viewModel.contactPhone, keyboard: .phonePad
                         )
 
                         if let errorMessage = viewModel.errorMessage {

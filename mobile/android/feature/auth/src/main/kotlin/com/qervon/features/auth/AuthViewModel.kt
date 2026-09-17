@@ -47,6 +47,9 @@ data class AuthUiState(
     val devCodeHint: String? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
+    val forgotEmail: String = "",
+    val forgotMessage: String? = null,
+    val showForgotPassword: Boolean = false,
 )
 
 sealed class AuthEvent {
@@ -74,6 +77,35 @@ class AuthViewModel @Inject constructor(
     fun onPasswordChanged(value: String) = update { it.copy(password = value) }
     fun onPhoneChanged(value: String) = update { it.copy(phone = value) }
     fun onOtpCodeChanged(value: String) = update { it.copy(otpCode = value) }
+    fun onForgotEmailChanged(value: String) = update { it.copy(forgotEmail = value) }
+    fun toggleForgotPassword() = update {
+        it.copy(
+            showForgotPassword = !it.showForgotPassword,
+            forgotEmail = it.forgotEmail.ifBlank { it.email },
+            forgotMessage = null,
+        )
+    }
+
+    fun submitForgotPassword() {
+        val state = _uiState.value
+        val email = state.forgotEmail.ifBlank { state.email }.trim()
+        if (email.isBlank()) {
+            update { it.copy(forgotMessage = "Sıfırlama için e-posta girin.") }
+            return
+        }
+        launchGuarded {
+            val devUrl = api.forgotPassword(email)
+            update {
+                it.copy(
+                    forgotMessage = if (devUrl.isNullOrBlank()) {
+                        "Bu e-posta kayıtlıysa sıfırlama bağlantısı gönderildi."
+                    } else {
+                        "Geliştirme sıfırlama bağlantısı: $devUrl"
+                    },
+                )
+            }
+        }
+    }
 
     fun submitPasswordLogin() {
         val state = _uiState.value

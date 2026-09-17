@@ -58,7 +58,7 @@ fun PickupProofScreen(
         modifier = Modifier.fillMaxSize().padding(QervonSpacing.lg),
         verticalArrangement = Arrangement.spacedBy(QervonSpacing.md),
     ) {
-        Text("Teslim alma fotoğrafı çekildi.")
+        Text("Fotoğraf hazır. Devam edince sunucuya yüklenecek.")
         Text(
             "Fotoğraf sunucuya yüklendikten sonra sipariş yolda durumuna geçirilecek.",
             color = QervonColors.OnSurfaceMuted,

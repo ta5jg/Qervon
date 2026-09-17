@@ -67,12 +67,28 @@ across pages (the closest thing to a shared piece is
   risk (a compromised or unexpectedly-changed "latest" build runs with
   full page privileges).
 
+## Bulk CSV order import
+
+The customer portal implements bulk creation through
+`POST /v1/customer/orders/bulk`. The browser uploads an RFC 4180 UTF-8 CSV
+body (maximum 1 MB / 100 rows) and renders the returned client reference,
+order number, authoritative fare and status for every created order. The
+downloadable template is the canonical column contract.
+
+Security and consistency rules are enforced server-side:
+
+- customer and tenant ownership come only from the authenticated session;
+- client-supplied fare, currency, customer or unknown columns are rejected;
+- all rows, coordinates, phone numbers and tenant fare quotes are validated
+  before the first order is created;
+- `reference` must be unique within the uploaded file;
+- QR payment stays disabled, matching single-order creation.
+
+Native `.xlsx` parsing is deliberately not shipped. Excel, Numbers and other
+spreadsheet users save the provided template as CSV before upload.
+
 ## What is deliberately not built (rather than faked)
 
-- **Bulk Excel/CSV order import** — the "Toplu Excel Yükle" tab exists in
-  `customer.html` but is a disabled button with an honest "not yet
-  implemented" note; there is no backend upload endpoint (see
-  BACKEND_BACKLOG.md).
 - **Browser-based camera QR/photo capture** — `mobile-courier.html`'s POD
   tab offers a manual "QR doğrulandı" checkbox instead of a fake
   camera-scan button; a real implementation would need `getUserMedia()`
@@ -97,3 +113,4 @@ across pages (the closest thing to a shared piece is
 | 0.1.0 | 2026-08-05 | Placeholder generated from source PDFs, describing a React/TypeScript platform. |
 | 0.2.0 | 2026-08-12 | Rewritten to describe the real vanilla HTML/JS architecture. |
 | 0.3.0 | 2026-08-12 | Added the per-page conventions established during the security/functionality audit. |
+| 0.4.0 | 2026-08-22 | Added the authenticated, server-priced bulk CSV order workflow and its safety boundary. |

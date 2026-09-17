@@ -51,8 +51,28 @@ class QervonApi(
 ) {
     // ---- Auth ----
 
-    suspend fun register(email: String, displayName: String, password: String, tenantSlug: String?) {
-        call { service.register(RegisterAccountBody(email, displayName, password, tenantSlug)) }
+    suspend fun register(
+        email: String,
+        displayName: String,
+        password: String,
+        tenantSlug: String,
+        phone: String,
+        emailOtp: String,
+        phoneOtp: String,
+    ) {
+        call {
+            service.register(
+                RegisterAccountBody(email, displayName, password, tenantSlug, phone, emailOtp, phoneOtp),
+            )
+        }
+    }
+
+    suspend fun requestSignupVerification(tenantSlug: String, channel: String, destination: String): String? {
+        return call { service.requestVerification(VerificationRequestBody(tenantSlug, channel, destination)) }.devCode
+    }
+
+    suspend fun forgotPassword(email: String): String? {
+        return call { service.forgotPassword(PasswordForgotBody(email)) }.devResetUrl
     }
 
     suspend fun login(email: String, password: String, tenantSlug: String): AuthTokens {
@@ -149,8 +169,11 @@ class QervonApi(
         paymentMethod: String?,
         deliveryNote: String?,
         contactPhone: String?,
+        recipientName: String?,
     ): Order = call {
-        service.createOrder(CreateCustomerOrderBody(pickup, dropoff, couponCode, paymentMethod, deliveryNote, contactPhone))
+        service.createOrder(
+            CreateCustomerOrderBody(pickup, dropoff, couponCode, paymentMethod, deliveryNote, contactPhone, recipientName),
+        )
     }
 
     suspend fun listCustomerOrders(): List<Order> = call { service.listCustomerOrders() }

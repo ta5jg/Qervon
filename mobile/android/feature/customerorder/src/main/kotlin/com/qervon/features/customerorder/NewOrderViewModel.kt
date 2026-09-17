@@ -42,13 +42,14 @@ data class NewOrderUiState(
     val couponCode: String = "",
     val paymentMethod: String = "cash",
     val deliveryNote: String = "",
+    val recipientName: String = "",
     val contactPhone: String = "",
     val fareQuote: FareQuote? = null,
     val isQuoting: Boolean = false,
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
 ) {
-    val canSubmit: Boolean get() = pickup != null && dropoff != null && contactPhone.count { it.isDigit() } >= 10 && !isSubmitting
+    val canSubmit: Boolean get() = pickup != null && dropoff != null && recipientName.isNotBlank() && contactPhone.count { it.isDigit() } >= 10 && !isSubmitting
 }
 
 sealed class NewOrderEvent {
@@ -86,6 +87,10 @@ class NewOrderViewModel @Inject constructor(private val api: QervonApi) : ViewMo
         _uiState.value = _uiState.value.copy(deliveryNote = value)
     }
 
+    fun onRecipientNameChanged(value: String) {
+        _uiState.value = _uiState.value.copy(recipientName = value)
+    }
+
     fun onContactPhoneChanged(value: String) {
         _uiState.value = _uiState.value.copy(contactPhone = value)
     }
@@ -111,8 +116,12 @@ class NewOrderViewModel @Inject constructor(private val api: QervonApi) : ViewMo
         val state = _uiState.value
         val pickup = state.pickup ?: return
         val dropoff = state.dropoff ?: return
+        if (state.recipientName.isBlank()) {
+            _uiState.value = state.copy(errorMessage = "Teslim alacak kişinin adı zorunludur.")
+            return
+        }
         if (state.contactPhone.count { it.isDigit() } < 10) {
-            _uiState.value = state.copy(errorMessage = "Geçerli bir iletişim telefon numarası girin.")
+            _uiState.value = state.copy(errorMessage = "Teslim alacak kişi için geçerli bir telefon numarası girin.")
             return
         }
         viewModelScope.launch {
@@ -125,6 +134,7 @@ class NewOrderViewModel @Inject constructor(private val api: QervonApi) : ViewMo
                     paymentMethod = state.paymentMethod,
                     deliveryNote = state.deliveryNote.trim().ifBlank { null },
                     contactPhone = state.contactPhone.trim().ifBlank { null },
+                    recipientName = state.recipientName.trim().ifBlank { null },
                 )
                 _events.tryEmit(NewOrderEvent.Created(order))
                 _uiState.value = NewOrderUiState()
